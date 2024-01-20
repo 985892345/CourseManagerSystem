@@ -69,7 +69,8 @@ ktor-engines-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "kt
 androidWheel-extensions-android = { module = "io.github.985892345:extensions-android", version.ref = "androidWheel" }
 ktor-fit-annotation = { module = "io.github.qdsfdhvh:ktor-fit-annotation", version.ref = "ktor-fit" }
 ktor-fit-ksp = { module = "io.github.qdsfdhvh:ktor-fit-ksp", version.ref = "ktor-fit" }
-multiplatform-settings = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatformSettings" }
+multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatformSettings" }
+multiplatform-settingsNoArg = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatformSettings" }
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 compose-gradlePlugin = { module = "org.jetbrains.compose:compose-gradle-plugin", version.ref = "compose-plugin" }

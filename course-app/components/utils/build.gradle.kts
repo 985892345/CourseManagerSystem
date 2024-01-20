@@ -10,6 +10,7 @@ kotlin {
       api(libs.kotlinx.datetime)
       api(libs.kotlinx.serialization)
       api(libs.multiplatform.settings)
+      implementation(libs.multiplatform.settingsNoArg)
     }
   }
 }
