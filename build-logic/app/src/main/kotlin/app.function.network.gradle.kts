@@ -1,5 +1,4 @@
 import extensions.libsLibrary
-import extensions.libsVersion
 
 plugins {
   com.google.devtools.ksp
@@ -10,13 +9,13 @@ kotlin {
   sourceSets {
     commonMain.dependencies {
       implementation(libsLibrary("ktor-fit-annotation"))
-      implementation(project("course-app:components:network"))
+      implementation(rootProject.project("course-app:functions:network"))
     }
   }
 }
 
 dependencies {
-  val ktorfitKsp = libsVersion("ktor-fit-ksp")
+  val ktorfitKsp = libsLibrary("ktor-fit-ksp")
   add("kspAndroid", ktorfitKsp)
   add("kspDesktop", ktorfitKsp)
   add("kspIosX64", ktorfitKsp)

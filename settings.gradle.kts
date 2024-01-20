@@ -8,6 +8,8 @@ pluginManagement {
     gradlePluginPortal()
     google()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") // mavenCentral 快照仓库
+    mavenLocal()
   }
 }
 
@@ -23,34 +25,46 @@ dependencyResolutionManagement {
     google()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") // mavenCentral 快照仓库
+    mavenLocal()
   }
 }
 
-// course-app
-// applications
-include("course-app:applications:pro")
 
-// components
-include("course-app:components:network")
-include("course-app:components:platform")
-include("course-app:components:utils")
+/////////////  自动 include 模块  ///////////
 
-// functions
-include("course-app:functions:account")
+// 需要删除模块时写这里面，将不再进行 include，直接写模块名即可
+val excludeList: List<String> = listOf(
+)
 
-// pages
-include("course-app:pages:course")
+fun includeModule(topName: String, file: File) {
+  if (!file.resolve("settings.gradle.kts").exists()) {
+    if (file.resolve("build.gradle.kts").exists()) {
+      var path = ""
+      var nowFile = file
+      while (nowFile.name != topName) {
+        path = ":${nowFile.name}$path"
+        nowFile = nowFile.parentFile
+      }
+      path = "${topName}$path"
+      include(path)
+    }
+  }
+  // 递归寻找所有子模块
+  file.listFiles()?.filter {
+    it.name != "src" // 去掉 src 文件夹
+        && it.name != "build"
+        && it.name != "iosApp"
+        && !it.resolve("settings.gradle.kts").exists() // 去掉独立的项目模块，比如 build-logic
+        && !excludeList.contains(it.name) // 去掉被忽略的模块
+  }?.forEach {
+    includeModule(topName, it)
+  }
+}
 
-
-// course-backend
-include("course-backend")
-
-
-// course-server
-include("course-server")
-
-// course-shared
-include("course-shared:app")
-include("course-shared:backend")
-include("course-shared:base")
-/////////////////
+includeModule("course-app", rootDir.resolve("course-app"))
+includeModule("course-backend", rootDir.resolve("course-backend"))
+includeModule("course-server", rootDir.resolve("course-server"))
+includeModule("course-shared", rootDir.resolve("course-shared"))
+/**
+ * 如果你使用 AS 自带的模块模版，他会自动添加 include()，请删除掉，因为上面会自动读取
+ */

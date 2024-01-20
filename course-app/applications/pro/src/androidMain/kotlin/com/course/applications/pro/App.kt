@@ -1,6 +1,7 @@
 package com.course.applications.pro
 
 import android.app.Application
+import com.g985892345.provider.coursemanagersystem.courseapp.applications.pro.ProKtProviderInitializer
 
 /**
  * .
@@ -9,5 +10,8 @@ import android.app.Application
  * @date 2024/1/12 20:56
  */
 class App : Application() {
-
+  override fun onCreate() {
+    super.onCreate()
+    ProKtProviderInitializer.tryInitKtProvider()
+  }
 }

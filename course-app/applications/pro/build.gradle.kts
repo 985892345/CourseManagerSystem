@@ -1,5 +1,6 @@
 plugins {
   id("app.base.application")
+  id("app.function.provider")
 }
 
 composeApplication {
@@ -13,7 +14,13 @@ composeApplication {
 kotlin {
   sourceSets {
     commonMain.dependencies {
+      implementation(projects.courseApp.components.base)
       implementation(projects.courseApp.pages.course)
+      implementation(libs.voyager.navigator)
+      implementation(libs.voyager.screenmodel)
+      implementation(libs.voyager.transitions)
+      implementation(libs.voyager.tabNavigator)
+      implementation(libs.voyager.bottomSheetNavigator)
     }
   }
 }
