@@ -6,8 +6,10 @@ plugins {
 kotlin {
   sourceSets {
     commonMain.dependencies {
-      implementation(projects.courseApp.components.platform)
       implementation(libs.ktProvider.manager)
+      api(libs.kotlinx.datetime)
+      api(libs.kotlinx.serialization)
+      api(libs.multiplatform.settings)
     }
   }
 }

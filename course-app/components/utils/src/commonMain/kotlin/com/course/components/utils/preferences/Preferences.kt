@@ -1,4 +1,4 @@
-package com.course.components.platform
+package com.course.components.utils.preferences
 
 import com.russhwolf.settings.Settings
 

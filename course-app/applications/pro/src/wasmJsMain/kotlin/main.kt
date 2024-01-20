@@ -1,9 +1,9 @@
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.CanvasBasedWindow
-import com.g985892345.provider.coursemanagersystem.courseapp.applications.pro.ProKtProviderInitializer
+import com.course.applications.pro.ProApp
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-  ProKtProviderInitializer.tryInitKtProvider()
+  ProApp.initApp()
   CanvasBasedWindow(canvasElementId = "ComposeTarget") {
     TestCompose()
   }

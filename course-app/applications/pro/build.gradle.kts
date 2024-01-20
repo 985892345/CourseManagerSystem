@@ -15,6 +15,7 @@ kotlin {
   sourceSets {
     commonMain.dependencies {
       implementation(projects.courseApp.components.base)
+      implementation(projects.courseApp.components.utils)
       implementation(projects.courseApp.pages.course)
       implementation(libs.voyager.navigator)
       implementation(libs.voyager.screenmodel)
