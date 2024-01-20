@@ -1,6 +1,7 @@
 package com.course.functions.network
 
 import com.course.components.utils.provider.Provider
+import com.course.functions.network.api.IClientInitializer
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -31,7 +32,7 @@ object Network {
     HttpClient {
       defaultConfig(this)
       Provider.getAllImpl(IClientInitializer::class).forEach {
-        it.value.get().init(this)
+        it.value.get().initClientConfig(this)
       }
     }
   }

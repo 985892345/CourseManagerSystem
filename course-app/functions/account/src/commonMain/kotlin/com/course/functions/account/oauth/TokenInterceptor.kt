@@ -1,6 +1,6 @@
 package com.course.functions.account.oauth
 
-import com.course.functions.network.IClientInitializer
+import com.course.functions.network.api.IClientInitializer
 import com.g985892345.provider.api.annotation.ImplProvider
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -33,7 +33,7 @@ object TokenInterceptor : IClientInitializer {
     }
   }
 
-  override fun init(config: HttpClientConfig<*>) {
+  override fun initClientConfig(config: HttpClientConfig<*>) {
     config.install(plugin)
   }
 

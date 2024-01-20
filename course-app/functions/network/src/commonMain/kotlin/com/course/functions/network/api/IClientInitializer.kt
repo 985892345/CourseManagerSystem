@@ -1,4 +1,4 @@
-package com.course.functions.network
+package com.course.functions.network.api
 
 import io.ktor.client.HttpClientConfig
 
@@ -9,5 +9,5 @@ import io.ktor.client.HttpClientConfig
  * @date 2024/1/20 15:10
  */
 interface IClientInitializer {
-  fun init(config: HttpClientConfig<*>)
+  fun initClientConfig(config: HttpClientConfig<*>)
 }
