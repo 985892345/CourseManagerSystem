@@ -4,8 +4,7 @@ import com.course.components.utils.preferences.Preferences
 import com.course.functions.network.Network
 import com.course.shared.app.oauth.IRefreshTokenBean
 import com.course.shared.app.oauth.OauthApi
-import com.russhwolf.settings.get
-import com.russhwolf.settings.set
+import com.russhwolf.settings.nullableString
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.post
@@ -41,24 +40,20 @@ internal object Token {
   @Volatile
   private var tokenBean: RefreshTokenBean? = tryGetTokenFromCache()
 
-  private const val KEY_TOKEN = "token"
+  private var tokenBeanPreferences by Preferences.nullableString("token")
 
   fun updateToken(token: RefreshTokenBean?) {
-    this.tokenBean = token
-    if (token != null) {
-      Preferences[KEY_TOKEN] = Json.encodeToString(token)
-    } else {
-      Preferences.remove(KEY_TOKEN)
-    }
+    tokenBean = token
+    tokenBeanPreferences = token?.let { Json.encodeToString(it) }
   }
 
   private fun tryGetTokenFromCache(): RefreshTokenBean? {
-    val jsonBean = Preferences.get<String>(KEY_TOKEN)
+    val jsonBean = tokenBeanPreferences
     if (jsonBean != null) {
       try {
         return Json.decodeFromString(jsonBean)
       } catch (e: Exception) {
-        Preferences.remove(KEY_TOKEN)
+        tokenBeanPreferences = null
       }
     }
     return null

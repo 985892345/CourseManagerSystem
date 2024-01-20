@@ -5,7 +5,7 @@ import com.course.functions.account.oauth.Token
 import com.course.functions.network.Network
 import com.course.shared.app.oauth.ILoginBean
 import com.course.shared.app.oauth.OauthApi
-import com.russhwolf.settings.set
+import com.russhwolf.settings.string
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.post
@@ -60,20 +60,21 @@ object AccountState {
     Logout,
   }
 
-  private const val KEY_ACCOUNT_STATE = "accountState"
+  private var accountStatePreference by Preferences.string("accountState", State.Logout.name)
 
   private fun updateState(newState: State) {
     GlobalScope.launch(Dispatchers.IO) {
-      Preferences[KEY_ACCOUNT_STATE] = newState.name
+      accountStatePreference = newState.name
       _state.emit(newState)
     }
   }
 
   private fun tryLoginFromCache(): State {
-    val oldStateName = Preferences.getString(KEY_ACCOUNT_STATE, State.Logout.name)
+    val oldStateName = accountStatePreference
     return try {
       State.valueOf(oldStateName)
     } catch (e: Exception) {
+      accountStatePreference = State.Logout.name
       State.Logout
     }.also {
       if (it == State.Logout) {
