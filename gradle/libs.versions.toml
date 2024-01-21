@@ -39,6 +39,11 @@ multiplatformSettings = "1.1.1"
 # https://github.com/adrielcafe/voyager
 voyager = "1.1.0-alpha02"
 
+# https://github.com/Lavmee/constraintlayout-compose-multiplatform
+constraintLayout = "0.3.0-alpha01"
+
+
+
 spring-boot = "3.2.1"
 
 # https://mvnrepository.com/artifact/com.alibaba/druid-spring-boot-starter
@@ -81,6 +86,7 @@ voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", vers
 voyager-bottomSheetNavigator = { module = "cafe.adriel.voyager:voyager-bottom-sheet-navigator", version.ref = "voyager" }
 voyager-tabNavigator = { module = "cafe.adriel.voyager:voyager-tab-navigator", version.ref = "voyager" }
 voyager-transitions = { module = "cafe.adriel.voyager:voyager-tab-navigator", version.ref = "voyager" }
+constraintLayout = { module = "tech.annexflow.compose:constraintlayout-compose-multiplatform", version.ref = "constraintLayout" }
 
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "spring-boot" }
 spring-boot-druid = { module = "com.alibaba:druid-spring-boot-starter", version.ref = "druid" }
