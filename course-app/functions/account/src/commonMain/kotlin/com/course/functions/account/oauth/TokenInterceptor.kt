@@ -1,6 +1,6 @@
 package com.course.functions.account.oauth
 
-import com.course.functions.network.api.IClientInitializer
+import com.course.functions.network.api.ITokenClientInitializer
 import com.g985892345.provider.api.annotation.ImplProvider
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -18,8 +18,8 @@ import kotlinx.coroutines.CompletableJob
  * @author 985892345
  * @date 2024/1/19 17:44
  */
-@ImplProvider(clazz = IClientInitializer::class, name = "TokenPlugin")
-object TokenInterceptor : IClientInitializer {
+@ImplProvider
+object TokenInterceptor : ITokenClientInitializer {
 
   private val plugin = object : HttpClientPlugin<Unit, TokenInterceptor> {
     override val key: AttributeKey<TokenInterceptor> = AttributeKey("TokenPlugin")
@@ -39,12 +39,16 @@ object TokenInterceptor : IClientInitializer {
 
   fun install(client: HttpClient) {
     client.plugin(HttpSend).intercept { request ->
-      val oldToken = Token.accessToken ?: return@intercept execute(request)
+      // 获取 accessToken，如果此时正处于刷新 token 的状态，则进行等待
+      // 如果返回 null，则直接连接，保证不需要 token 的请求也能连接(但需要 token 的请求会被后端拒绝)
+      val accessToken = Token.getOrWaitAccessToken() ?: return@intercept execute(request)
       val requestProxy = prepareRequest(request)
-      requestProxy.bearerAuth(oldToken)
+      requestProxy.bearerAuth(accessToken)
       var call = execute(requestProxy)
+      // accessToken 过期
       if (call.response.headers["AccessToken-Expiration"] == "true") {
-        val newToken = Token.tryOrWaitRefreshToken(oldToken)
+        // 尝试刷新 token，如果此时已经正处于刷新 token 的状态，则进行等待
+        val newToken = Token.tryOrWaitRefreshToken(accessToken)
         val subRequest = prepareRequest(request)
         subRequest.bearerAuth(newToken.accessToken)
         call = execute(subRequest)

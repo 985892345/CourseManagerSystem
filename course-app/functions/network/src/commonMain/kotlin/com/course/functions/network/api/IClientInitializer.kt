@@ -11,3 +11,7 @@ import io.ktor.client.HttpClientConfig
 interface IClientInitializer {
   fun initClientConfig(config: HttpClientConfig<*>)
 }
+
+interface ITokenClientInitializer : IClientInitializer
+
+interface IDebugClientInitializer : IClientInitializer

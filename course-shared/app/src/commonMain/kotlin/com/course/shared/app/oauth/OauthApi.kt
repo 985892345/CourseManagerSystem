@@ -1,5 +1,7 @@
 package com.course.shared.app.oauth
 
+import kotlinx.serialization.Serializable
+
 /**
  * .
  *
@@ -12,13 +14,19 @@ object OauthApi {
   const val Logout = "/oauth/logout"
 }
 
-interface IRefreshTokenBean {
-  val accessToken: String
-  val refreshToken: String
-}
+@Serializable
+data class RefreshTokenBean(
+  val accessToken: String,
+  val refreshToken: String,
+  val expiresIn: Long,
+)
 
-interface ILoginBean {
-  val token: IRefreshTokenBean
-}
+@Serializable
+data class LoginBean(
+  val token: RefreshTokenBean
+)
 
-interface ILogoutBean
+@Serializable
+data class ILogoutBean(
+  val result: String? = null
+)

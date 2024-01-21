@@ -3,7 +3,7 @@ package com.course.functions.account
 import com.course.components.utils.preferences.Preferences
 import com.course.functions.account.oauth.Token
 import com.course.functions.network.Network
-import com.course.shared.app.oauth.ILoginBean
+import com.course.shared.app.oauth.LoginBean
 import com.course.shared.app.oauth.OauthApi
 import com.russhwolf.settings.string
 import io.ktor.client.call.body
@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 
 /**
  * .
@@ -82,9 +81,4 @@ object AccountState {
       }
     }
   }
-
-  @Serializable
-  private class LoginBean(
-    override val token: Token.RefreshTokenBean
-  ) : ILoginBean
 }

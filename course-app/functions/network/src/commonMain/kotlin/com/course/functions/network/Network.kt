@@ -2,6 +2,8 @@ package com.course.functions.network
 
 import com.course.components.utils.provider.Provider
 import com.course.functions.network.api.IClientInitializer
+import com.course.functions.network.api.IDebugClientInitializer
+import com.course.functions.network.api.ITokenClientInitializer
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -21,23 +23,35 @@ object Network {
   /**
    * 默认 HttpClient
    *
-   * 如果需要自定义 HttpClient，请使用:
+   * 如果需要自定义 HttpClient，分为多种情况
    * ```
-   * client.config {
-   *   // 覆盖默认配置
+   * // 只需要默认的基础配置
+   * HttpClient {
+   *   defaultConfig(this)
+   * }
+   *
+   * // 如果需要 token，则添加 initTokenClientInitializer(this)
+   * HttpClient {
+   *   defaultConfig(this)
+   *   initTokenClientInitializer(this)
+   * }
+   *
+   * // 如果允许其他的 IClientInitializer (不包含 token)
+   * HttpClient {
+   *   defaultConfig(this)
+   *   initClientInitializer(this)
    * }
    * ```
    */
   val client by lazy {
     HttpClient {
       defaultConfig(this)
-      Provider.getAllImpl(IClientInitializer::class).forEach {
-        it.value.get().initClientConfig(this)
-      }
+      initTokenClientInitializer(this)
+      initClientInitializer(this)
     }
   }
 
-  private fun defaultConfig(config: HttpClientConfig<*>) {
+  fun defaultConfig(config: HttpClientConfig<*>) {
     with(config) {
       install(ContentNegotiation) {
         json(Json {
@@ -51,6 +65,21 @@ object Network {
       defaultRequest {
         url("http://127.0.0.1:8080")
       }
+      initDebugClientInitializer(this)
+    }
+  }
+
+  fun initTokenClientInitializer(config: HttpClientConfig<*>) {
+    Provider.getImplOrNull(ITokenClientInitializer::class)?.initClientConfig(config)
+  }
+
+  private fun initDebugClientInitializer(config: HttpClientConfig<*>) {
+    Provider.getImplOrNull(IDebugClientInitializer::class)?.initClientConfig(config)
+  }
+
+  fun initClientInitializer(config: HttpClientConfig<*>) {
+    Provider.getAllImpl(IClientInitializer::class).forEach {
+      it.value.get().initClientConfig(config)
     }
   }
 }
