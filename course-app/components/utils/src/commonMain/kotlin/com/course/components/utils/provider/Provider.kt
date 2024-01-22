@@ -14,31 +14,31 @@ import kotlin.reflect.KClass
  */
 object Provider {
 
-  fun <T : Any> getImplOrNull(name: String): T? =
+  fun <T : Any> implOrNull(name: String): T? =
     KtProviderManager.getImplOrNull(name)
 
-  fun <T : Any> getImplOrThrow(name: String): T =
+  fun <T : Any> impl(name: String): T =
     KtProviderManager.getImplOrThrow(name)
 
-  fun <T : Any> getImplOrNull(clazz: KClass<out T>, name: String = ""): T? =
+  fun <T : Any> implOrNull(clazz: KClass<out T>, name: String = ""): T? =
     KtProviderManager.getImplOrNull(clazz, name)
 
-  fun <T : Any> getImplOrThrow(clazz: KClass<out T>, name: String = ""): T =
+  fun <T : Any> impl(clazz: KClass<out T>, name: String = ""): T =
     KtProviderManager.getImplOrThrow(clazz, name)
 
   fun <T : Any> getAllImpl(clazz: KClass<out T>?): Map<String, ImplProviderWrapper<T>> =
     KtProviderManager.getAllImpl(clazz)
 
-  fun <T : Any> getKClassOrNull(name: String): KClass<out T>? =
+  fun <T : Any> clazzOrNull(name: String): KClass<out T>? =
     KtProviderManager.getKClassOrNull(name)
 
-  fun <T : Any> getKClassOrThrow(name: String): KClass<out T> =
+  fun <T : Any> clazz(name: String): KClass<out T> =
     KtProviderManager.getKClassOrThrow(name)
 
-  fun <T : Any> getKClassOrNull(clazz: KClass<out T>, name: String = ""): KClass<out T>? =
+  fun <T : Any> clazzOrNull(clazz: KClass<out T>, name: String = ""): KClass<out T>? =
     KtProviderManager.getKClassOrNull(clazz, name)
 
-  fun <T : Any> getKClassOrThrow(clazz: KClass<out T>, name: String = ""): KClass<out T> =
+  fun <T : Any> clazz(clazz: KClass<out T>, name: String = ""): KClass<out T> =
     KtProviderManager.getKClassOrThrow(clazz, name)
 
   fun <T : Any> getAllKClass(clazz: KClass<out T>?): Map<String, KClassProviderWrapper<T>> =
@@ -46,17 +46,23 @@ object Provider {
 }
 
 fun <T : Any> providerImpl(name: String): ReadOnlyProperty<Any, T> {
-  return ReadOnlyProperty { _, _ -> Provider.getImplOrThrow(name) }
+  return ReadOnlyProperty { _, _ -> Provider.impl(name) }
 }
 
 fun <T : Any> providerImpl(clazz: KClass<out T>, name: String = ""): ReadOnlyProperty<Any, T> {
-  return ReadOnlyProperty { _, _ -> Provider.getImplOrThrow(clazz, name) }
+  return ReadOnlyProperty { _, _ -> Provider.impl(clazz, name) }
 }
 
 fun <T : Any> providerKClass(name: String): ReadOnlyProperty<Any, KClass<out T>> {
-  return ReadOnlyProperty { _, _ -> Provider.getKClassOrThrow(name) }
+  return ReadOnlyProperty { _, _ -> Provider.clazz(name) }
 }
 
 fun <T : Any> providerKClass(clazz: KClass<out T>, name: String = ""): ReadOnlyProperty<Any, KClass<out T>> {
-  return ReadOnlyProperty { _, _ -> Provider.getKClassOrThrow(clazz, name) }
+  return ReadOnlyProperty { _, _ -> Provider.clazz(clazz, name) }
 }
+
+val <T : Any> KClass<T>.impl: T
+  get() =  Provider.impl(this)
+
+val <T : Any> KClass<T>.implOrNull: T?
+  get() =  Provider.implOrNull(this)

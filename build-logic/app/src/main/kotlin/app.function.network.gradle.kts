@@ -9,7 +9,7 @@ kotlin {
   sourceSets {
     commonMain.dependencies {
       implementation(libsLibrary("ktor-fit-annotation"))
-      implementation(rootProject.project("course-app:functions:network"))
+      implementation(rootProject.project("course-app:functions:network:api"))
     }
   }
 }

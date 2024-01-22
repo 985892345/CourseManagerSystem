@@ -12,6 +12,9 @@ compose-plugin = "1.6.0-dev1362"
 
 kotlin = "1.9.21"
 
+# https://github.com/Kotlin/kotlinx.coroutines
+kotlinx-coroutines = "1.8.0-RC2"
+
 # https://github.com/Kotlin/kotlinx.serialization
 kotlinx-serialization = "1.6.2"
 
@@ -62,6 +65,7 @@ jjwt = "0.12.3"
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 
 kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }

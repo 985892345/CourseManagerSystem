@@ -8,6 +8,7 @@ plugins {
 kotlin {
   sourceSets {
     commonMain.dependencies {
+      implementation(projects.courseApp.functions.account.api)
       implementation(projects.courseApp.components.utils)
     }
   }

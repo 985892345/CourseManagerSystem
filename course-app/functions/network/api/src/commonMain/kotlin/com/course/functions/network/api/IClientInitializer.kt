@@ -12,6 +12,8 @@ interface IClientInitializer {
   fun initClientConfig(config: HttpClientConfig<*>)
 }
 
+// 处理 token
 interface ITokenClientInitializer : IClientInitializer
 
+// debug 调试使用
 interface IDebugClientInitializer : IClientInitializer

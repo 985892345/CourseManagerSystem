@@ -2,7 +2,8 @@ package com.course.functions.account.oauth
 
 import com.course.components.utils.init.IInitialService
 import com.course.components.utils.preferences.Preferences
-import com.course.functions.network.Network
+import com.course.functions.account.api.RefreshTokenExpirationException
+import com.course.functions.network.api.Network
 import com.course.shared.app.oauth.OauthApi
 import com.course.shared.app.oauth.RefreshTokenBean
 import com.g985892345.provider.api.annotation.ImplProvider

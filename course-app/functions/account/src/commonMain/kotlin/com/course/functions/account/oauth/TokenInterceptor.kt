@@ -68,5 +68,3 @@ object TokenInterceptor : ITokenClientInitializer {
     return subRequest
   }
 }
-
-class RefreshTokenExpirationException : RuntimeException("refreshToken 过期")

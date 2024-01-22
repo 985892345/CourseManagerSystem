@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
+
 plugins {
   id("app.base.application")
   id("app.function.provider")
@@ -14,9 +16,10 @@ composeApplication {
 kotlin {
   sourceSets {
     commonMain.dependencies {
-      implementation(projects.courseApp.components.base)
-      implementation(projects.courseApp.components.utils)
-      implementation(projects.courseApp.pages.course)
+      val courseAppFile = rootDir.resolve("course-app")
+      implementationModules("components", courseAppFile.resolve("components"))
+      implementationModules("functions", courseAppFile.resolve("functions"))
+      implementationModules("pages", courseAppFile.resolve("pages"))
       implementation(libs.voyager.navigator)
       implementation(libs.voyager.screenmodel)
       implementation(libs.voyager.transitions)
@@ -26,3 +29,26 @@ kotlin {
   }
 }
 
+fun KotlinDependencyHandler.implementationModules(topName: String, file: File) {
+  if (!file.resolve("settings.gradle.kts").exists()) {
+    if (file.resolve("build.gradle.kts").exists()) {
+      var path = ""
+      var nowFile = file
+      while (nowFile.name != topName) {
+        path = ":${nowFile.name}$path"
+        nowFile = nowFile.parentFile
+      }
+      path = "course-app:${topName}$path"
+      implementation(rootProject.project(path))
+    }
+  }
+  // 递归寻找所有子模块
+  file.listFiles()?.filter {
+    it.name != "src" // 去掉 src 文件夹
+        && it.name != "build"
+        && it.name != "iosApp"
+        && !it.resolve("settings.gradle.kts").exists() // 去掉独立的项目模块，比如 build-logic
+  }?.forEach {
+    implementationModules(topName, it)
+  }
+}

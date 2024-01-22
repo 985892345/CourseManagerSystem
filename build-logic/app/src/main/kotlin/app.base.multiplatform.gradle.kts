@@ -1,3 +1,4 @@
+import extensions.libsLibrary
 import utils.Config
 
 plugins {
@@ -21,6 +22,12 @@ kotlin {
       kotlinOptions {
         jvmTarget = "1.8"
       }
+    }
+  }
+
+  sourceSets {
+    commonMain.dependencies {
+      implementation(libsLibrary("kotlinx-coroutines"))
     }
   }
 }

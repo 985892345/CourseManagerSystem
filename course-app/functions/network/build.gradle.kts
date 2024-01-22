@@ -7,9 +7,8 @@ plugins {
 kotlin {
   sourceSets {
     commonMain.dependencies {
+      implementation(projects.courseApp.functions.network.api)
       implementation(projects.courseApp.components.utils)
-      api(projects.courseShared.app)
-      api(libs.ktor.core)
       implementation(libs.ktor.contentNegotiation)
       implementation(libs.ktor.json)
     }

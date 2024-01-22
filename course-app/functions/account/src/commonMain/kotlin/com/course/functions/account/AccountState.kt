@@ -1,16 +1,21 @@
 package com.course.functions.account
 
 import com.course.components.utils.preferences.Preferences
+import com.course.functions.account.api.IAccountService
 import com.course.functions.account.oauth.Token
-import com.course.functions.network.Network
+import com.course.functions.network.api.Network
 import com.course.shared.app.oauth.LoginBean
 import com.course.shared.app.oauth.OauthApi
+import com.course.shared.base.ResponseInfo
+import com.course.shared.base.ResponseWrapper
+import com.g985892345.provider.api.annotation.ImplProvider
 import com.russhwolf.settings.string
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.Parameters
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -26,57 +31,61 @@ import kotlinx.coroutines.launch
  * @author 985892345
  * @date 2024/1/20 14:55
  */
+@ImplProvider
 @OptIn(DelicateCoroutinesApi::class)
-object AccountState {
+object AccountState : IAccountService {
 
   private val _state = MutableStateFlow(tryLoginFromCache())
-  val state: StateFlow<State> = _state.asStateFlow()
+  override val state: StateFlow<IAccountService.State> = _state.asStateFlow()
 
-  fun login(username: String, password: String) {
-    GlobalScope.launch(Dispatchers.IO) {
-      val response = Network.client.post(OauthApi.Login) {
-        setBody(FormDataContent(Parameters.build {
-          append("username", username)
-          append("password", password)
-        }))
-      }
-      val bean = response.body<LoginBean>()
-      Token.updateToken(bean.token)
-      updateState(State.Login)
+  override suspend fun login(username: String, password: String) {
+    val response = Network.client.post(OauthApi.Login) {
+      setBody(FormDataContent(Parameters.build {
+        append("username", username)
+        append("password", password)
+      }))
     }
+    if (response.status.isSuccess()) {
+      val wrapper = response.body<ResponseWrapper<LoginBean?>>()
+      val loginBean = wrapper.data
+      if (loginBean != null) {
+        Token.updateToken(loginBean.token)
+        updateState(IAccountService.State.Login)
+      } else throw IAccountService.LoginException(wrapper)
+    } else throw IAccountService.LoginException(response.body<ResponseInfo>())
   }
 
-  fun logout() {
-    GlobalScope.launch(Dispatchers.IO) {
-      Network.client.post(OauthApi.Logout)
-      Token.updateToken(null)
-      updateState(State.Logout)
-    }
+  override suspend fun logout() {
+    val response = Network.client.post(OauthApi.Logout)
+    if (response.status.isSuccess()) {
+      val wrapper = response.body<ResponseInfo>()
+      if (wrapper.isSuccess()) {
+        Token.updateToken(null)
+        updateState(IAccountService.State.Logout)
+      } else throw IAccountService.LogoutException(wrapper)
+    } else throw IAccountService.LogoutException(response.body<ResponseInfo>())
   }
 
-  enum class State {
-    Login,
-    Logout,
-  }
+  private var accountStatePreference by Preferences.string(
+    "accountState", IAccountService.State.Logout.name
+  )
 
-  private var accountStatePreference by Preferences.string("accountState", State.Logout.name)
-
-  private fun updateState(newState: State) {
+  private fun updateState(newState: IAccountService.State) {
     GlobalScope.launch(Dispatchers.IO) {
       accountStatePreference = newState.name
       _state.emit(newState)
     }
   }
 
-  private fun tryLoginFromCache(): State {
+  private fun tryLoginFromCache(): IAccountService.State {
     val oldStateName = accountStatePreference
     return try {
-      State.valueOf(oldStateName)
+      IAccountService.State.valueOf(oldStateName)
     } catch (e: Exception) {
-      accountStatePreference = State.Logout.name
-      State.Logout
+      accountStatePreference = IAccountService.State.Logout.name
+      IAccountService.State.Logout
     }.also {
-      if (it == State.Logout) {
+      if (it == IAccountService.State.Logout && Token.accessToken != null) {
         Token.updateToken(null)
       }
     }
