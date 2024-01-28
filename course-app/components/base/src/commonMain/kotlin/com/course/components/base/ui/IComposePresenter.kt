@@ -1,4 +1,4 @@
-package com.course.components.base
+package com.course.components.base.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable

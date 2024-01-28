@@ -9,6 +9,7 @@ kotlin {
   sourceSets {
     commonMain.dependencies {
       implementation(projects.courseApp.components.base)
+      implementation(projects.courseApp.components.utils)
     }
   }
 }

@@ -6,6 +6,8 @@ plugins {
 kotlin {
   sourceSets {
     commonMain.dependencies {
+      implementation(projects.courseApp.components.utils)
+      api(libs.bundles.navigator)
       api(libs.constraintLayout)
     }
   }

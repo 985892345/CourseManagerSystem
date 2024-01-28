@@ -28,6 +28,10 @@ kotlin {
   sourceSets {
     commonMain.dependencies {
       implementation(libsLibrary("kotlinx-coroutines"))
+      implementation(libsLibrary("kotlinx-collections"))
+    }
+    androidMain.dependencies {
+      implementation(libsLibrary("kotlinx-coroutinesAndroid"))
     }
   }
 }

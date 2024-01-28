@@ -1,16 +1,18 @@
 package com.course.applications.pro
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import cafe.adriel.voyager.navigator.Navigator
+import androidx.compose.ui.graphics.Color
+import com.course.components.base.BaseComposeActivity
 
-class MainActivity : ComponentActivity() {
+class MainActivity : BaseComposeActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
     setContent {
-      Navigator(TestScreen())
+      ProScreenCompose()
     }
   }
 }
+
+val color = Color(0x02365789)

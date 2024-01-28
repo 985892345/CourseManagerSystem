@@ -1,0 +1,66 @@
+package com.course.pages.course.ui.item
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+
+/**
+ * .
+ *
+ * @author 985892345
+ * @date 2024/1/25 13:03
+ */
+@Stable
+interface ICourseItemBean : Comparable<ICourseItemBean> {
+  val week: Int
+  val dayOfWeek: DayOfWeek
+  val startTime: LocalTime
+  val endTime: LocalTime
+
+  /**
+   * 数字越大，优先级越高，优先显示在上面
+   */
+  val rank: Int
+
+  @Composable
+  fun Content()
+
+  /**
+   * 返回 1 显示在上面
+   */
+  override fun compareTo(other: ICourseItemBean): Int {
+    if (this === other) return 0 // 如果是同一个对象直接返回 0
+    if (this == other && hashCode() == other.hashCode()) return 0
+    return compareDiff(other.week - week) { // 周数小的显示在上面
+      compareDiff(dayOfWeek.ordinal - other.dayOfWeek.ordinal) {
+        val s1 = startTime; val e1 = endTime
+        val s2 = endTime; val e2 = other.endTime
+        if (e1 < s1) -1 else if (e2 < s1) 1
+        // 存在重叠的时候
+        else compareDiff(other.rank - rank) {
+          if (s1 >= s2 && e1 <= e2 || s1 <= s2 && e1 >= e2) { // 包含关系
+            compareDiff((e1.toSecondOfDay() - s1.toSecondOfDay()) - (e2.toSecondOfDay() - s2.toSecondOfDay())) {
+              hashCode() - other.hashCode() // 我们假设 hashcode 不会冲突
+            }
+          } else { // 交叉关系
+            val nowTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).time
+            // 长度相同，但起始位置不同，以当前时间来计算谁在谁上面
+            compareDiff(nowTime.toSecondOfDay() - maxOf(s1, s2).toSecondOfDay()) {
+              hashCode() - other.hashCode() // 我们假设 hashcode 不会冲突
+            }
+          }
+        }
+      }
+    }
+  }
+
+  companion object {
+    inline fun compareDiff(diff: Int, block: () -> Int): Int {
+      return if (diff != 0) diff else block.invoke()
+    }
+  }
+}

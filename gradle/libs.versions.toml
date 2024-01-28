@@ -45,6 +45,8 @@ voyager = "1.1.0-alpha02"
 # https://github.com/Lavmee/constraintlayout-compose-multiplatform
 constraintLayout = "0.3.0-alpha01"
 
+# https://github.com/Kotlin/kotlinx.collections.immutable
+kotlinx-collections = "0.3.7"
 
 
 spring-boot = "3.2.1"
@@ -66,6 +68,7 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutinesAndroid = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 
 kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
@@ -91,6 +94,7 @@ voyager-bottomSheetNavigator = { module = "cafe.adriel.voyager:voyager-bottom-sh
 voyager-tabNavigator = { module = "cafe.adriel.voyager:voyager-tab-navigator", version.ref = "voyager" }
 voyager-transitions = { module = "cafe.adriel.voyager:voyager-tab-navigator", version.ref = "voyager" }
 constraintLayout = { module = "tech.annexflow.compose:constraintlayout-compose-multiplatform", version.ref = "constraintLayout" }
+kotlinx-collections = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinx-collections" }
 
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "spring-boot" }
 spring-boot-druid = { module = "com.alibaba:druid-spring-boot-starter", version.ref = "druid" }
@@ -112,3 +116,11 @@ ktProvider = { id = "io.github.985892345.KtProvider", version.ref = "ktProvider"
 
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+
+[bundles]
+navigator = [
+    "voyager-navigator",
+    "voyager-screenmodel",
+    "voyager-bottomSheetNavigator",
+    "voyager-transitions",
+]

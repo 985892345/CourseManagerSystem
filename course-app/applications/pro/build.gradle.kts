@@ -20,11 +20,6 @@ kotlin {
       implementationModules("components", courseAppFile.resolve("components"))
       implementationModules("functions", courseAppFile.resolve("functions"))
       implementationModules("pages", courseAppFile.resolve("pages"))
-      implementation(libs.voyager.navigator)
-      implementation(libs.voyager.screenmodel)
-      implementation(libs.voyager.transitions)
-      implementation(libs.voyager.tabNavigator)
-      implementation(libs.voyager.bottomSheetNavigator)
     }
   }
 }

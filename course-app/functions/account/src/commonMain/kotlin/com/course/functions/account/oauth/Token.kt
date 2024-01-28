@@ -168,7 +168,7 @@ internal object Token {
   }
 
   @ImplProvider(clazz = IInitialService::class, name = "CheckAccessTokenExpiration")
-  private object CheckAccessTokenExpiration : IInitialService {
+  object CheckAccessTokenExpiration : IInitialService {
     override fun onAppInit() {
       val token = token ?: return
       val nowTimestamp = Clock.System.now().toEpochMilliseconds()
