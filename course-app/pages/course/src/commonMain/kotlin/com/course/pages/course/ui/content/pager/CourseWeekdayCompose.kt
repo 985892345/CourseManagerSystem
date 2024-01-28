@@ -1,11 +1,13 @@
 package com.course.pages.course.ui.content.pager
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -36,9 +38,9 @@ fun CoursePagerCombine.CourseWeekdayCompose(
   modifier: Modifier = Modifier
 ) {
   Row(
-    modifier = Modifier.fillMaxSize().then(modifier)
+    modifier = Modifier.fillMaxWidth().height(52.dp).then(modifier)
   ) {
-    Box(modifier = Modifier.weight(1F)) {
+    Box(modifier = Modifier.weight(0.8F)) {
       if (monDate != null) {
         MonthCompose(month = monDate.month)
       }
@@ -77,36 +79,23 @@ private fun WeekCompose(dayOfWeek: DayOfWeek, dayOfMonth: Int?, isToday: Boolean
       .background(
         color = if (isToday) Color(0xFF2A4E84) else Color.Unspecified,
         shape = if (isToday) RoundedCornerShape(8.dp) else RectangleShape
-      )
+      ),
+    verticalArrangement = Arrangement.SpaceEvenly
   ) {
-    Box(
-      modifier = Modifier
-        .weight(1F)
-        .fillMaxWidth(),
-      contentAlignment = Alignment.Center
-    ) {
-      Text(
-        text = dayOfWeek.str,
-        textAlign = TextAlign.Center,
-        fontSize = 12.sp,
-        color = textColor
-      )
-    }
-    Box(
-      modifier = Modifier
-        .weight(1F)
-        .fillMaxWidth(),
-      contentAlignment = Alignment.Center
-    ) {
-      if (dayOfMonth != null) {
-        Text(
-          text = "${dayOfMonth}日",
-          textAlign = TextAlign.Center,
-          fontSize = 12.sp,
-          color = textColor
-        )
-      }
-    }
+    Text(
+      text = dayOfWeek.str,
+      textAlign = TextAlign.Center,
+      fontSize = 12.sp,
+      color = textColor,
+      modifier = Modifier.fillMaxWidth(),
+    )
+    Text(
+      text = if (dayOfMonth != null) "${dayOfMonth}日" else "",
+      textAlign = TextAlign.Center,
+      fontSize = 12.sp,
+      color = textColor,
+      modifier = Modifier.fillMaxWidth(),
+    )
   }
 }
 

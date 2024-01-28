@@ -25,9 +25,9 @@ object Config {
     var namespace = ""
     var p: Project? = project
     while (p != null && p.name != top) {
-      namespace = "${p.name}.$namespace"
+      namespace = ".${p.name}$namespace"
       p = p.parent
     }
-    return "com.course.$namespace"
+    return "com.course$namespace"
   }
 }

@@ -19,21 +19,17 @@ import com.course.components.base.ui.toast.ToastCompose
  * @date 2024/1/22 19:13
  */
 
-val mainScreen: Screen
-  get() = mainScreenInternal!!
+lateinit var mainScreen: Screen
+  private set
 
-private var mainScreenInternal: Screen? = null
-
-val mainNavigator: Navigator
-  get() = mainNavigatorInternal!!
-
-private var mainNavigatorInternal: Navigator? = null
+lateinit var mainNavigator: Navigator
+  private set
 
 @Composable
-fun MainPageCompose(mainScreen: Screen) {
-  mainScreenInternal = mainScreen
-  Navigator(mainScreen) {
-    mainNavigatorInternal = LocalNavigator.currentOrThrow
+fun MainPageCompose(screen: Screen) {
+  mainScreen = screen
+  Navigator(screen) {
+    mainNavigator = LocalNavigator.currentOrThrow
     Box(modifier = Modifier.fillMaxSize()) {
       CurrentScreen()
       DialogCompose()

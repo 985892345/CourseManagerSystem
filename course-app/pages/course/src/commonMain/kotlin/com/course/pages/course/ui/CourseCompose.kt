@@ -2,6 +2,8 @@ package com.course.pages.course.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.material.BottomSheetState
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
@@ -10,12 +12,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.structuralEqualityPolicy
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import com.course.components.utils.time.Today
 import com.course.components.utils.time.diffDays
 import com.course.pages.course.ui.content.CourseContentCompose
 import com.course.pages.course.ui.content.vp.CourseSemesterVpData
+import com.course.pages.course.ui.header.CourseSheetHeaderCompose
 import com.course.pages.course.ui.header.CourseTopCompose
+import com.course.pages.course.utils.FractionBox
 
 /**
  * .
@@ -42,18 +48,34 @@ import com.course.pages.course.ui.header.CourseTopCompose
  */
 @Composable
 fun CourseCompose(
+  modifier: Modifier = Modifier,
   semesterVpData: CourseSemesterVpData,
   content: @Composable ColumnScope.(CourseCombine) -> Unit = {
     it.CourseTopCompose()
     it.CourseContentCompose()
   }
 ) {
-  Column {
+  Column(modifier = Modifier.then(modifier)) {
     content(
       CourseCombine(
         semesterVpData = semesterVpData
       )
     )
+  }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun CourseCompose(
+  modifier: Modifier = Modifier,
+  bottomSheetState: BottomSheetState,
+  semesterVpData: CourseSemesterVpData,
+) {
+  CourseCompose(modifier = modifier, semesterVpData = semesterVpData) { course ->
+    course.CourseSheetHeaderCompose(bottomSheetState = bottomSheetState)
+    bottomSheetState.FractionBox {
+      course.CourseContentCompose(modifier = Modifier.alpha(it))
+    }
   }
 }
 
@@ -80,6 +102,7 @@ data class CourseCombine(
     }
   }
 }
+
 
 val LocalCourseColor = staticCompositionLocalOf { CourseColor() }
 

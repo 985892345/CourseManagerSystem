@@ -22,14 +22,17 @@ import kotlinx.collections.immutable.ImmutableList
 @Composable
 fun CourseContentCombine.CourseTermsVpCompose(
   modifier: Modifier = Modifier,
-  semesterPagerState: PagerState = rememberPagerState { terms.size },
+  semesterPagerState: PagerState = rememberPagerState(initialPage = terms.lastIndex) { terms.size },
   content: @Composable PagerScope.(Int) -> Unit = {
     CourseWeekVpCompose(
       termsVpIndex = it
     )
   }
 ) {
-  HorizontalPager(state = semesterPagerState, modifier = Modifier.then(modifier)) {
+  HorizontalPager(
+    state = semesterPagerState,
+    modifier = Modifier.then(modifier),
+  ) {
     content(it)
   }
 }

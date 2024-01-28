@@ -9,5 +9,6 @@ import androidx.compose.runtime.Composable
  * @date 2024/1/22 17:12
  */
 @Composable
-actual fun ConfigAppTheme(darkTheme: Boolean) {
+actual fun ConfigAppTheme(darkTheme: Boolean, content: @Composable () -> Unit) {
+  content()
 }

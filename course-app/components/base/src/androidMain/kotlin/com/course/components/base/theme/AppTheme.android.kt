@@ -13,7 +13,7 @@ import androidx.core.view.WindowCompat
  * @date 2024/1/22 17:12
  */
 @Composable
-actual fun ConfigAppTheme(darkTheme: Boolean) {
+actual fun ConfigAppTheme(darkTheme: Boolean, content: @Composable () -> Unit) {
   val view = LocalView.current
   if (!view.isInEditMode) {
     SideEffect {
@@ -21,4 +21,5 @@ actual fun ConfigAppTheme(darkTheme: Boolean) {
       WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
     }
   }
+  content()
 }

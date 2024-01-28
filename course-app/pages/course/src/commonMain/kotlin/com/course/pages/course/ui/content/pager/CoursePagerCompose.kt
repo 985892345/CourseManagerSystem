@@ -3,10 +3,12 @@ package com.course.pages.course.ui.content.pager
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.course.pages.course.ui.content.CourseContentCombine
 import com.course.pages.course.ui.content.pager.scroll.CourseScrollCompose
 import com.course.pages.course.ui.item.ICourseItemBean
@@ -22,7 +24,7 @@ import kotlinx.datetime.plus
 
 @Composable
 fun CourseContentCombine.CoursePagerCompose(
-  modifier: Modifier = Modifier,
+  modifier: Modifier = Modifier.padding(start = 4.dp, end = 6.dp),
   termsVpIndex: Int,
   weeksVpIndex: Int,
   content: @Composable ColumnScope.(CoursePagerCombine) -> Unit = {

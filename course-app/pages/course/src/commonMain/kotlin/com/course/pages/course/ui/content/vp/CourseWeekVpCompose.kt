@@ -8,6 +8,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
+import com.course.components.utils.time.Today
+import com.course.components.utils.time.diffDays
 import com.course.pages.course.ui.content.CourseContentCombine
 import com.course.pages.course.ui.content.pager.CoursePagerCompose
 import com.course.pages.course.ui.content.pager.CoursePagerData
@@ -26,7 +28,13 @@ import kotlinx.datetime.LocalDate
 fun CourseContentCombine.CourseWeekVpCompose(
   modifier: Modifier = Modifier,
   termsVpIndex: Int,
-  weekPagerState: PagerState = rememberPagerState { terms[termsVpIndex].weeks.size },
+  weekPagerState: PagerState = rememberPagerState(
+    initialPage = Today.diffDays(terms[termsVpIndex].firstDate)
+      .div(7)
+      .plus(1)
+      .coerceAtLeast(0)
+      .let { if (it >= terms[termsVpIndex].weeks.size) 0 else it }
+  ) { terms[termsVpIndex].weeks.size },
   content: @Composable PagerScope.(Int) -> Unit = {
     CoursePagerCompose(
       termsVpIndex = termsVpIndex,
@@ -34,7 +42,10 @@ fun CourseContentCombine.CourseWeekVpCompose(
     )
   },
 ) {
-  HorizontalPager(state = weekPagerState, modifier = Modifier.then(modifier)) {
+  HorizontalPager(
+    state = weekPagerState,
+    modifier = Modifier.then(modifier),
+  ) {
     content(it)
   }
 }

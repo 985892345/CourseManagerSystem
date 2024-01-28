@@ -15,4 +15,4 @@ class MainActivity : BaseComposeActivity() {
   }
 }
 
-val color = Color(0x02365789)
+val color = Color(0xFFF44336)

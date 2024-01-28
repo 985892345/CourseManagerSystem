@@ -13,7 +13,7 @@ import android.os.Process
  * @date 2024/1/22 17:07
  */
 @SuppressLint("DiscouragedPrivateApi")
-open class BaseComposeApp : Application() {
+abstract class BaseComposeApp : Application() {
 
   val isMainProcess: Boolean
     get() = currentProcessName == packageName

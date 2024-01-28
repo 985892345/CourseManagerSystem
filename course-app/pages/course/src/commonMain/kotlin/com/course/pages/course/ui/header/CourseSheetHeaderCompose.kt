@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomSheetState
-import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
@@ -29,15 +29,18 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.course.components.base.theme.LocalAppColors
 import com.course.components.utils.time.Today
 import com.course.pages.course.ui.CourseCombine
 import com.course.pages.course.ui.LocalCourseColor
 import com.course.pages.course.ui.item.ICourseItemBean
+import com.course.pages.course.utils.FractionBox
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transformLatest
@@ -93,7 +96,7 @@ data class CourseSheetHeaderCombine(
       it.dayOfWeek == Today.dayOfWeek ||
           it.dayOfWeek == DayOfWeek(Today.dayOfWeek.ordinal + 1)
     }.minOrNull()
-  }
+  }.distinctUntilChanged()
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -133,69 +136,54 @@ fun CourseSheetHeaderCombine.SheetHeaderTopCompose(
   }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun CourseSheetHeaderCombine.SheetHeaderContentCompose(
   modifier: Modifier = Modifier,
-  courseTop: @Composable () -> Unit = { courseCombine.CourseTopCompose() },
-  content: @Composable () -> Unit = { SheetHeaderContentWithNoLessonCompose() },
+  courseTop: @Composable BoxScope.() -> Unit = { courseCombine.CourseTopCompose() },
+  content: @Composable BoxScope.() -> Unit = { SheetHeaderContentWithNoLessonCompose() },
 ) {
-  Box(
+  bottomSheetState.FractionBox(
     modifier = Modifier.fillMaxWidth()
       .height(IntrinsicSize.Min)
       .background(LocalCourseColor.current.background)
       .then(modifier)
-  ) {
-    SheetFraction { fraction ->
-      Box(
-        modifier = Modifier.fillMaxWidth()
-          .wrapContentHeight()
-          .alpha(maxOf(0F, fraction * 2 - 1F))
-      ) {
-        courseTop()
-      }
-      Box(
-        modifier = Modifier.fillMaxSize()
-          .background(Color.Yellow)
-          .alpha(maxOf(0F, (1 - fraction) * 2 - 1F))
-      ) {
-        content()
-      }
+  ) { fraction ->
+    Box(
+      modifier = Modifier.fillMaxWidth()
+        .wrapContentHeight()
+        .alpha(maxOf(0F, fraction * 2 - 1F))
+    ) {
+      courseTop()
+    }
+    Box(
+      modifier = Modifier.fillMaxSize()
+        .alpha(maxOf(0F, (1 - fraction) * 2 - 1F))
+    ) {
+      content()
     }
   }
-}
-
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun CourseSheetHeaderCombine.SheetFraction(
-  content: @Composable (fraction: Float) -> Unit,
-) {
-  val fraction = if (bottomSheetState.progress == 1F &&
-    bottomSheetState.currentValue == bottomSheetState.targetValue
-  ) {
-    when (bottomSheetState.currentValue) {
-      BottomSheetValue.Collapsed -> 0F
-      BottomSheetValue.Expanded -> 1F
-    }
-  } else when (bottomSheetState.currentValue) {
-    BottomSheetValue.Collapsed -> bottomSheetState.progress
-    BottomSheetValue.Expanded -> 1F - bottomSheetState.progress
-  }
-  content(fraction)
 }
 
 @Composable
 fun CourseSheetHeaderCombine.SheetHeaderContentWithNoLessonCompose(
   item: ICourseItemBean? = itemFlow.collectAsState(null).value,
-  noLesson: @Composable CourseSheetHeaderCombine.() -> Unit = {
+  noLesson: @Composable () -> Unit = {
     Box(
-      modifier = Modifier.background(Color.Red),
+      modifier = Modifier.fillMaxSize(),
       contentAlignment = Alignment.Center
     ) {
-      Text(text = "今天和明天都没课咯～")
+      Text(
+        text = "今天和明天都没课咯～",
+        color = LocalAppColors.current.tvLv4,
+        fontSize = 13.sp,
+      )
     }
   },
-  content: @Composable CourseSheetHeaderCombine.() -> Unit = {
-    Text(text = "$item")
+  content: @Composable () -> Unit = {
+    Text(
+      text = "$item"
+    )
   }
 ) {
   if (item == null) {

@@ -17,7 +17,7 @@ import com.course.pages.course.ui.content.pager.CoursePagerCombine
 fun CoursePagerCombine.CourseScrollCompose(
   modifier: Modifier = Modifier,
   content: @Composable RowScope.() -> Unit = {
-    CourseTimelineCompose(modifier = Modifier.weight(1F))
+    CourseTimelineCompose(modifier = Modifier.weight(0.8F))
     CourseItemGroupCompose(modifier = Modifier.weight(7F))
   }
 ) {

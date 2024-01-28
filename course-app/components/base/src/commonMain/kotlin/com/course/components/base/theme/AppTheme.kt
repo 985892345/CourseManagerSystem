@@ -7,6 +7,8 @@ import androidx.compose.material.Typography
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 
 /**
  * .
@@ -20,17 +22,25 @@ fun AppTheme(
   darkTheme: Boolean = isSystemInDarkTheme(),
   content: @Composable () -> Unit,
 ) {
-  ConfigAppTheme(darkTheme)
-  MaterialTheme(
-    colors = if (darkTheme) DarkColor else LightColor,
-    typography = Typography,
-    shapes = Shapes,
-    content = content,
-  )
+  CompositionLocalProvider(
+    LocalAppDarkTheme provides darkTheme,
+    LocalAppColors provides if (darkTheme) AppDarkColor else AppLightColor,
+  ) {
+    ConfigAppTheme(darkTheme) {
+      MaterialTheme(
+        colors = if (darkTheme) DarkColor else LightColor,
+        typography = Typography,
+        shapes = Shapes,
+        content = content,
+      )
+    }
+  }
 }
 
+val LocalAppDarkTheme = staticCompositionLocalOf { false }
+
 @Composable
-expect fun ConfigAppTheme(darkTheme: Boolean)
+expect fun ConfigAppTheme(darkTheme: Boolean, content: @Composable () -> Unit)
 
 private val LightColor = lightColors(
 )

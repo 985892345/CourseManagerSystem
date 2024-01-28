@@ -23,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.course.components.base.theme.LocalAppColors
+import com.course.components.base.theme.LocalAppDarkTheme
 import kotlinx.coroutines.delay
 
 /**
@@ -65,14 +67,18 @@ internal fun ToastCompose() {
         Card(
           modifier = Modifier.wrapContentSize(),
           shape = RoundedCornerShape(18.dp),
-          backgroundColor = Color(0xFF2A4E84)
+          backgroundColor = LocalAppColors.current.tvLv4
         ) {
           Box(
             modifier = Modifier.wrapContentSize()
               .padding(horizontal = 30.dp, vertical = 9.dp),
             contentAlignment = Alignment.Center
           ) {
-            Text(text = AppToastState.msg.toString(), color = Color.White, fontSize = 14.sp)
+            Text(
+              text = AppToastState.msg.toString(),
+              color = if (LocalAppDarkTheme.current) Color.Black else Color.White,
+              fontSize = 14.sp
+            )
           }
         }
       }
