@@ -34,7 +34,7 @@ fun KotlinDependencyHandler.implementationModules(topName: String, file: File) {
         nowFile = nowFile.parentFile
       }
       path = "course-app:${topName}$path"
-      implementation(rootProject.project(path))
+      rootProject.findProject(path)?.let { implementation(it) }
     }
   }
   // 递归寻找所有子模块
