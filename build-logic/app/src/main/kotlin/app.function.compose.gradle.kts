@@ -3,7 +3,6 @@ import extensions.libsLibrary
 import extensions.libsVersion
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.getting
-import org.jetbrains.compose.ExperimentalComposeLibrary
 
 plugins {
   org.jetbrains.compose
@@ -19,7 +18,6 @@ kotlin {
       implementation(compose.foundation)
       implementation(compose.material)
       implementation(compose.ui)
-      @OptIn(ExperimentalComposeLibrary::class)
       implementation(compose.components.resources)
     }
     desktopMain.dependencies {
@@ -76,3 +74,17 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
     }
   }
 }
+
+// 对 Compose 配置外部类的稳定性
+// 只允许配置已有第三方库里面的类，如果是自己的类请打上 @Stable 注解
+// 配置规则可以查看 https://android-review.googlesource.com/c/platform/frameworks/support/+/2668595
+//tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+//  kotlinOptions {
+//    freeCompilerArgs += listOf(
+//      "-P",
+//      "plugin:androidx.compose.compiler.plugins.kotlin:stabilityConfigurationPath=" +
+//          "$rootDir/config/compose-stability-config.txt"
+//    )
+//  }
+//}
+// 草，Compose Multiplatform 没有加这个配置
