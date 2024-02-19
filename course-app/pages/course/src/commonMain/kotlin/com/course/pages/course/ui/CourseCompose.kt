@@ -1,9 +1,9 @@
 package com.course.pages.course.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.material.BottomSheetState
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
@@ -13,15 +13,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import com.course.components.utils.time.Today
 import com.course.components.utils.time.diffDays
-import com.course.pages.course.ui.content.CourseContentCompose
-import com.course.pages.course.ui.content.vp.CourseSemesterVpData
-import com.course.pages.course.ui.header.CourseSheetHeaderCompose
-import com.course.pages.course.ui.header.CourseTopCompose
-import com.course.pages.course.utils.FractionBox
+import com.course.pages.course.ui.vp.CourseSemesterVpData
+import com.course.pages.course.ui.vp.CourseTermsVpCompose
 
 /**
  * .
@@ -32,57 +28,45 @@ import com.course.pages.course.utils.FractionBox
 
 /**
  * ```
- * CourseCompose
- * |- CourseSheetHeaderCompose         抽屉头
- * |---- CourseTopCompose              课表顶部
- * |- CourseContentCompose             课表内容
- * |  |- CourseTermsVpCompose          全部学期
- * |  |---- CourseWeeksVpCompose         全部周数
- * |  |------- CoursePagerCompose         课表单页
- * |              |-- CourseWeekdayCompose     星期数
- * |              |-- CourseScrollCompose      滚轴
- * |              |----- CourseTimelineCompose    时间轴
- * |              |----- CourseItemGroupCompose   item 容器
- * |                     |-- CourseItemCompose      item
+ * CourseContentCompose           课表内容
+ * |- CourseTermsVpCompose          全部学期
+ * |---- CourseWeeksVpCompose         全部周数
+ * |------- CoursePagerCompose          课表单页
+ *          |-- CourseWeekdayCompose      星期数
+ *          |-- CourseScrollCompose       滚轴
+ *          |----- CourseTimelineCompose    时间轴
+ *          |----- CourseItemGroupCompose   item 容器
+ *                 |-- CourseItemCompose      item
  * ```
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CourseCompose(
+fun CourseContentCompose(
   modifier: Modifier = Modifier,
   semesterVpData: CourseSemesterVpData,
-  content: @Composable ColumnScope.(CourseCombine) -> Unit = {
-    it.CourseTopCompose()
-    it.CourseContentCompose()
+  content: @Composable ColumnScope.(CourseContentCombine) -> Unit = {
+    it.CourseTermsVpCompose()
   }
 ) {
-  Column(modifier = Modifier.then(modifier)) {
+  Column(
+    modifier = Modifier.background(LocalCourseColor.current.background)
+      .then(modifier)
+  ) {
     content(
-      CourseCombine(
+      CourseContentCombine(
         semesterVpData = semesterVpData
       )
     )
   }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun CourseCompose(
-  modifier: Modifier = Modifier,
-  bottomSheetState: BottomSheetState,
-  semesterVpData: CourseSemesterVpData,
-) {
-  CourseCompose(modifier = modifier, semesterVpData = semesterVpData) { course ->
-    course.CourseSheetHeaderCompose(bottomSheetState = bottomSheetState)
-    bottomSheetState.FractionBox {
-      course.CourseContentCompose(modifier = Modifier.alpha(it))
-    }
-  }
-}
-
 @Stable
-data class CourseCombine(
+data class CourseContentCombine(
   val semesterVpData: CourseSemesterVpData,
 ) {
+
+  val terms get() = semesterVpData.terms
+
   /**
    * 当前学期的周数
    *

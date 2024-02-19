@@ -1,4 +1,4 @@
-package com.course.pages.course.ui.content.vp
+package com.course.pages.course.ui.vp
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.HorizontalPager
@@ -8,7 +8,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
-import com.course.pages.course.ui.content.CourseContentCombine
+import com.course.pages.course.ui.CourseContentCombine
 import kotlinx.collections.immutable.ImmutableList
 
 /**
