@@ -9,6 +9,9 @@ import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 
 /**
  * .
@@ -49,6 +52,11 @@ private val DarkColor = darkColors(
 )
 
 private val Typography = Typography(
+  body1 = TextStyle.Default.copy(
+    fontWeight = FontWeight.Normal,
+    fontSize = 16.sp,
+    letterSpacing = 0.5.sp
+  )
 )
 
 private val Shapes = Shapes(
