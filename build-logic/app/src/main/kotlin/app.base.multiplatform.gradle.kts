@@ -7,6 +7,7 @@ plugins {
 
 kotlin {
   jvm("desktop")
+  jvmToolchain(11)
   listOf(
     iosX64(),
     iosArm64(),
@@ -20,7 +21,7 @@ kotlin {
   androidTarget {
     compilations.all {
       kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
       }
     }
   }
