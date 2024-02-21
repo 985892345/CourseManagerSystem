@@ -7,7 +7,7 @@ plugins {
 
 kotlin {
   jvm("desktop")
-  jvmToolchain(11)
+  jvmToolchain(17)
   listOf(
     iosX64(),
     iosArm64(),
@@ -21,7 +21,7 @@ kotlin {
   androidTarget {
     compilations.all {
       kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
       }
     }
   }
