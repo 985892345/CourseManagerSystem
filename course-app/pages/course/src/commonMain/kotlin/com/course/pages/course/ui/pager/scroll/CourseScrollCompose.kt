@@ -10,6 +10,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastMapIndexed
 import com.course.pages.course.ui.pager.CoursePagerCombine
 
 /**
@@ -34,7 +36,7 @@ fun CoursePagerCombine.CourseScrollCompose(
       { measurables, constraints ->
         // 因为被 CourseScrollCompose 包裹，所以传递最小高度给子布局
         var consume = 0
-        val placeables = measurables.mapIndexed { index, measurable ->
+        val placeables = measurables.fastMapIndexed { index, measurable ->
           measurable.measure(
             constraints.copy(
               minWidth = if (index == measurables.lastIndex) constraints.maxWidth - consume else 0,
@@ -45,7 +47,7 @@ fun CoursePagerCombine.CourseScrollCompose(
         }
         layout(constraints.maxWidth, constraints.minHeight) {
           var start = 0
-          placeables.forEach {
+          placeables.fastForEach {
             it.placeRelative(x = start, y = 0)
             start += it.width
           }

@@ -1,4 +1,4 @@
-package com.course.applications.pro
+package com.course.components.view.calendar
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerScope
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -20,8 +21,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
@@ -31,20 +30,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastAny
+import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastMap
 import androidx.constraintlayout.compose.ChainStyle
 import androidx.constraintlayout.compose.ConstraintLayout
-import com.course.applications.pro.state.CalendarNestedScroll
-import com.course.applications.pro.state.CalendarSheetValue
-import com.course.applications.pro.state.CalendarState
-import com.course.applications.pro.state.rememberCalendarState
+import com.course.components.utils.compose.Stab
 import com.course.components.utils.compose.clickableNoIndicator
-import com.course.components.utils.stable.Stab
-import com.course.components.utils.stable.stable
+import com.course.components.utils.compose.stable
 import com.course.components.utils.time.Festival
 import com.course.components.utils.time.SolarTerms
 import com.course.components.utils.time.Today
 import com.course.components.utils.time.toChineseCalendar
+import com.course.components.view.calendar.scroll.CalendarNestedScroll
+import com.course.components.view.calendar.state.CalendarSheetValue
+import com.course.components.view.calendar.state.CalendarState
+import com.course.components.view.calendar.state.rememberCalendarState
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
@@ -57,89 +57,106 @@ import kotlin.math.roundToInt
  * @author 985892345
  * @date 2024/1/23 10:16
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CalendarCompose(
   modifier: Modifier = Modifier,
   state: CalendarState = rememberCalendarState(),
-  content: @Composable ColumnScope.() -> Unit
+  calendar: @Composable ColumnScope.() -> Unit = {
+    Row {
+      state.MonthTextCompose(modifier = Modifier.width(30.dp).padding(top = 28.dp))
+      Column(modifier = Modifier.weight(1F)) {
+        state.WeekTextCompose()
+        state.CalendarPagerCompose {
+          state.CalendarMonthCompose(it)
+        }
+      }
+    }
+  },
+  content: @Composable ColumnScope.() -> Unit = {},
 ) {
   Column(
     modifier = Modifier.fillMaxSize()
       .nestedScroll(remember { CalendarNestedScroll(state) })
-      .pointerInput(Unit) {
-        awaitPointerEventScope {
-          // 等待所有手指抬起
-          if (!currentEvent.changes.fastAny { it.pressed }) {
-            do {
-              val events = awaitPointerEvent(PointerEventPass.Final)
-            } while (events.changes.fastAny { it.pressed })
-          }
-        }
-      }
       .then(modifier)
   ) {
-    state.CalendarTopCompose()
+    calendar()
     content()
   }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun CalendarState.CalendarTopCompose(
-  modifier: Modifier = Modifier,
+fun CalendarState.MonthTextCompose(
+  modifier: Modifier = Modifier
 ) {
-  Row(modifier = Modifier.then(modifier)) {
-    Text(
-      modifier = Modifier.width(30.dp).padding(top = 28.dp),
-      text = "${
-        clickDate.plus(
-          pagerState.currentPage - oldSelectPage,
-          when (lastSheetValue) {
-            CalendarSheetValue.Collapsed -> DateTimeUnit.WEEK
-            CalendarSheetValue.Expanded -> DateTimeUnit.MONTH
-          }
-        ).monthNumber
-      }月",
-      fontSize = 14.sp,
-      textAlign = TextAlign.Center,
-      overflow = TextOverflow.Visible,
-    )
-    Column(modifier = Modifier.weight(1F)) {
-      Row {
-        arrayOf("一", "二", "三", "四", "五", "六", "日").forEach {
-          Text(
-            modifier = Modifier.weight(1F),
-            text = it,
-            textAlign = TextAlign.Center,
-            fontSize = 10.sp
-          )
+  Text(
+    modifier = modifier,
+    text = "${
+      clickDate.plus(
+        pagerState.currentPage - oldSelectPage,
+        when (lastSheetValue) {
+          CalendarSheetValue.Collapsed -> DateTimeUnit.WEEK
+          CalendarSheetValue.Expanded -> DateTimeUnit.MONTH
         }
-      }
-      HorizontalPager(
-        state = pagerState,
-        userScrollEnabled = !isScrolling,
-        modifier = Modifier,
-      ) {
-        if (currentIsCollapsed) {
-          WeekLineCompose(
-            date = clickDate.plus(it - oldSelectPage, DateTimeUnit.WEEK).run {
-              minus(dayOfWeek.ordinal, DateTimeUnit.DAY).stable()
-            },
-            showDate = clickDate.plus(it - oldSelectPage, DateTimeUnit.WEEK).stable(),
-          )
-        } else {
-          MonthCompose(
-            modifier = Modifier,
-            showDate = clickDate.plus(it - oldSelectPage, DateTimeUnit.MONTH).stable(),
-          )
-        }
-      }
+      ).monthNumber
+    }月",
+    fontSize = 14.sp,
+    textAlign = TextAlign.Center,
+    overflow = TextOverflow.Visible,
+  )
+}
+
+@Composable
+fun CalendarState.WeekTextCompose(
+  modifier: Modifier = Modifier
+) {
+  Row(modifier = modifier) {
+    arrayOf("一", "二", "三", "四", "五", "六", "日").forEach {
+      Text(
+        modifier = Modifier.weight(1F),
+        text = it,
+        textAlign = TextAlign.Center,
+        fontSize = 10.sp
+      )
     }
   }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun CalendarState.MonthCompose(
+fun CalendarState.CalendarPagerCompose(
+  modifier: Modifier = Modifier,
+  content: @Composable PagerScope.(Int) -> Unit
+) {
+  HorizontalPager(
+    state = pagerState,
+    userScrollEnabled = !isScrolling,
+    modifier = modifier,
+    beyondBoundsPageCount = 1,
+    pageContent = content,
+  )
+}
+
+@Composable
+fun CalendarState.CalendarMonthCompose(
+  pager: Int,
+  modifier: Modifier = Modifier,
+) {
+  CalendarMonthCompose(
+    modifier = modifier,
+    showDate = clickDate.plus(
+      pager - oldSelectPage,
+      when (lastSheetValue) {
+        CalendarSheetValue.Collapsed -> DateTimeUnit.WEEK
+        CalendarSheetValue.Expanded -> DateTimeUnit.MONTH
+      }
+    ).stable(),
+  )
+}
+
+@Composable
+fun CalendarState.CalendarMonthCompose(
   modifier: Modifier = Modifier,
   showDate: Stab<LocalDate>,
 ) {
@@ -150,7 +167,7 @@ private fun CalendarState.MonthCompose(
         minus(dayOfWeek.ordinal, DateTimeUnit.DAY)
       }
       repeat(5) {
-        WeekLineCompose(
+        CalendarWeekCompose(
           date = firstDate.plus(it, DateTimeUnit.WEEK).stable(),
           showDate = showDate,
         )
@@ -158,7 +175,7 @@ private fun CalendarState.MonthCompose(
     },
     measurePolicy = remember(showDate) {
       { measurables, constraints ->
-        val placeables = measurables.map {
+        val placeables = measurables.fastMap {
           it.measure(constraints.copy(minWidth = 0, minHeight = 0))
         }
         // 不能引用外面的值，每次都需要重新计算
@@ -170,7 +187,7 @@ private fun CalendarState.MonthCompose(
         layout(constraints.maxWidth, showPlaceable.height + scrollOffset.roundToInt()) {
           var top = (scrollOffset / (placeables.size - 1) * line).roundToInt()
           repeat(line) { top -= placeables[it].height }
-          placeables.forEach {
+          placeables.fastForEach {
             it.placeRelativeWithLayer(x = 0, y = top)
             top += it.height
           }
@@ -181,7 +198,7 @@ private fun CalendarState.MonthCompose(
 }
 
 @Composable
-private fun CalendarState.WeekLineCompose(
+fun CalendarState.CalendarWeekCompose(
   date: Stab<LocalDate>,
   showDate: Stab<LocalDate>,
 ) {
@@ -192,18 +209,19 @@ private fun CalendarState.WeekLineCompose(
   ) {
     repeat(7) {
       Box(modifier = Modifier.weight(1F)) {
-        DateCompose(date.le.plus(it, DateTimeUnit.DAY).stable(), showDate)
+        CalendarDateCompose(date.le.plus(it, DateTimeUnit.DAY).stable(), showDate)
       }
     }
   }
 }
 
 @Composable
-private fun CalendarState.DateCompose(
+fun CalendarState.CalendarDateCompose(
   date: Stab<LocalDate>,
   showDate: Stab<LocalDate>,
 ) {
-  val alpha = if (currentIsCollapsed) 1F
+  val alpha = if (date.le !in startDate..endDate) 0.3F
+  else if (currentIsCollapsed) 1F
   else if (date.le.monthNumber == showDate.le.monthNumber) 1F
   else 1F - fraction * 0.7F
   Box(

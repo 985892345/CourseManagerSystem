@@ -4,6 +4,10 @@ import androidx.compose.material.BottomSheetState
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.structuralEqualityPolicy
 
 /**
  * .
@@ -12,15 +16,23 @@ import androidx.compose.runtime.Composable
  * @date 2024/1/28 12:58
  */
 
+/**
+ * 从 0 -> 1
+ */
+@Composable
 @OptIn(ExperimentalMaterialApi::class)
-val BottomSheetState.fraction: Float
-  @Composable
-  get() = if (progress == 1F && currentValue == targetValue) {
-    when (currentValue) {
-      BottomSheetValue.Collapsed -> 0F
-      BottomSheetValue.Expanded -> 1F
+fun rememberBottomSheetFraction(state: BottomSheetState): State<Float> {
+  return remember {
+    derivedStateOf(structuralEqualityPolicy()) {
+      if (state.progress == 1F && state.currentValue == state.targetValue) {
+        when (state.currentValue) {
+          BottomSheetValue.Collapsed -> 0F
+          BottomSheetValue.Expanded -> 1F
+        }
+      } else when (state.currentValue) {
+        BottomSheetValue.Collapsed -> state.progress
+        BottomSheetValue.Expanded -> 1F - state.progress
+      }
     }
-  } else when (currentValue) {
-    BottomSheetValue.Collapsed -> progress
-    BottomSheetValue.Expanded -> 1F - progress
   }
+}

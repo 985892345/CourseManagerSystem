@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Modifier
 import com.course.components.base.theme.AppTheme
+import com.course.components.view.calendar.CalendarCompose
 import com.course.pages.course.ui.CourseContentCompose
 import com.course.pages.course.ui.pager.CoursePagerData
 import com.course.pages.course.ui.vp.CourseSemesterVpData

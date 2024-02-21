@@ -1,4 +1,4 @@
-package com.course.components.utils.stable
+package com.course.components.utils.compose
 
 import androidx.compose.runtime.Stable
 

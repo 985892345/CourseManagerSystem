@@ -1,10 +1,13 @@
-package com.course.applications.pro.state
+package com.course.components.view.calendar.scroll
 
 import androidx.compose.animation.core.animate
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.unit.Velocity
+import com.course.components.view.calendar.state.CalendarSheetValue
+import com.course.components.view.calendar.state.CalendarState
 
 /**
  * .
@@ -19,7 +22,7 @@ class CalendarNestedScroll(
   private var childScrollOffset = 0F
 
   override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-    if (childScrollOffset == 0F) {
+    if (childScrollOffset == 0F || state.isScrolling) {
       return Offset(x = 0F, y = scrollBy(available.y))
     }
     return Offset.Zero
@@ -39,7 +42,7 @@ class CalendarNestedScroll(
   }
 
   override suspend fun onPreFling(available: Velocity): Velocity {
-    if (childScrollOffset == 0F && state.isScrolling && available.y != 0F) {
+    if (state.isScrolling && (available.y != 0F || available == Velocity.Zero)) {
       val target = if (available.y > 1000) state.maxScrollOffset
       else if (available.y < -1000) 0F
       else if (state.fraction > 0.5F) state.maxScrollOffset
@@ -48,7 +51,7 @@ class CalendarNestedScroll(
         initialValue = state.scrollOffset,
         targetValue = target,
         initialVelocity = available.y,
-      ) { value, velocity ->
+      ) { value, _ ->
         scrollBy(value - state.scrollOffset)
       }
       return available
@@ -56,8 +59,10 @@ class CalendarNestedScroll(
     return super.onPreFling(available)
   }
 
+  @OptIn(ExperimentalFoundationApi::class)
   private fun scrollBy(y: Float): Float {
     if (y == 0F) return 0F
+    if (state.pagerState.isScrollInProgress) return 0F
     val scrollOffset = state.scrollOffset
     val maxScrollOffset = state.maxScrollOffset
     if (y > 0) {
@@ -66,8 +71,7 @@ class CalendarNestedScroll(
       if (scrollOffset + y >= maxScrollOffset) {
         val result = maxScrollOffset - scrollOffset
         state.scrollOffset = maxScrollOffset
-        state.lastSheetValue = CalendarSheetValue.Expanded
-        state.currentSheetValue = CalendarSheetValue.Expanded
+        updateSheetValue(CalendarSheetValue.Expanded)
         return result
       }
     } else {
@@ -75,13 +79,20 @@ class CalendarNestedScroll(
       if (scrollOffset + y <= 0) {
         val result = -scrollOffset
         state.scrollOffset = 0F
-        state.lastSheetValue = CalendarSheetValue.Collapsed
-        state.currentSheetValue = CalendarSheetValue.Collapsed
+        updateSheetValue(CalendarSheetValue.Collapsed)
         return result
       }
     }
     state.scrollOffset += y
-    state.currentSheetValue = null
+    updateSheetValue(null)
     return y
+  }
+
+  private fun updateSheetValue(newValue: CalendarSheetValue?) {
+    val oldValue = state.currentSheetValue
+    state.currentSheetValue = newValue
+    if (newValue != null) {
+      state.lastSheetValue = newValue
+    }
   }
 }
