@@ -15,9 +15,9 @@ import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.course.components.utils.time.Today
-import com.course.components.utils.time.diffDays
 import com.course.pages.course.ui.vp.CourseSemesterVpData
 import com.course.pages.course.ui.vp.CourseTermsVpCompose
+import kotlinx.datetime.daysUntil
 
 /**
  * .
@@ -81,7 +81,7 @@ data class CourseContentCombine(
    */
   val nowWeek by derivedStateOf(structuralEqualityPolicy()) {
     semesterVpData.terms.lastOrNull()?.let {
-      val dayOfTerm = Today.diffDays(it.firstDate)
+      val dayOfTerm = it.firstDate.daysUntil(Today)
       if (dayOfTerm >= 0) dayOfTerm / 7 + 1 else dayOfTerm / 7
     }
   }

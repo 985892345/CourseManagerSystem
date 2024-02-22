@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Modifier
 import com.course.components.base.theme.AppTheme
 import com.course.components.view.calendar.CalendarCompose
+import com.course.components.view.calendar.state.rememberCalendarState
 import com.course.pages.course.ui.CourseContentCompose
 import com.course.pages.course.ui.pager.CoursePagerData
 import com.course.pages.course.ui.vp.CourseSemesterVpData
@@ -23,7 +24,13 @@ import kotlinx.datetime.LocalDate
 @Composable
 fun ProScreenCompose() {
   AppTheme(darkTheme = false) {
-    CalendarCompose(modifier = Modifier.systemBarsPadding()) {
+    CalendarCompose(
+      modifier = Modifier.systemBarsPadding(),
+      state = rememberCalendarState(
+        startDate = LocalDate(2024, 1, 1),
+        endDate = LocalDate(2024, 12, 31),
+      )
+    ) {
       CourseContentCompose(
         modifier = Modifier.weight(1F),
         semesterVpData = CourseSemesterVpData(

@@ -62,7 +62,8 @@ class CalendarNestedScroll(
   @OptIn(ExperimentalFoundationApi::class)
   private fun scrollBy(y: Float): Float {
     if (y == 0F) return 0F
-    if (state.pagerState.isScrollInProgress) return 0F
+    if (state.weekPagerState.isScrollInProgress) return 0F
+    if (state.monthPagerState.isScrollInProgress) return 0F
     val scrollOffset = state.scrollOffset
     val maxScrollOffset = state.maxScrollOffset
     if (y > 0) {

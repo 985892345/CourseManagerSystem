@@ -5,24 +5,27 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import com.course.components.base.ui.toast.toast
 import com.course.components.utils.compose.derivedStateOfStructure
-import com.course.components.utils.coroutine.AppCoroutineScope
 import com.course.components.utils.time.Today
-import com.course.components.utils.time.diffDays
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
+import com.course.components.utils.time.copy
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.daysUntil
 import kotlinx.datetime.plus
 
 /**
@@ -31,39 +34,74 @@ import kotlinx.datetime.plus
  * @author 985892345
  * @date 2024/2/18 18:43
  */
-@OptIn(ExperimentalFoundationApi::class, ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Stable
 class CalendarState(
-  startDate: LocalDate,
-  endDate: LocalDate,
-  val pagerState: PagerState,
+  internal val coroutineScope: CoroutineScope,
+  startDateState: State<LocalDate>,
+  endDateState: State<LocalDate>,
+  internal val weekPagerState: PagerState,
+  internal val monthPagerState: PagerState,
   val onClick: CalendarState.(LocalDate) -> Unit
 ) {
 
   /**
    * 日历视图的开始日期
    */
-  var startDate by mutableStateOf(startDate)
-    internal set
+  val startDate by startDateState
 
   /**
    * 日历视图的结束日期
    */
-  var endDate by mutableStateOf(endDate)
-    internal set
+  val endDate by endDateState
 
   /**
    * 选中的日期
    */
-  var clickDate by mutableStateOf(Today)
-    internal set
+  val clickDate by derivedStateOfStructure {
+    if (currentIsCollapsed) {
+      startDate.plus(weekPagerState.currentPage, DateTimeUnit.WEEK)
+        .plus(clickDayOfWeek.ordinal - startDate.dayOfWeek.ordinal, DateTimeUnit.DAY)
+    } else {
+      startDate.plus(monthPagerState.currentPage, DateTimeUnit.MONTH)
+        .copy(dayOfMonth = clickDayOfMonth, noOverflow = true)
+    }
+  }
+
+  internal var clickDayOfMonth by mutableIntStateOf(Today.dayOfMonth)
+
+  internal var clickDayOfWeek by mutableStateOf(Today.dayOfWeek)
 
   /**
    * 更新选中的日期，如果不在当前页则会自动跳转
    */
   fun updateClickDate(date: LocalDate) {
     if (date in startDate..endDate) {
-      clickDate = date
+      clickDayOfMonth = date.dayOfMonth
+      clickDayOfWeek = date.dayOfWeek
+      coroutineScope.launch {
+        val monthPage = date.year
+          .minus(startDate.year)
+          .times(12)
+          .plus(date.monthNumber)
+          .minus(startDate.monthNumber)
+        if (currentIsCollapsed) {
+          if (monthPage != monthPagerState.currentPage) {
+            monthPagerState.scrollToPage(monthPage)
+          }
+        } else {
+          if (monthPage != monthPagerState.currentPage) {
+            monthPagerState.animateScrollToPage(monthPage)
+          }
+          val weekPage = startDate.daysUntil(date)
+            .minus(date.dayOfWeek.ordinal)
+            .plus(startDate.dayOfWeek.ordinal)
+            .div(7)
+          if (weekPage != weekPagerState.currentPage) {
+            weekPagerState.scrollToPage(weekPage)
+          }
+        }
+      }
     }
   }
 
@@ -118,56 +156,35 @@ class CalendarState(
     if (maxScrollOffset <= 0F) 0F else scrollOffset / maxScrollOffset
   }
 
-  // 上一次停止的页面，每一页的日期由 当前页数、oldSelectPage、clickDate、lastSheetValue 共同决定
-  internal var oldSelectPage = pagerState.settledPage
-
   init {
-    snapshotFlow { pagerState.settledPage }.onEach {
-      // 在翻页结束后更新 clickDate
-      if (oldSelectPage == it) return@onEach
-      val unit = when (lastSheetValue) {
-        CalendarSheetValue.Collapsed -> DateTimeUnit.WEEK
-        CalendarSheetValue.Expanded -> DateTimeUnit.MONTH
+    // 联动 weekPage 和 monthPage
+    snapshotFlow { weekPagerState.currentPage }.onEach {
+      if (!currentIsCollapsed) return@onEach
+      val now = startDate.plus(it, DateTimeUnit.WEEK)
+        .plus(clickDayOfWeek.ordinal - startDate.dayOfWeek.ordinal, DateTimeUnit.DAY)
+      clickDayOfMonth = now.dayOfMonth
+      val page = now.year
+        .minus(startDate.year)
+        .times(12)
+        .plus(now.monthNumber)
+        .minus(startDate.monthNumber)
+      if (page != monthPagerState.currentPage) {
+        monthPagerState.scrollToPage(page)
       }
-      clickDate = clickDate.plus(it - oldSelectPage, unit)
-      oldSelectPage = it
-    }.mapLatest {
-      // 回到中点以实现伪无限翻页
-      val centerPage = pagerState.pageCount / 2
-      val startPageDiff = diffPage(clickDate, startDate)
-      if (startPageDiff <= centerPage) {
-        delayBackPage(startPageDiff)
-      } else {
-        val endPageDiff = diffPage(endDate, clickDate)
-        if (endPageDiff <= centerPage) {
-          delayBackPage(pagerState.currentPage - endPageDiff - 1)
-        } else {
-          delayBackPage(centerPage)
-        }
+    }.launchIn(coroutineScope)
+    snapshotFlow { monthPagerState.currentPage }.onEach {
+      if (currentIsCollapsed) return@onEach
+      val now = startDate.plus(it, DateTimeUnit.MONTH)
+        .copy(dayOfMonth = clickDayOfMonth, noOverflow = true)
+      clickDayOfWeek = now.dayOfWeek
+      val page = startDate.daysUntil(now)
+        .minus(now.dayOfWeek.ordinal)
+        .plus(startDate.dayOfWeek.ordinal)
+        .div(7)
+      if (page != weekPagerState.currentPage) {
+        weekPagerState.scrollToPage(page)
       }
-    }.launchIn(AppCoroutineScope)
-  }
-
-  /**
-   * 计算两个日期的页面差，取决于 [lastSheetValue] 状态
-   */
-  fun diffPage(date1: LocalDate, date2: LocalDate): Int {
-    return when (lastSheetValue) {
-      CalendarSheetValue.Collapsed -> {
-        (date1.diffDays(date2) - date1.dayOfWeek.ordinal + date2.dayOfWeek.ordinal) / 7
-      }
-      CalendarSheetValue.Expanded -> {
-        (date1.year - date2.year) * 12 + date1.monthNumber - date2.monthNumber
-      }
-    }
-  }
-
-  private suspend fun delayBackPage(page: Int) {
-    delay(2000) // 延时以避免用户的快速连续滚动
-    if (!pagerState.isScrollInProgress && !isScrolling) {
-      oldSelectPage = page
-      pagerState.scrollToPage(page)
-    }
+    }.launchIn(coroutineScope)
   }
 }
 
@@ -182,17 +199,44 @@ fun rememberCalendarState(
     } else toast("选择的日期不能超过 $startDate-$endDate")
   },
 ): CalendarState {
-  val pagerState = rememberPagerState(initialPage = 30) { 60 }
+  val startDateState = rememberUpdatedState(startDate)
+  val endDateState = rememberUpdatedState(endDate)
+  // 采用双 page 是为了更好的解决周视图和月视图页数不一致的问题
+  val weekPagerState = rememberPagerState(
+    initialPage = startDateState.value.daysUntil(Today)
+      .minus(Today.dayOfWeek.ordinal)
+      .plus(startDateState.value.dayOfWeek.ordinal)
+      .div(7)
+  ) {
+    startDateState.value
+      .daysUntil(endDateState.value)
+      .minus(endDateState.value.dayOfWeek.ordinal)
+      .plus(startDateState.value.dayOfWeek.ordinal)
+      .div(7).plus(1)
+  }
+  val monthPagerState = rememberPagerState(
+    initialPage = Today.year
+      .minus(startDate.year)
+      .times(12)
+      .plus(Today.monthNumber)
+      .minus(startDate.monthNumber)
+  ) {
+    endDateState.value.year
+      .minus(startDateState.value.year)
+      .times(12)
+      .plus(endDateState.value.monthNumber)
+      .minus(startDateState.value.monthNumber).plus(1)
+  }
+  val coroutineScope = rememberCoroutineScope()
   return remember {
     CalendarState(
-      startDate = startDate,
-      endDate = endDate,
-      pagerState = pagerState,
+      coroutineScope = coroutineScope,
+      startDateState = startDateState,
+      endDateState = endDateState,
+      weekPagerState = weekPagerState,
+      monthPagerState = monthPagerState,
       onClick = onClick,
     )
-  }.apply {
-    this.startDate = startDate
-    this.endDate = endDate
   }
 }
 

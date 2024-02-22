@@ -9,8 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.course.components.utils.time.Today
-import com.course.components.utils.time.diffDays
 import com.course.pages.course.ui.pager.CoursePagerCombine
+import kotlinx.datetime.daysUntil
 
 /**
  * .
@@ -25,7 +25,7 @@ fun CoursePagerCombine.CourseItemGroupCompose(
   Box(
     modifier = Modifier.then(modifier)
   ) {
-    if (monDate != null && Today.diffDays(monDate) in 0..6) {
+    if (monDate != null && monDate.daysUntil(Today) in 0..6) {
       TodayBackgroundCompose()
     }
   }
