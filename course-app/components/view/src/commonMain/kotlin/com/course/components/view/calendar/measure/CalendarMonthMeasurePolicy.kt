@@ -67,7 +67,7 @@ class CalendarMonthMeasurePolicy(
     val line = beginDate.daysUntil(showDate) / 7
     val placeable = measurables[line].measure(constraints.copy(minWidth = 0, minHeight = 0))
     return layout(constraints.maxWidth, placeable.height) {
-      placeable.placeRelative(x = 0, y = 0)
+      placeable.placeRelativeWithLayer(x = 0, y = 0)
     }
   }
 
@@ -90,7 +90,7 @@ class CalendarMonthMeasurePolicy(
         val lineDistance = placeables.last().height / 4F
         repeat(placeables.size - 1) {
           val placeable = placeables[it]
-          placeable.placeRelative(x = 0, y = top.roundToInt())
+          placeable.placeRelativeWithLayer(x = 0, y = top.roundToInt())
           top += placeable.height + lineDistance
         }
       }
@@ -127,7 +127,7 @@ class CalendarMonthMeasurePolicy(
     return layout(constraints.maxWidth, lineHeight + state.scrollOffset.roundToInt()) {
       repeat(lineCount) {
         val t = topHideDistance + (lineHeight + lineDistance) * it
-        placeables[it]?.placeRelative(x = 0, y = t.roundToInt())
+        placeables[it]?.placeRelativeWithLayer(x = 0, y = t.roundToInt())
       }
     }
   }

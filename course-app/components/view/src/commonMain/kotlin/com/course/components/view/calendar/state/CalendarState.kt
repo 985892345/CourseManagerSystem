@@ -5,14 +5,12 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import com.course.components.base.ui.toast.toast
@@ -38,22 +36,12 @@ import kotlinx.datetime.plus
 @Stable
 class CalendarState(
   internal val coroutineScope: CoroutineScope,
-  startDateState: State<LocalDate>,
-  endDateState: State<LocalDate>,
+  val startDate: LocalDate,
+  val endDate: LocalDate,
   internal val weekPagerState: PagerState,
   internal val monthPagerState: PagerState,
   val onClick: CalendarState.(LocalDate) -> Unit
 ) {
-
-  /**
-   * 日历视图的开始日期
-   */
-  val startDate by startDateState
-
-  /**
-   * 日历视图的结束日期
-   */
-  val endDate by endDateState
 
   /**
    * 选中的日期
@@ -199,19 +187,16 @@ fun rememberCalendarState(
     } else toast("选择的日期不能超过 $startDate-$endDate")
   },
 ): CalendarState {
-  val startDateState = rememberUpdatedState(startDate)
-  val endDateState = rememberUpdatedState(endDate)
   // 采用双 page 是为了更好的解决周视图和月视图页数不一致的问题
   val weekPagerState = rememberPagerState(
-    initialPage = startDateState.value.daysUntil(Today)
+    initialPage = startDate.daysUntil(Today)
       .minus(Today.dayOfWeek.ordinal)
-      .plus(startDateState.value.dayOfWeek.ordinal)
+      .plus(startDate.dayOfWeek.ordinal)
       .div(7)
   ) {
-    startDateState.value
-      .daysUntil(endDateState.value)
-      .minus(endDateState.value.dayOfWeek.ordinal)
-      .plus(startDateState.value.dayOfWeek.ordinal)
+    startDate.daysUntil(endDate)
+      .minus(endDate.dayOfWeek.ordinal)
+      .plus(startDate.dayOfWeek.ordinal)
       .div(7).plus(1)
   }
   val monthPagerState = rememberPagerState(
@@ -221,18 +206,18 @@ fun rememberCalendarState(
       .plus(Today.monthNumber)
       .minus(startDate.monthNumber)
   ) {
-    endDateState.value.year
-      .minus(startDateState.value.year)
+    endDate.year
+      .minus(startDate.year)
       .times(12)
-      .plus(endDateState.value.monthNumber)
-      .minus(startDateState.value.monthNumber).plus(1)
+      .plus(endDate.monthNumber)
+      .minus(startDate.monthNumber).plus(1)
   }
   val coroutineScope = rememberCoroutineScope()
   return remember {
     CalendarState(
       coroutineScope = coroutineScope,
-      startDateState = startDateState,
-      endDateState = endDateState,
+      startDate = startDate,
+      endDate = endDate,
       weekPagerState = weekPagerState,
       monthPagerState = monthPagerState,
       onClick = onClick,

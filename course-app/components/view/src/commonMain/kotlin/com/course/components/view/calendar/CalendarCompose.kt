@@ -14,12 +14,14 @@ import androidx.compose.foundation.pager.PagerScope
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layout
@@ -34,6 +36,7 @@ import androidx.constraintlayout.compose.ChainStyle
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.course.components.utils.compose.Stab
 import com.course.components.utils.compose.clickableNoIndicator
+import com.course.components.utils.compose.derivedStateOfStructure
 import com.course.components.utils.compose.stable
 import com.course.components.utils.time.Festival
 import com.course.components.utils.time.SolarTerms
@@ -124,11 +127,6 @@ fun CalendarState.CalendarPagerCompose(
         state = weekPagerState,
         userScrollEnabled = !isScrolling,
         beyondBoundsPageCount = 1,
-        key = {
-          startDate.plus(it, DateTimeUnit.WEEK)
-            .plus(clickDayOfWeek.ordinal - startDate.dayOfWeek.ordinal, DateTimeUnit.DAY)
-            .toEpochDays()
-        },
         pageContent = { page ->
           val firstDate = startDate.plus(page, DateTimeUnit.WEEK)
             .minus(startDate.dayOfWeek.ordinal, DateTimeUnit.DAY)
@@ -143,11 +141,6 @@ fun CalendarState.CalendarPagerCompose(
       HorizontalPager(
         state = monthPagerState,
         userScrollEnabled = !isScrolling,
-        key = {
-          startDate.plus(it, DateTimeUnit.MONTH)
-            .copy(dayOfMonth = clickDayOfMonth, noOverflow = true)
-            .toEpochDays()
-        },
         pageContent = { page ->
           val showDate = startDate.plus(page, DateTimeUnit.MONTH)
             .copy(dayOfMonth = clickDayOfMonth, noOverflow = true)
@@ -211,13 +204,20 @@ fun CalendarState.CalendarDateCompose(
   beginDate: Stab<LocalDate>,
   showDate: Stab<LocalDate>,
 ) {
-  val alpha = if (beginDate.le !in startDate..endDate) 0.3F
-  else if (currentIsCollapsed) 1F
-  else if (beginDate.le.monthNumber == showDate.le.monthNumber) 1F
-  else 1F - fraction * 0.7F
+  val beginDateState by rememberUpdatedState(beginDate.le)
+  val showDateState by rememberUpdatedState(showDate.le)
+  val alphaState by remember {
+    derivedStateOfStructure {
+      if (beginDateState !in startDate..endDate) 0.3F
+      else if (currentIsCollapsed) 1F
+      else if (beginDateState.monthNumber == showDateState.monthNumber) 1F
+      else 1F - fraction * 0.7F
+    }
+  }
   Box(
-    modifier = Modifier.alpha(alpha)
-      .clickableNoIndicator { onClick.invoke(this, beginDate.le) },
+    modifier = Modifier.graphicsLayer {
+      alpha = alphaState
+    }.clickableNoIndicator { onClick.invoke(this, beginDate.le) },
     contentAlignment = Alignment.Center
   ) {
     ConstraintLayout(
