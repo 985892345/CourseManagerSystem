@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Modifier
 import com.course.components.base.theme.AppTheme
+import com.course.components.utils.time.Date
 import com.course.components.view.calendar.CalendarCompose
 import com.course.components.view.calendar.state.rememberCalendarState
 import com.course.pages.course.ui.CourseContentCompose
@@ -13,7 +14,6 @@ import com.course.pages.course.ui.vp.CourseSemesterVpData
 import com.course.pages.course.ui.vp.CourseWeeksVpData
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.datetime.LocalDate
 
 /**
  * .
@@ -27,8 +27,8 @@ fun ProScreenCompose() {
     CalendarCompose(
       modifier = Modifier.systemBarsPadding(),
       state = rememberCalendarState(
-        startDate = LocalDate(2024, 1, 1),
-        endDate = LocalDate(2024, 12, 31),
+        startDate = Date(2024, 1, 1),
+        endDate = Date(2024, 12, 31),
       )
     ) {
       CourseContentCompose(
@@ -36,7 +36,7 @@ fun ProScreenCompose() {
         semesterVpData = CourseSemesterVpData(
           persistentListOf(
             CourseWeeksVpData(
-              firstDate = LocalDate(2024, 2, 19),
+              firstDate = Date(2024, 2, 19),
               weeks = List(30) { CoursePagerData(mutableStateListOf()) }.toImmutableList()
             )
           )

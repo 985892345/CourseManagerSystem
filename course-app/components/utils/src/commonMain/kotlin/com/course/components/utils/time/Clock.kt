@@ -8,10 +8,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
 
@@ -23,7 +21,7 @@ import kotlinx.datetime.todayIn
  */
 
 val Today by mutableStateOf(
-  Clock.System.todayIn(TimeZone.currentSystemDefault())
+  Clock.System.todayIn(TimeZone.currentSystemDefault()).toDate()
 ).apply {
   @OptIn(DelicateCoroutinesApi::class)
   GlobalScope.launch(Dispatchers.Main) {
@@ -33,7 +31,7 @@ val Today by mutableStateOf(
         .time
         .toMillisecondOfDay()
       delay(24 * 60 * 60 * 1_000L - now)
-      value = value.plus(1, DateTimeUnit.DAY)
+      value = value.plusDays(1)
     }
   }
 }
@@ -44,15 +42,12 @@ fun LocalDate.copy(
   dayOfMonth: Int = this.dayOfMonth,
   noOverflow: Boolean = false, // 防止溢出，如果日溢出则改为该月最后一天，如果月溢出则年 + 1
 ) = LocalDate(
-  year + if(noOverflow) (monthNumber - 1) / 12 else 0,
-  if(noOverflow) (monthNumber - 1) % 12 + 1 else monthNumber,
+  year + if (noOverflow) (monthNumber - 1) / 12 else 0,
+  if (noOverflow) (monthNumber - 1) % 12 + 1 else monthNumber,
   if (!noOverflow) dayOfMonth else {
     minOf(
-      dayOfMonth, when ((monthNumber - 1) % 12 + 1) {
-        2 -> if (isLeapYear(year)) 29 else 28
-        4, 6, 9, 11 -> 30
-        else -> 31
-      }
+      dayOfMonth,
+      DateUtils.lengthOfMonth(year + (monthNumber - 1) / 12, (monthNumber - 1) % 12 + 1)
     )
   }
 )
@@ -60,6 +55,20 @@ fun LocalDate.copy(
 val LocalDate.dayOfWeekNum: Int
   get() = dayOfWeek.ordinal + 1
 
-fun isLeapYear(year: Int): Boolean {
-  return year and 3 == 0 && (year % 100 != 0 || year % 400 == 0)
+object DateUtils {
+  fun isLeapYear(year: Int): Boolean {
+    return year and 3 == 0 && (year % 100 != 0 || year % 400 == 0)
+  }
+
+  fun lengthOfMonth(year: Int, month: Int): Int {
+    return when (month) {
+      2 -> if (isLeapYear(year)) 29 else 28
+      4, 6, 9, 11 -> 30
+      else -> 31
+    }
+  }
+
+  fun lengthOfMonth(date: LocalDate): Int {
+    return lengthOfMonth(date.year, date.dayOfMonth)
+  }
 }

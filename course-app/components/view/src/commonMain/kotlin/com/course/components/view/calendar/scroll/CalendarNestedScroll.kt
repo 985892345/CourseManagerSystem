@@ -1,12 +1,10 @@
 package com.course.components.view.calendar.scroll
 
 import androidx.compose.animation.core.animate
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.unit.Velocity
-import com.course.components.view.calendar.state.CalendarSheetValue
 import com.course.components.view.calendar.state.CalendarState
 
 /**
@@ -16,7 +14,7 @@ import com.course.components.view.calendar.state.CalendarState
  * @date 2024/2/19 19:27
  */
 class CalendarNestedScroll(
-  val state: CalendarState,
+  private val state: CalendarState,
 ) : NestedScrollConnection {
 
   private var childScrollOffset = 0F
@@ -43,57 +41,55 @@ class CalendarNestedScroll(
 
   override suspend fun onPreFling(available: Velocity): Velocity {
     if (state.isScrolling && (available.y != 0F || available == Velocity.Zero)) {
-      val target = if (available.y > 1000) state.maxScrollOffset
+      val target = if (available.y > 1000) state.maxVerticalScrollOffset
       else if (available.y < -1000) 0F
-      else if (state.fraction > 0.5F) state.maxScrollOffset
+      else if (state.fraction > 0.5F) state.maxVerticalScrollOffset
       else 0F
       animate(
-        initialValue = state.scrollOffset,
+        initialValue = state.verticalScrollOffset,
         targetValue = target,
         initialVelocity = available.y,
       ) { value, _ ->
-        scrollBy(value - state.scrollOffset)
+        scrollBy(value - state.verticalScrollOffset)
       }
       return available
     }
     return super.onPreFling(available)
   }
 
-  @OptIn(ExperimentalFoundationApi::class)
+  override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+    val vertical = state.verticalScrollState.value
+    if (vertical is VerticalScrollState.Scrolling) {
+      state.verticalScrollState.value =
+        if (vertical.offset == 0F) VerticalScrollState.Collapsed
+        else VerticalScrollState.Expanded(state.maxVerticalScrollOffset)
+    }
+    return super.onPostFling(consumed, available)
+  }
+
   private fun scrollBy(y: Float): Float {
     if (y == 0F) return 0F
-    if (state.weekPagerState.isScrollInProgress) return 0F
-    if (state.monthPagerState.isScrollInProgress) return 0F
-    val scrollOffset = state.scrollOffset
-    val maxScrollOffset = state.maxScrollOffset
+    // 翻页中不允许上下滑
+    if (state.horizontalScrollState.value is HorizontalScrollState.Scrolling) return 0F
+    val scrollOffset = state.verticalScrollOffset
+    val maxScrollOffset = state.maxVerticalScrollOffset
     if (y > 0) {
       // 向下滑动
       if (scrollOffset == maxScrollOffset) return 0F
       if (scrollOffset + y >= maxScrollOffset) {
         val result = maxScrollOffset - scrollOffset
-        state.scrollOffset = maxScrollOffset
-        updateSheetValue(CalendarSheetValue.Expanded)
+        state.verticalScrollState.value = VerticalScrollState.Scrolling(maxScrollOffset)
         return result
       }
     } else {
       if (scrollOffset == 0F) return 0F
       if (scrollOffset + y <= 0) {
         val result = -scrollOffset
-        state.scrollOffset = 0F
-        updateSheetValue(CalendarSheetValue.Collapsed)
+        state.verticalScrollState.value = VerticalScrollState.Scrolling(0F)
         return result
       }
     }
-    state.scrollOffset += y
-    updateSheetValue(null)
+    state.verticalScrollState.value = VerticalScrollState.Scrolling(scrollOffset + y)
     return y
-  }
-
-  private fun updateSheetValue(newValue: CalendarSheetValue?) {
-    val oldValue = state.currentSheetValue
-    state.currentSheetValue = newValue
-    if (newValue != null) {
-      state.lastSheetValue = newValue
-    }
   }
 }

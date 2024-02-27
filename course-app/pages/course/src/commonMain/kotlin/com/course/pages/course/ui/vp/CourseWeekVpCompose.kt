@@ -8,11 +8,11 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
+import com.course.components.utils.time.Date
 import com.course.pages.course.ui.CourseContentCombine
 import com.course.pages.course.ui.pager.CoursePagerCompose
 import com.course.pages.course.ui.pager.CoursePagerData
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.datetime.LocalDate
 
 /**
  * .
@@ -46,6 +46,6 @@ fun CourseContentCombine.CourseWeekVpCompose(
 
 @Stable
 data class CourseWeeksVpData(
-  val firstDate: LocalDate,
+  val firstDate: Date,
   val weeks: ImmutableList<CoursePagerData>
 )

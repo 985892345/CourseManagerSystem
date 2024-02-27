@@ -9,8 +9,6 @@ import androidx.compose.ui.Modifier
 import com.course.pages.course.ui.CourseContentCombine
 import com.course.pages.course.ui.item.ICourseItemBean
 import com.course.pages.course.ui.pager.scroll.CourseScrollCompose
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.plus
 
 /**
  * .
@@ -50,7 +48,7 @@ data class CoursePagerCombine(
 
   // 为 0 时默认整学期不显示日期
   val monDate =
-    if (weeksVpIndex == 0) null else weeks.firstDate.plus(weeksVpIndex - 1, DateTimeUnit.WEEK)
+    if (weeksVpIndex == 0) null else weeks.firstDate.plusWeeks(weeksVpIndex - 1)
 }
 
 @Stable

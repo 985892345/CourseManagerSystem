@@ -53,7 +53,7 @@ enum class SolarTerms(
 
   companion object {
 
-    fun get(date: LocalDate): SolarTerms? {
+    fun get(date: Date): SolarTerms? {
       val dayDiff = if (date.dayOfMonth < 15) 0F else 0.5F
       val ordinal = ((date.monthNumber + dayDiff) * 2 + 20).toInt() % 24
       val solarTerms = entries[ordinal]

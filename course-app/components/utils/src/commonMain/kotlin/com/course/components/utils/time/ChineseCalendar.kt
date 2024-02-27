@@ -1,7 +1,6 @@
 package com.course.components.utils.time
 
 import com.course.components.utils.time.ChineseCalendar.Companion.lunarInfo
-import kotlinx.datetime.LocalDate
 
 /**
  * .
@@ -77,11 +76,11 @@ data class ChineseCalendar(
 
   companion object {
 
-    fun getSpringFestivalDate(year: Int): LocalDate {
+    fun getSpringFestivalDate(year: Int): Date {
       val info = lunarInfo[year - 1900]
       val month = ((info and 0x400000) ushr 22) + 1
       val day = (info and 0x3E0000) ushr 17
-      return LocalDate(year, month, day)
+      return Date(year, month, day)
     }
 
     // 返回润的哪个月，如果不存在润月，则返回 0
@@ -303,7 +302,7 @@ data class ChineseCalendar(
   }
 }
 
-fun LocalDate.toChineseCalendar(): ChineseCalendar {
+fun Date.toChineseCalendar(): ChineseCalendar {
   var year = year
   var info = lunarInfo[year - 1900]
   var springFestivalDate = ChineseCalendar.getSpringFestivalDate(year)

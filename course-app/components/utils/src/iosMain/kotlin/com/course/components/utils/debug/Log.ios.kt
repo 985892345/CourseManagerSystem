@@ -9,6 +9,6 @@ import platform.Foundation.NSLog
  * @date 2024/1/23 10:22
  */
 
-actual fun log(msg: String) {
+actual fun logd(msg: String) {
   NSLog(msg)
 }

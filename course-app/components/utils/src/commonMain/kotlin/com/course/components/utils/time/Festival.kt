@@ -1,7 +1,5 @@
 package com.course.components.utils.time
 
-import kotlinx.datetime.LocalDate
-
 /**
  * .
  *
@@ -10,7 +8,7 @@ import kotlinx.datetime.LocalDate
  */
 object Festival {
 
-  fun get(date: LocalDate): String? {
+  fun get(date: Date): String? {
     return festivals["${date.monthNumber}-${date.dayOfMonth}"]
       ?: date.toChineseCalendar().let { chinese ->
         chineseFestivals["${chinese.month}-${chinese.dayOfMonth}"]
@@ -65,6 +63,6 @@ object Festival {
   )
 
   private fun interface Complex {
-    fun LocalDate.match(calendar: ChineseCalendar): Boolean
+    fun Date.match(calendar: ChineseCalendar): Boolean
   }
 }
