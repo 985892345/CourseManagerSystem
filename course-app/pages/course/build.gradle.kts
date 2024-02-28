@@ -10,6 +10,7 @@ kotlin {
     commonMain.dependencies {
       implementation(projects.courseApp.components.base)
       implementation(projects.courseApp.components.utils)
+      implementation(projects.courseApp.components.view)
     }
   }
 }

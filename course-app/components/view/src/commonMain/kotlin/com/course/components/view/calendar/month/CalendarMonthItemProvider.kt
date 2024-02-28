@@ -53,7 +53,7 @@ internal class CalendarMonthItemProvider(
         }
       } else {
         date.copy(dayOfMonth = clickDateState.value.dayOfMonth, noOverflow = true)
-      }
+      }.coerceIn(startDateState.value, endDateState.value)
     }
     weekContent(date.minusDays(date.dayOfWeekOrdinal), showDate)
   }
@@ -81,6 +81,10 @@ internal class CalendarMonthItemProvider(
           if (it.monthLineCount() == 6) it.minusDays(it.dayOfWeekOrdinal).plusWeeks(5)
           else it.copy(dayOfMonth = 2)
         }
+
+      -1, -2 -> startDateState.value
+        .copy(dayOfMonth = 1)
+        .run { minusDays(dayOfWeekOrdinal) }
 
       else -> startDateState.value
         .copy(dayOfMonth = 1)

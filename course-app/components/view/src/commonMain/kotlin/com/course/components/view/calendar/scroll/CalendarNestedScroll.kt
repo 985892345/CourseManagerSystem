@@ -1,6 +1,7 @@
 package com.course.components.view.calendar.scroll
 
 import androidx.compose.animation.core.animate
+import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -60,9 +61,12 @@ class CalendarNestedScroll(
   override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
     val vertical = state.verticalScrollState.value
     if (vertical is VerticalScrollState.Scrolling) {
-      state.verticalScrollState.value =
-        if (vertical.offset == 0F) VerticalScrollState.Collapsed
-        else VerticalScrollState.Expanded(state.maxVerticalScrollOffset)
+      Snapshot.withMutableSnapshot {
+        state.verticalScrollState.value =
+          if (vertical.offset == 0F) VerticalScrollState.Collapsed
+          else VerticalScrollState.Expanded(state.maxVerticalScrollOffset)
+        state.tempClickDate?.let { state.updateClickDate(it) }
+      }
     }
     return super.onPostFling(consumed, available)
   }

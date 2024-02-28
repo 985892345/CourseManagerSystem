@@ -107,7 +107,7 @@ internal class CalendarMonthMeasurePolicy(
   ): MeasureResult {
     val pageDiff = (horizontalScrollState.value.offset / constraints.maxWidth).roundToInt()
     // center
-    val centerDate = clickDate.value.minusWeeks(pageDiff)
+    val centerDate = clickDate.value.minusWeeks(pageDiff).coerceIn(startDate.value, endDate.value)
     val centerPlaceable = measure(centerDate, constraints.copy(minWidth = constraints.maxWidth))!!
     lineHeightState.value = centerPlaceable.height.toFloat()
     val newConstraints = Constraints.fixed(centerPlaceable.width, centerPlaceable.height)
@@ -154,14 +154,15 @@ internal class CalendarMonthMeasurePolicy(
     val centerPlaceable = getExpandedMonthPlaceable(centerPageShowDate, constraints)
     // left
     val leftPageShowDate = centerPageShowDate.minusMonths(1)
-    val leftPlaceable = if (leftPageShowDate >= getBeginDate()) {
+    val leftPlaceable = if (leftPageShowDate >= startDate.value.copy(dayOfMonth = 1)) {
       getExpandedMonthPlaceable(leftPageShowDate, constraints)
     } else null
     // right
     val rightPageShowDate = centerPageShowDate.plusMonths(1)
-    val rightPlaceable = if (rightPageShowDate <= getFinalDate()) {
-      getExpandedMonthPlaceable(rightPageShowDate, constraints)
-    } else null
+    val rightPlaceable =
+      if (rightPageShowDate <= endDate.value.copy(dayOfMonth = 31, noOverflow = true)) {
+        getExpandedMonthPlaceable(rightPageShowDate, constraints)
+      } else null
     val lineHeight = centerPlaceable[0].height
     lineHeightState.value = lineHeight.toFloat()
     return layout(constraints.maxWidth, lineHeight * 6) {
@@ -185,10 +186,11 @@ internal class CalendarMonthMeasurePolicy(
   ): Array<Placeable> {
     val lineCount = date.monthLineCount()
     var newConstraints = constraints.copy(minWidth = constraints.maxWidth)
+    val firstDate = date.copy(dayOfMonth = 1)
     return Array(lineCount) { index ->
       if (index == 0) {
         measure(
-          startDate.value.indexUntil(date.copy(dayOfMonth = 1)).also { showIndexSet.add(it) },
+          startDate.value.indexUntil(firstDate).also { showIndexSet.add(it) },
           newConstraints
         ).first().also {
           newConstraints = Constraints.fixed(it.width, it.height)
@@ -196,7 +198,7 @@ internal class CalendarMonthMeasurePolicy(
       } else {
         measure(
           startDate.value.indexUntil(
-            date.copy(dayOfMonth = 1).run {
+            firstDate.run {
               minusDays(dayOfWeekOrdinal)
                 .plusWeeks(index)
             }

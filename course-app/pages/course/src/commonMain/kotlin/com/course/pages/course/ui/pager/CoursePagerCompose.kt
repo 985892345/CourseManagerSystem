@@ -1,12 +1,17 @@
 package com.course.pages.course.ui.pager
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
-import com.course.pages.course.ui.CourseContentCombine
+import com.course.components.utils.time.Date
 import com.course.pages.course.ui.item.ICourseItemBean
 import com.course.pages.course.ui.pager.scroll.CourseScrollCompose
 
@@ -18,40 +23,38 @@ import com.course.pages.course.ui.pager.scroll.CourseScrollCompose
  */
 
 @Composable
-fun CourseContentCombine.CoursePagerCompose(
+fun CoursePagerCompose(
+  state: CoursePagerState,
   modifier: Modifier = Modifier,
-  termsVpIndex: Int = 0,
-  weeksVpIndex: Int = 0,
-  content: @Composable ColumnScope.(CoursePagerCombine) -> Unit = {
+  content: @Composable BoxScope.(CoursePagerState) -> Unit = {
     it.CourseScrollCompose()
   }
 ) {
-  Column(modifier = Modifier.then(modifier)) {
-    content(
-      this, CoursePagerCombine(
-        contentCombine = this@CoursePagerCompose,
-        termsVpIndex = termsVpIndex,
-        weeksVpIndex = weeksVpIndex,
-      )
-    )
+  Box(modifier = Modifier.then(modifier)) {
+    content(state)
   }
 }
 
 @Stable
-data class CoursePagerCombine(
-  val contentCombine: CourseContentCombine,
-  val termsVpIndex: Int,
-  val weeksVpIndex: Int,
+class CoursePagerState(
+  val scrollState: ScrollState,
+  val beginDateState: State<Date?>, // 为 null 时将不与日期关联，根据星期数来显示
+  val items: SnapshotStateList<ICourseItemBean>,
 ) {
-  val weeks = contentCombine.semesterVpData.terms[termsVpIndex]
-  val pager = weeks.weeks[weeksVpIndex]
-
-  // 为 0 时默认整学期不显示日期
-  val monDate =
-    if (weeksVpIndex == 0) null else weeks.firstDate.plusWeeks(weeksVpIndex - 1)
 }
 
-@Stable
-data class CoursePagerData(
-  val items: SnapshotStateList<ICourseItemBean>
-)
+@Composable
+fun rememberCoursePagerState(
+  beginDate: Date?,
+  items: SnapshotStateList<ICourseItemBean> = remember { SnapshotStateList() },
+): CoursePagerState {
+  val scrollState = rememberScrollState()
+  val beginDateState = rememberUpdatedState(beginDate?.minusDays(beginDate.dayOfWeekOrdinal))
+  return remember {
+    CoursePagerState(
+      scrollState = scrollState,
+      beginDateState = beginDateState,
+      items = items
+    )
+  }
+}

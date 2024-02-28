@@ -169,7 +169,7 @@ fun CalendarState.CalendarDateCompose(
           bottom.linkTo(tLunar.top)
           start.linkTo(parent.start)
           end.linkTo(parent.end)
-        }.padding(),
+        },
         text = date.dayOfMonth.toString(),
         color = when {
           date == Today && date == showDate -> Color.White
@@ -186,7 +186,7 @@ fun CalendarState.CalendarDateCompose(
           bottom.linkTo(parent.bottom)
           start.linkTo(parent.start)
           end.linkTo(parent.end)
-        }.padding(),
+        },
         text = specialDay ?: date.toChineseCalendar().run {
           if (dayOfMonth == 1) getMonthStr() else getDayStr()
         },
@@ -201,7 +201,7 @@ fun CalendarState.CalendarDateCompose(
         modifier = Modifier.constrainAs(tRest) {
           top.linkTo(tDay.top, margin = (-2).dp)
           start.linkTo(tDay.end, margin = (-2).dp)
-        }.padding(),
+        },
         text = "休",
         color = when {
           date == Today && date == showDate -> Color.White

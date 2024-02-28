@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.onSizeChanged
@@ -85,7 +86,7 @@ private fun Modifier.dragPager(
   val calendarState by rememberUpdatedState(calendar)
   var isInDraggable by remember { mutableStateOf(false) }
   // 当前页面偏移量，在页面拖动越界时与 horizontalScrollState 不一致以实现越界阻尼
-  var newOffset by remember { mutableStateOf(0f) }
+  var realOffset by remember { mutableStateOf(0f) }
   val draggableState = rememberDraggableState {
     with(calendarState) {
       if (verticalScrollState.value is VerticalScrollState.Scrolling) return@rememberDraggableState
@@ -93,19 +94,25 @@ private fun Modifier.dragPager(
       val nowDate =
         if (currentIsCollapsed) clickDateState.value.minusWeeks(diffPage)
         else clickDateState.value.minusMonths(diffPage)
-      val beginDate = startDateState.value.copy(dayOfMonth = 1)
-      val finalDate = endDateState.value.copy(dayOfMonth = 1)
-      val diffOffset = newOffset - diffPage * layoutWidth
-      if (nowDate.copy(dayOfMonth = 1) == beginDate && diffOffset >= 0
-        || nowDate.copy(dayOfMonth = 1) == finalDate && diffOffset <= 0
-      ) {
-        // 拖动越界
-        newOffset += it
-        val dx = diffOffset / 2
-        horizontalScrollState.value = HorizontalScrollState.Scrolling(diffPage * layoutWidth + dx)
+      val isBegin = if (currentIsCollapsed) {
+        nowDate.minusDays(nowDate.dayOfWeekOrdinal) == startDateState.value.run { minusDays(dayOfWeekOrdinal) }
+      } else nowDate.copy(dayOfMonth = 1) == startDateState.value.copy(dayOfMonth = 1)
+      val isFinal = if (currentIsCollapsed) {
+        nowDate.minusDays(nowDate.dayOfWeekOrdinal) == endDateState.value.run { minusDays(dayOfWeekOrdinal) }
+      } else nowDate.copy(dayOfMonth = 1) == endDateState.value.copy(dayOfMonth = 1)
+      // 当前中心页面距离左边缘的距离
+      val oldOffset = horizontalScrollState.value.offset - diffPage * layoutWidth
+      val newOffset = oldOffset + it
+      if (isBegin && newOffset >= 0 || isFinal && newOffset <= 0) {
+        // 计算实际移动量
+        realOffset += it
+        // 减去 diffPage * layoutWidth 转换为中心页面距离左边缘的距离
+        val dx = (realOffset - diffPage * layoutWidth)
+          .coerceIn(-layoutWidth + 4F, layoutWidth - 4F) / 2
+        horizontalScrollState.value = HorizontalScrollState.Scrolling(dx)
       } else {
-        newOffset = horizontalScrollState.value.offset + it
-        horizontalScrollState.value = HorizontalScrollState.Scrolling(newOffset)
+        realOffset = horizontalScrollState.value.offset + it
+        horizontalScrollState.value = HorizontalScrollState.Scrolling(realOffset)
       }
     }
   }
@@ -117,7 +124,7 @@ private fun Modifier.dragPager(
     startDragImmediately = isInDraggable,
     onDragStarted = {
       isInDraggable = true
-      newOffset = calendar.horizontalScrollState.value.offset
+      realOffset = calendar.horizontalScrollState.value.offset
       animateJob?.cancel()
     },
     onDragStopped = { velocity ->
@@ -136,8 +143,6 @@ private fun Modifier.dragPager(
         var newDate =
           if (currentIsCollapsed) clickDateState.value.minusWeeks(diffPage)
           else clickDateState.value.minusMonths(diffPage)
-        val beginDate = startDateState.value.copy(dayOfMonth = 1)
-        val finalDate = endDateState.value.copy(dayOfMonth = 31, noOverflow = true)
         if (newDate < beginDate) {
           newDate = if (currentIsCollapsed) newDate.plusWeeks(1) else newDate.plusMonths(1)
           targetValue = (diffPage - 1F) * layoutWidth
@@ -145,9 +150,13 @@ private fun Modifier.dragPager(
           newDate = if (currentIsCollapsed) newDate.minusWeeks(1) else newDate.minusMonths(1)
           targetValue = (diffPage + 1F) * layoutWidth
         }
+        newDate = newDate.coerceIn(startDateState.value, endDateState.value)
         if (horizontalScrollState.value.offset == targetValue) {
-          clickDateState.value = newDate
-          horizontalScrollState.value = HorizontalScrollState.Idle
+          Snapshot.withMutableSnapshot {
+            clickDateState.value = newDate
+            horizontalScrollState.value = HorizontalScrollState.Idle
+            tempClickDate?.let { updateClickDate(it) }
+          }
         } else {
           // 这里如果使用 onDragStopped 开启协程则会导致后续触摸事件延迟
           coroutineScope.launch {
@@ -158,8 +167,11 @@ private fun Modifier.dragPager(
             ) { value, _ ->
               horizontalScrollState.value = HorizontalScrollState.Scrolling(value)
             }
-            clickDateState.value = newDate
-            horizontalScrollState.value = HorizontalScrollState.Idle
+            Snapshot.withMutableSnapshot {
+              clickDateState.value = newDate
+              horizontalScrollState.value = HorizontalScrollState.Idle
+              tempClickDate?.let { updateClickDate(it) }
+            }
           }.also { animateJob = it }
         }
       }

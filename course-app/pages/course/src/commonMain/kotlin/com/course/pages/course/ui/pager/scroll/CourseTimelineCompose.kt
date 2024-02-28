@@ -9,7 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import com.course.pages.course.ui.pager.CoursePagerCombine
+import com.course.pages.course.ui.pager.CoursePagerState
 
 /**
  * .
@@ -19,7 +19,7 @@ import com.course.pages.course.ui.pager.CoursePagerCombine
  */
 
 @Composable
-fun CoursePagerCombine.CourseTimelineCompose(
+fun CoursePagerState.CourseTimelineCompose(
   modifier: Modifier = Modifier
 ) {
   Column(
