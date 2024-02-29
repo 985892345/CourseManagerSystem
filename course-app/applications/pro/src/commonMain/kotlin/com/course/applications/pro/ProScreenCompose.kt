@@ -1,11 +1,13 @@
 package com.course.applications.pro
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.course.components.base.theme.AppTheme
 import com.course.components.utils.time.Date
 import com.course.components.view.calendar.CalendarCompose
@@ -36,7 +38,7 @@ fun ProScreenCompose() {
       endDate = endDate,
     )
     CalendarCompose(
-      modifier = Modifier.systemBarsPadding(),
+      modifier = Modifier.systemBarsPadding().padding(start = 4.dp, end = 4.dp),
       state = calendarState
     ) {
       CourseCompose(

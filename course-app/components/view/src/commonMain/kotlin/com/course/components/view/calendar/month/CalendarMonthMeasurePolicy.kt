@@ -44,20 +44,14 @@ internal class CalendarMonthMeasurePolicy(
     }
   }
 
-  private fun getBeginDate(): Date {
-    return startDate.value.copy(dayOfMonth = 1).run {
-      minusDays(dayOfWeekOrdinal)
-    }
-  }
-
-  private fun getFinalDate(): Date {
-    return endDate.value.copy(dayOfMonth = 31, noOverflow = true).run {
-      plusDays(6 - dayOfWeekOrdinal)
-    }
-  }
-
   private fun LazyLayoutMeasureScope.measure(date: Date, constraints: Constraints): Placeable? {
-    return if (date in getBeginDate()..getFinalDate()) {
+    val beginDate = if (verticalScrollState.value == VerticalScrollState.Collapsed) {
+      startDate.value.minusDays(startDate.value.dayOfWeekOrdinal)
+    } else startDate.value.copy(dayOfMonth = 1).run { minusDays(dayOfWeekOrdinal) }
+    val finalDate = if (verticalScrollState.value == VerticalScrollState.Collapsed) {
+      endDate.value.plusDays(6 - endDate.value.dayOfWeekOrdinal)
+    } else endDate.value.copy(dayOfMonth = 31, noOverflow = true).plusDays(6 - endDate.value.dayOfWeekOrdinal)
+    return if (date in beginDate..finalDate) {
       val index = startDate.value.indexUntil(date)
       showIndexSet.add(index)
       measure(index, constraints).first()

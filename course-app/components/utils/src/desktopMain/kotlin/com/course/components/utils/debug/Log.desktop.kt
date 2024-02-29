@@ -7,6 +7,6 @@ package com.course.components.utils.debug
  * @date 2024/1/23 10:22
  */
 
-actual fun logd(msg: String) {
+actual fun logg(msg: String) {
   println(".(${Exception().stackTrace[1].run { "$fileName:$lineNumber" }}) -> $msg")
 }

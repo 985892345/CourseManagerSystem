@@ -46,12 +46,20 @@ data class ChineseCalendar(
     return if (isLeapMonth()) "润$str" else str
   }
 
+  /**
+   * 1 - 10:    初
+   * 11 - 19:   十
+   * 20:        二十
+   * 21 - 29:   廿
+   * 30:        三十
+   */
   fun getDayStr(): String {
+    if (dayOfMonth == 20) return "二十"
+    if (dayOfMonth == 30) return "三十"
     val a = when ((dayOfMonth - 1) / 10) {
       0 -> "初"
       1 -> "十"
       2 -> "廿"
-      3 -> "三"
       else -> ""
     }
     val b = when (dayOfMonth % 10) {

@@ -14,7 +14,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import com.course.components.utils.compose.derivedStateOfStructure
-import com.course.components.utils.debug.logd
 import com.course.components.utils.time.Date
 import com.course.components.utils.time.Today
 import com.course.components.view.calendar.scroll.HorizontalScrollState
@@ -71,9 +70,7 @@ class CalendarState(
       if (currentIsCollapsed) {
         clickDateState.value.minusWeeks(diffPage)
       } else {
-        clickDateState.value.minusMonths(diffPage).also {
-          logd("clickDate = $it")
-        }
+        clickDateState.value.minusMonths(diffPage)
       }.coerceIn(startDateState.value, endDateState.value)
     }
   }

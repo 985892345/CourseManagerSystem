@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -140,16 +139,13 @@ fun CalendarState.CalendarDateCompose(
     modifier = Modifier.graphicsLayer {
       alpha = alphaState
     }.clickableNoIndicator { onClick.invoke(this, date) },
-    contentAlignment = Alignment.Center
   ) {
     ConstraintLayout(
       modifier = Modifier.layout { measurable, constraints ->
-        val width = minOf(constraints.maxWidth, constraints.maxHeight)
-        val placeable = measurable.measure(
-          Constraints.fixed(width, width)
-        )
-        layout(width, width) {
-          placeable.placeRelative(x = 0, y = 0)
+        val height = minOf(constraints.maxWidth, constraints.maxHeight, 56.dp.roundToPx())
+        val placeable = measurable.measure(Constraints.fixed(height, height))
+        layout(constraints.maxWidth, height) {
+          placeable.placeRelative(x = constraints.maxWidth / 2 - height / 2, y = 0)
         }
       }.background(
         color = when {
