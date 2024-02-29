@@ -37,14 +37,14 @@ class CalendarState(
   var onClick: CalendarState.(Date) -> Unit
 ) {
 
-  val beginDate: Date
+  val showBeginDate: Date
     get() = if (currentIsCollapsed) {
       startDateState.value.run { minusDays(dayOfWeekOrdinal) }
     } else {
       startDateState.value.copy(dayOfMonth = 1).run { minusDays(dayOfWeekOrdinal) }
     }
 
-  val finalDate: Date
+  val showFinalDate: Date
     get() = if (currentIsCollapsed) {
       endDateState.value.run { plusDays(6 - dayOfWeekOrdinal) }
     } else {
@@ -92,6 +92,23 @@ class CalendarState(
     }
   }
 
+  val pageCount: Int
+    get() = getPage(endDateState.value) + 1
+
+  /**
+   * 得到当前 date 对应的页数，注意在折叠和展开时页数不一致，如果超出范围则返回 -1
+   */
+  fun getPage(date: Date): Int {
+    val start = startDateState.value
+    val end = endDateState.value
+    if (date !in start..end) return -1
+    return if (currentIsCollapsed) {
+      showBeginDate.daysUntil(date) / 7
+    } else {
+      (date.year - start.year) * 12 + date.monthNumber - start.monthNumber
+    }
+  }
+
   val currentIsExpanded: Boolean by derivedStateOfStructure {
     verticalScrollState.value.offset == maxVerticalScrollOffset
   }
@@ -100,8 +117,12 @@ class CalendarState(
     verticalScrollState.value.offset == 0F
   }
 
-  val isScrolling: Boolean by derivedStateOfStructure {
+  val verticalIsScrolling: Boolean by derivedStateOfStructure {
     verticalScrollState.value is VerticalScrollState.Scrolling
+  }
+
+  val horizontalIsScrolling: Boolean by derivedStateOfStructure {
+    horizontalScrollState.value is HorizontalScrollState.Scrolling
   }
 
   // 手势滚动中的上下滑状态，在滚动未结束时，即使当前显示状态是折叠/展开的，仍处于 Scrolling 状态

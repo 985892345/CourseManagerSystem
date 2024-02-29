@@ -21,7 +21,7 @@ class CalendarNestedScroll(
   private var childScrollOffset = 0F
 
   override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-    if (childScrollOffset == 0F || state.isScrolling) {
+    if (childScrollOffset == 0F || state.verticalIsScrolling) {
       return Offset(x = 0F, y = scrollBy(available.y))
     }
     return Offset.Zero
@@ -41,7 +41,7 @@ class CalendarNestedScroll(
   }
 
   override suspend fun onPreFling(available: Velocity): Velocity {
-    if (state.isScrolling && (available.y != 0F || available == Velocity.Zero)) {
+    if (state.verticalIsScrolling && (available.y != 0F || available == Velocity.Zero)) {
       val target = if (available.y > 1000) state.maxVerticalScrollOffset
       else if (available.y < -1000) 0F
       else if (state.fraction > 0.5F) state.maxVerticalScrollOffset

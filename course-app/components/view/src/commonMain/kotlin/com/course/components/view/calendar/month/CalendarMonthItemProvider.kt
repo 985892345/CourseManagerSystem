@@ -59,8 +59,8 @@ internal class CalendarMonthItemProvider(
   }
 
   override fun getIndex(key: Any): Int {
+    if (key == Int.MIN_VALUE) return -1
     val date = Date(key as Int)
-    if (date.dayOfMonth == 2) return -1
     val index = startDateState.value.indexUntil(date)
     if (index !in showIndexSet) return -1
     return index
@@ -77,9 +77,9 @@ internal class CalendarMonthItemProvider(
         .copy(dayOfMonth = 1)
         .plusMonths(monthDiff)
         .let {
-          // 如果能显示 6 行，则正常返回最后一行的第一天，否则返回当月 2 号
+          // 如果能显示 6 行，则正常返回最后一行的第一天，否则返回 Int.MIN_VALUE
           if (it.monthLineCount() == 6) it.minusDays(it.dayOfWeekOrdinal).plusWeeks(5)
-          else it.copy(dayOfMonth = 2)
+          else return Int.MIN_VALUE
         }
 
       -1, -2 -> startDateState.value
