@@ -15,5 +15,8 @@ object Utils {
     Provider.getAllImpl(IInitialService::class).forEach {
       it.value.get().onAppInit()
     }
+    platformInitApp()
   }
 }
+
+internal expect fun platformInitApp()

@@ -10,6 +10,7 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMapIndexed
+import com.course.components.utils.compose.reflexScrollableByMouse
 import com.course.pages.course.ui.pager.CoursePagerState
 
 /**
@@ -27,7 +28,7 @@ fun CoursePagerState.CourseScrollCompose(
   }
 ) {
   Layout(
-    modifier = Modifier.then(modifier).verticalScroll(state = scrollState),
+    modifier = Modifier.then(modifier).reflexScrollableByMouse().verticalScroll(state = scrollState),
     content = content,
     measurePolicy = remember {
       { measurables, constraints ->

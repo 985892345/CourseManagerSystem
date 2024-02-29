@@ -4,21 +4,12 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.course.components.utils.compose.reflexScrollableByMouse
 import com.course.components.utils.time.Date
 import com.course.components.utils.time.Today
 import com.course.pages.course.ui.item.ICourseItemBean
@@ -52,7 +43,7 @@ fun CourseCompose(
 ) {
   HorizontalPager(
     state = state.pagerState,
-    modifier = Modifier.then(modifier),
+    modifier = Modifier.then(modifier).reflexScrollableByMouse(),
     key = { state.beginDateState.value.plusWeeks(it).time },
     pageContent = remember {
       { page ->
