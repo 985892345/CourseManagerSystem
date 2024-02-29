@@ -1,11 +1,15 @@
 package com.course.components.view.calendar.month
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.layout.LazyLayoutItemProvider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableFloatState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import com.course.components.utils.compose.derivedStateOfStructure
 import com.course.components.utils.time.Date
 import com.course.components.view.calendar.scroll.HorizontalScrollState
@@ -24,6 +28,7 @@ internal class CalendarMonthItemProvider(
   private val startDateState: State<Date>,
   private val endDateState: State<Date>,
   private val clickDateState: State<Date>,
+  private val lineHeightState: MutableFloatState,
   private val weekContent: @Composable (begin: Date, end: Date) -> Unit,
   private val showIndexSet: Set<Int>,
 ) : LazyLayoutItemProvider {
@@ -39,7 +44,8 @@ internal class CalendarMonthItemProvider(
       if (verticalScrollState.value == VerticalScrollState.Collapsed) {
         val begin = date.minusDays(date.dayOfWeekOrdinal)
         if (horizontalScrollState.value == HorizontalScrollState.Idle) {
-          val showLine = clickDateState.value.run { copy(dayOfMonth = 1).dayOfWeekOrdinal + dayOfMonth - 1 } / 7
+          val showLine =
+            clickDateState.value.run { copy(dayOfMonth = 1).dayOfWeekOrdinal + dayOfMonth - 1 } / 7
           val dateLine = date.run { copy(dayOfMonth = 1).dayOfWeekOrdinal + dayOfMonth - 1 } / 7
           if (dateLine in showLine - 1..showLine + 1) {
             begin.plusDays(clickDateState.value.dayOfWeekOrdinal)
@@ -55,7 +61,11 @@ internal class CalendarMonthItemProvider(
         date.copy(dayOfMonth = clickDateState.value.dayOfMonth, noOverflow = true)
       }.coerceIn(startDateState.value, endDateState.value)
     }
-    weekContent(date.minusDays(date.dayOfWeekOrdinal), showDate)
+    Box(modifier = Modifier.onSizeChanged {
+      lineHeightState.value = it.height.toFloat()
+    }) {
+      weekContent(date.minusDays(date.dayOfWeekOrdinal), showDate)
+    }
   }
 
   override fun getIndex(key: Any): Int {

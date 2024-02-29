@@ -2,7 +2,6 @@ package com.course.components.view.calendar.month
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.lazy.layout.LazyLayoutMeasureScope
-import androidx.compose.runtime.MutableFloatState
 import androidx.compose.runtime.State
 import androidx.compose.ui.layout.MeasureResult
 import androidx.compose.ui.layout.Placeable
@@ -24,7 +23,6 @@ import kotlin.math.sign
 internal class CalendarMonthMeasurePolicy(
   private val verticalScrollState: State<VerticalScrollState>,
   private val horizontalScrollState: State<HorizontalScrollState>,
-  private val lineHeightState: MutableFloatState,
   private val startDate: State<Date>,
   private val endDate: State<Date>,
   private val clickDate: State<Date>,
@@ -50,7 +48,8 @@ internal class CalendarMonthMeasurePolicy(
     } else startDate.value.copy(dayOfMonth = 1).run { minusDays(dayOfWeekOrdinal) }
     val finalDate = if (verticalScrollState.value == VerticalScrollState.Collapsed) {
       endDate.value.plusDays(6 - endDate.value.dayOfWeekOrdinal)
-    } else endDate.value.copy(dayOfMonth = 31, noOverflow = true).plusDays(6 - endDate.value.dayOfWeekOrdinal)
+    } else endDate.value.copy(dayOfMonth = 31, noOverflow = true)
+      .plusDays(6 - endDate.value.dayOfWeekOrdinal)
     return if (date in beginDate..finalDate) {
       val index = startDate.value.indexUntil(date)
       showIndexSet.add(index)
@@ -61,7 +60,6 @@ internal class CalendarMonthMeasurePolicy(
   private fun LazyLayoutMeasureScope.collapsedMeasure(constraints: Constraints): MeasureResult {
     val expandedMonthPlaceable = getExpandedMonthPlaceable(clickDate.value, constraints)
     val lineHeight = expandedMonthPlaceable.first().height
-    lineHeightState.value = lineHeight.toFloat()
     val line = clickDate.value.run { copy(dayOfMonth = 1).dayOfWeekOrdinal + dayOfMonth - 1 } / 7
     val leftPlaceable: Placeable?
     val rightPlaceable: Placeable?
@@ -103,7 +101,6 @@ internal class CalendarMonthMeasurePolicy(
     // center
     val centerDate = clickDate.value.minusWeeks(pageDiff).coerceIn(startDate.value, endDate.value)
     val centerPlaceable = measure(centerDate, constraints.copy(minWidth = constraints.maxWidth))!!
-    lineHeightState.value = centerPlaceable.height.toFloat()
     val newConstraints = Constraints.fixed(centerPlaceable.width, centerPlaceable.height)
     // left
     val leftPlaceable = measure(centerDate.minusWeeks(1), newConstraints)
@@ -126,7 +123,6 @@ internal class CalendarMonthMeasurePolicy(
   ): MeasureResult {
     val expandedMonthPlaceable = getExpandedMonthPlaceable(clickDate.value, constraints)
     val lineHeight = expandedMonthPlaceable.first().height
-    lineHeightState.value = lineHeight.toFloat()
     return layout(constraints.maxWidth, lineHeight + vertical.offset.roundToInt()) {
       val line = clickDate.value.run { copy(dayOfMonth = 1).dayOfWeekOrdinal + dayOfMonth - 1 } / 7
       val lineDistance = if (expandedMonthPlaceable.size == 6) 0F else lineHeight / 4F
@@ -158,7 +154,6 @@ internal class CalendarMonthMeasurePolicy(
         getExpandedMonthPlaceable(rightPageShowDate, constraints)
       } else null
     val lineHeight = centerPlaceable[0].height
-    lineHeightState.value = lineHeight.toFloat()
     return layout(constraints.maxWidth, lineHeight * 6) {
       val sign = horizontalScrollState.value.offset.sign.toInt()
       val mod = abs(horizontalScrollState.value.offset) % constraints.maxWidth

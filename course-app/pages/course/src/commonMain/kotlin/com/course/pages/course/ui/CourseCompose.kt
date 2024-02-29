@@ -4,12 +4,22 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.course.components.utils.compose.reflexScrollableByMouse
+import com.course.components.utils.compose.reflexScrollableForMouse
 import com.course.components.utils.time.Date
 import com.course.components.utils.time.Today
 import com.course.pages.course.ui.item.ICourseItemBean
@@ -43,12 +53,12 @@ fun CourseCompose(
 ) {
   HorizontalPager(
     state = state.pagerState,
-    modifier = Modifier.then(modifier).reflexScrollableByMouse(),
-    key = { state.beginDateState.value.plusWeeks(it).time },
+    modifier = Modifier.then(modifier).reflexScrollableForMouse(),
+    key = { state.beginDate.plusWeeks(it).time },
     pageContent = remember {
       { page ->
         val coursePagerState = rememberCoursePagerState(
-          beginDate = state.beginDateState.value.plusWeeks(page),
+          beginDate = state.beginDate.plusWeeks(page),
           items = state.data
         )
         CoursePagerCompose(
@@ -65,10 +75,15 @@ fun CourseCompose(
 class CourseState(
   private val coroutineScope: CoroutineScope,
   val pagerState: PagerState,
-  val beginDateState: State<Date>,
-  val finalDateState: State<Date>,
+  val startDateState: State<Date>,
+  val endDateState: State<Date>,
   val data: SnapshotStateList<ICourseItemBean>,
 ) {
+
+  val beginDate: Date
+    get() = startDateState.value.minusDays(startDateState.value.dayOfWeekOrdinal)
+  val finalDate: Date
+    get() = endDateState.value.plusDays(6 - endDateState.value.dayOfWeekOrdinal)
 
   /**
    * 当前学期的周数
@@ -93,24 +108,26 @@ class CourseState(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun rememberCourseState(
-  startDate: Date,
-  endDate: Date,
+  startDate: Date = Date(1901, 1, 1),
+  endDate: Date = Date(2099, 12, 31),
   data: SnapshotStateList<ICourseItemBean> = remember { SnapshotStateList() },
 ): CourseState {
   val coroutineScope = rememberCoroutineScope()
-  val beginDateState = rememberUpdatedState(startDate.minusDays(startDate.dayOfWeekOrdinal))
-  val finalDateState = rememberUpdatedState(endDate.plusDays(6 - endDate.dayOfWeekOrdinal))
+  val startDateState = rememberUpdatedState(startDate)
+  val endDateState = rememberUpdatedState(endDate)
+  val begin = startDateState.value.minusDays(startDateState.value.dayOfWeekOrdinal)
+  val final = endDateState.value.plusDays(6 - endDateState.value.dayOfWeekOrdinal)
   val pagerState = rememberPagerState(
     initialPage = Snapshot.withoutReadObservation {
-      beginDateState.value.daysUntil(Today.coerceIn(beginDateState.value, finalDateState.value)) / 7
+      begin.daysUntil(Today.coerceIn(begin, final)) / 7 + 1
     }
-  ) { beginDateState.value.daysUntil(finalDateState.value) / 7 + 1 }
+  ) { begin.daysUntil(final) / 7 + 1 }
   return remember {
     CourseState(
       coroutineScope = coroutineScope,
       pagerState = pagerState,
-      beginDateState = beginDateState,
-      finalDateState = finalDateState,
+      startDateState = startDateState,
+      endDateState = endDateState,
       data = data,
     )
   }

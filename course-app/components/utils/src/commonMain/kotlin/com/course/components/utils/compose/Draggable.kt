@@ -18,7 +18,7 @@ import androidx.compose.ui.node.ModifierNodeElement
  */
 @Stable
 @Composable
-fun Modifier.reflexScrollableByMouse(
+fun Modifier.reflexScrollableForMouse(
 ): Modifier = then(ReflexScrollableCanDragElement())
 
 private class ReflexScrollableCanDragElement : ModifierNodeElement<ReflexScrollableCanDragNode>() {

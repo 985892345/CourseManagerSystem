@@ -50,6 +50,7 @@ fun CalendarState.CalendarMonthCompose(
       startDateState = startDateState,
       endDateState = endDateState,
       clickDateState = clickDateState,
+      lineHeightState = lineHeightState,
       weekContent = weekContent,
       showIndexSet = showIndexSet,
     )
@@ -66,7 +67,6 @@ fun CalendarState.CalendarMonthCompose(
       CalendarMonthMeasurePolicy(
         verticalScrollState = verticalScrollState,
         horizontalScrollState = horizontalScrollState,
-        lineHeightState = lineHeightState,
         startDate = startDateState,
         endDate = endDateState,
         clickDate = clickDateState,
@@ -79,7 +79,7 @@ fun CalendarState.CalendarMonthCompose(
 @Stable
 @Composable
 private fun Modifier.dragPager(
-  calendar: CalendarState
+  calendar: CalendarState,
 ): Modifier {
   val calendarState by rememberUpdatedState(calendar)
   var isInDraggable by remember { mutableStateOf(false) }

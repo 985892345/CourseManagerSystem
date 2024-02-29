@@ -81,9 +81,7 @@ class CalendarState(
    */
   fun updateClickDate(date: Date) {
     if (date in startDateState.value..endDateState.value) {
-      if (verticalScrollState.value is VerticalScrollState.Scrolling ||
-        horizontalScrollState.value is HorizontalScrollState.Scrolling
-      ) {
+      if (verticalIsScrolling || horizontalIsScrolling) {
         tempClickDate = date
       } else {
         clickDateState.value = date
@@ -132,12 +130,14 @@ class CalendarState(
   val horizontalScrollState: MutableState<HorizontalScrollState> =
     mutableStateOf(HorizontalScrollState.Idle)
 
+  // 日历日期视图的宽度，不包含其他东西
   internal var layoutWidth by mutableIntStateOf(0)
 
+  // 日历日期行的高度
   val lineHeightState = mutableFloatStateOf(0F)
 
   val maxVerticalScrollOffset: Float
-    get() = lineHeightState.value * 5
+    get() = lineHeightState.value * 5 // 有的月份能显示 6 行，所以乘 5
 
   /**
    * 当前滑动的值

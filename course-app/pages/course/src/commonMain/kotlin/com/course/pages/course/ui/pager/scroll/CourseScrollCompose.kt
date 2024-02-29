@@ -10,7 +10,7 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMapIndexed
-import com.course.components.utils.compose.reflexScrollableByMouse
+import com.course.components.utils.compose.reflexScrollableForMouse
 import com.course.pages.course.ui.pager.CoursePagerState
 
 /**
@@ -23,12 +23,12 @@ import com.course.pages.course.ui.pager.CoursePagerState
 fun CoursePagerState.CourseScrollCompose(
   modifier: Modifier = Modifier.fillMaxSize(),
   content: @Composable () -> Unit = {
-    CourseTimelineCompose(modifier = Modifier.width(30.dp))
+    CourseTimelineCompose(modifier = Modifier.width(36.dp))
     CourseItemGroupCompose()
   }
 ) {
   Layout(
-    modifier = Modifier.then(modifier).reflexScrollableByMouse().verticalScroll(state = scrollState),
+    modifier = Modifier.then(modifier).reflexScrollableForMouse().verticalScroll(state = scrollState),
     content = content,
     measurePolicy = remember {
       { measurables, constraints ->
