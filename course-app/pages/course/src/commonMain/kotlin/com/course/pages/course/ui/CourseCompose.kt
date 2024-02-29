@@ -119,7 +119,7 @@ fun rememberCourseState(
   val final = endDateState.value.plusDays(6 - endDateState.value.dayOfWeekOrdinal)
   val pagerState = rememberPagerState(
     initialPage = Snapshot.withoutReadObservation {
-      begin.daysUntil(Today.coerceIn(begin, final)) / 7 + 1
+      begin.daysUntil(Today.coerceIn(begin, final)) / 7
     }
   ) { begin.daysUntil(final) / 7 + 1 }
   return remember {

@@ -1,4 +1,4 @@
-package com.course.applications.pro
+package com.course.pages.course.page
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -24,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import com.course.components.base.theme.AppTheme
+import com.course.components.base.navigator.Screen
 import com.course.components.utils.compose.derivedStateOfStructure
 import com.course.components.utils.time.SchoolCalendar
 import com.course.components.utils.time.Today
@@ -42,54 +42,62 @@ import kotlin.math.abs
  * .
  *
  * @author 985892345
- * @date 2024/1/22 16:22
+ * @date 2024/2/29 22:33
  */
+class CourseScreen(
+  private val stuNum: String
+) : Screen {
+
+  @Composable
+  override fun Content() {
+    CourseScreenContent(stuNum)
+  }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ProScreenCompose() {
-  AppTheme(darkTheme = false) {
-    val startDate = SchoolCalendar.beginDate[0]
-    val calendarState = rememberCalendarState(
-      startDate = startDate,
-    )
-    val courseState = rememberCourseState(
-      startDate = startDate,
-    )
-    Column(modifier = Modifier.systemBarsPadding()) {
-      CourseHeaderCompose(calendarState, courseState)
-      CalendarCompose(
-        modifier = Modifier.padding(start = 2.dp, end = 4.dp, top = 4.dp),
-        state = calendarState
-      ) {
-        CourseCompose(
-          state = courseState
-        )
-      }
+private fun CourseScreenContent(stuNum: String) {
+  val startDate = SchoolCalendar.beginDate[0]
+  val calendarState = rememberCalendarState(
+    startDate = startDate,
+  )
+  val courseState = rememberCourseState(
+    startDate = startDate,
+  )
+  Column(modifier = Modifier.systemBarsPadding()) {
+    CourseHeaderCompose(stuNum, calendarState, courseState)
+    CalendarCompose(
+      modifier = Modifier.padding(start = 2.dp, end = 4.dp, top = 4.dp),
+      state = calendarState
+    ) {
+      CourseCompose(
+        state = courseState
+      )
     }
-    LaunchedEffect(calendarState, courseState) {
-      launch {
-        snapshotFlow { calendarState.clickDate }.map {
-          courseState.beginDate.daysUntil(it) / 7
-        }.collect {
-          if (courseState.pagerState.currentPage != it) {
-            launch {
-              // 每次都需要一个新的协程进行处理，上游发送太快时前一个 launch 会被取消
-              courseState.pagerState.animateScrollToPage(it)
-            }
+  }
+  LaunchedEffect(calendarState, courseState) {
+    launch {
+      snapshotFlow { calendarState.clickDate }.map {
+        courseState.beginDate.daysUntil(it) / 7
+      }.collect {
+        if (courseState.pagerState.currentPage != it) {
+          launch {
+            // 每次都需要一个新的协程进行处理，上游发送太快时前一个 launch 会被取消
+            courseState.pagerState.animateScrollToPage(it)
           }
         }
       }
-      launch {
-        snapshotFlow { courseState.pagerState.targetPage }.map {
-          courseState.beginDate.plusWeeks(it)
-            .plusDays(calendarState.clickDate.dayOfWeekOrdinal)
-            .coerceIn(calendarState.startDateState.value, calendarState.endDateState.value)
-        }.collect {
-          if (it != calendarState.clickDate && !calendarState.verticalIsScrolling
-            && !calendarState.horizontalIsScrolling
-          ) {
-            calendarState.updateClickDate(it)
-          }
+    }
+    launch {
+      snapshotFlow { courseState.pagerState.targetPage }.map {
+        courseState.beginDate.plusWeeks(it)
+          .plusDays(calendarState.clickDate.dayOfWeekOrdinal)
+          .coerceIn(calendarState.startDateState.value, calendarState.endDateState.value)
+      }.collect {
+        if (it != calendarState.clickDate && !calendarState.verticalIsScrolling
+          && !calendarState.horizontalIsScrolling
+        ) {
+          calendarState.updateClickDate(it)
         }
       }
     }
@@ -99,6 +107,7 @@ fun ProScreenCompose() {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun CourseHeaderCompose(
+  stuNum: String,
   calendarState: CalendarState,
   courseState: CourseState,
 ) {
@@ -116,7 +125,7 @@ private fun CourseHeaderCompose(
       fontSize = 22.sp
     )
     Text(
-      text = SchoolCalendar.getTermStr(2020, calendarState.clickDate) ?: "",
+      text = SchoolCalendar.getTermStr(stuNum.substring(0, 4).toInt(), calendarState.clickDate) ?: "",
       modifier = Modifier.constrainAs(term) {
         start.linkTo(week.end, 8.dp)
         baseline.linkTo(week.baseline)
@@ -156,4 +165,3 @@ private fun CourseHeaderCompose(
     )
   }
 }
-
