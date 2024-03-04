@@ -55,16 +55,14 @@ fun CourseCompose(
     state = state.pagerState,
     modifier = Modifier.then(modifier).reflexScrollableForMouse(),
     key = { state.beginDate.plusWeeks(it).time },
-    pageContent = remember {
-      { page ->
-        val coursePagerState = rememberCoursePagerState(
-          beginDate = state.beginDate.plusWeeks(page),
-          items = state.data
-        )
-        CoursePagerCompose(
-          state = coursePagerState
-        )
-      }
+    pageContent = { page ->
+      val coursePagerState = rememberCoursePagerState(
+        beginDate = state.beginDate.plusWeeks(page),
+        items = state.data
+      )
+      CoursePagerCompose(
+        state = coursePagerState
+      )
     }
   )
 }

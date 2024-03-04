@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -18,9 +19,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Alignment
@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,10 +36,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.ChainStyle
-import androidx.constraintlayout.compose.ConstraintLayout
 import com.course.components.utils.compose.clickableNoIndicator
-import com.course.components.utils.compose.derivedStateOfStructure
 import com.course.components.utils.compose.reflexScrollableForMouse
 import com.course.components.utils.size.px2dp
 import com.course.components.utils.time.Date
@@ -68,8 +66,8 @@ fun CalendarCompose(
       state.MonthTextCompose(modifier = Modifier.width(36.dp))
       Column(modifier = Modifier.weight(1F)) {
         state.WeekTextCompose()
-        state.CalendarMonthCompose { begin, show ->
-          state.CalendarWeekCompose(begin, show)
+        state.CalendarMonthCompose { date, show ->
+          state.CalendarDateCompose(date, show)
         }
       }
     }
@@ -78,7 +76,7 @@ fun CalendarCompose(
 ) {
   Column(
     modifier = Modifier.fillMaxSize()
-      .nestedScroll(remember { CalendarNestedScroll(state) })
+      .nestedScroll(remember(state) { CalendarNestedScroll(state) })
       .then(modifier)
   ) {
     calendar()
@@ -108,7 +106,7 @@ fun CalendarState.MonthTextCompose(
     key = { startDateState.value.plusMonths(it).copy(dayOfMonth = 1).time },
   ) {
     val date = startDateState.value.plusMonths(it)
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().width(IntrinsicSize.Min)) {
       Text(
         modifier = Modifier.align(Alignment.Center),
         text = "${date.year % 100}年\n${date.monthNumber}月",
@@ -149,7 +147,14 @@ fun CalendarState.MonthTextCompose(
 fun CalendarState.WeekTextCompose(
   modifier: Modifier = Modifier,
 ) {
-  Row(modifier = modifier) {
+  Row(modifier = modifier.layout { measurable, constraints ->
+    // 日历宽度严格以 7 的倍数进行计算，这里同步处理
+    val width = constraints.maxWidth / 7 * 7
+    val placeable = measurable.measure(constraints.copy(maxWidth = width))
+    layout(width, placeable.height) {
+      placeable.placeRelative(0, 0)
+    }
+  }) {
     arrayOf("一", "二", "三", "四", "五", "六", "日").forEach {
       Text(
         modifier = Modifier.weight(1F),
@@ -161,108 +166,119 @@ fun CalendarState.WeekTextCompose(
   }
 }
 
-@Composable
-fun CalendarState.CalendarWeekCompose(
-  beginDate: Date,
-  showDate: Date,
-) {
-  Row(
-    modifier = Modifier
-  ) {
-    repeat(7) {
-      Box(modifier = Modifier.weight(1F)) {
-        CalendarDateCompose(
-          date = beginDate.plusDays(it),
-          showDate = showDate,
-        )
-      }
-    }
-  }
+@Stable
+sealed interface CalendarDateShowValue {
+  data object Normal : CalendarDateShowValue
+  data object Clicked : CalendarDateShowValue
+  data object MonthOutside : CalendarDateShowValue
 }
 
 @Composable
 fun CalendarState.CalendarDateCompose(
   date: Date,
-  showDate: Date,
+  show: CalendarDateShowValue,
 ) {
-  val dateState by rememberUpdatedState(date)
-  val showDateState by rememberUpdatedState(showDate)
-  val alphaState by remember {
-    derivedStateOfStructure {
-      if (dateState !in startDateState.value..endDateState.value) 0.3F
-      else if (dateState.monthNumber == showDateState.monthNumber) 1F
-      else if (currentIsCollapsed) 1F
-      else 1F - fraction * 0.7F
-    }
-  }
-  ConstraintLayout(
+  Layout(
     modifier = Modifier.graphicsLayer {
-      alpha = alphaState
+      alpha = if (date !in startDateState.value..endDateState.value) 0.3F else {
+        if (show == CalendarDateShowValue.MonthOutside)
+          1F - verticalScrollState.value.fraction * 0.7F
+        else 1F
+      }
     }.clickableNoIndicator {
       onClick.invoke(this, date)
-    }.layout { measurable, constraints ->
-      val height = minOf(constraints.maxWidth, constraints.maxHeight, 56.dp.roundToPx())
-      val placeable = measurable.measure(Constraints.fixed(height, height))
-      layout(constraints.maxWidth, height) {
-        placeable.placeRelative(x = constraints.maxWidth / 2 - height / 2, y = 0)
-      }
     }.background(
       color = when {
-        date == Today && date == showDate -> Color.Blue
-        date == showDate -> Color.LightGray
+        date == Today && show == CalendarDateShowValue.Clicked -> Color.Blue
+        show == CalendarDateShowValue.Clicked -> Color.LightGray
         date == Today -> Color.White
         else -> Color.Transparent
       },
       shape = CircleShape
-    )
-  ) {
-    val (tDay, tLunar, tRest) = createRefs()
-    createVerticalChain(tDay, tLunar, chainStyle = ChainStyle.Packed)
-    Text(
-      modifier = Modifier.constrainAs(tDay) {
-        top.linkTo(parent.top)
-        bottom.linkTo(tLunar.top)
-        start.linkTo(parent.start)
-        end.linkTo(parent.end)
-      },
-      text = date.dayOfMonth.toString(),
-      color = when {
-        date == Today && date == showDate -> Color.White
-        date == Today -> Color.Blue
-        else -> Color.Black
-      },
-      fontSize = 19.sp,
-      fontWeight = FontWeight.Bold,
-    )
-    val specialDay = Festival.get(date) ?: SolarTerms.get(date)?.chinese
-    Text(
-      modifier = Modifier.constrainAs(tLunar) {
-        top.linkTo(tDay.bottom)
-        bottom.linkTo(parent.bottom)
-        start.linkTo(parent.start)
-        end.linkTo(parent.end)
-      },
-      text = specialDay ?: date.toChineseCalendar().run {
-        if (dayOfMonth == 1) getMonthStr() else getDayStr()
-      },
-      color = when {
-        date == Today && date == showDate -> Color.White
-        specialDay != null -> Color.Blue
-        else -> Color.Gray
-      },
-      fontSize = 9.sp,
-    )
-    Text(
-      modifier = Modifier.constrainAs(tRest) {
-        top.linkTo(tDay.top, margin = (-2).dp)
-        start.linkTo(tDay.end, margin = (-2).dp)
-      },
-      text = "休",
-      color = when {
-        date == Today && date == showDate -> Color.White
-        else -> Color.Green
-      },
-      fontSize = 8.sp,
-    )
-  }
+    ),
+    content = {
+      CalendarDateDayCompose(date, show)
+      CalendarDateLunarCompose(date, show)
+      CalendarDateRestCompose(date, show)
+    },
+    measurePolicy = remember {
+      { measurables, constraints ->
+        val width = constraints.maxWidth
+        val height = minOf(constraints.maxWidth, constraints.maxHeight, 56.dp.roundToPx())
+        val newConstraints = Constraints(maxWidth = width, maxHeight = height)
+        val dayPlaceable = measurables[0].measure(newConstraints)
+        val lunarPlaceable = measurables[1].measure(newConstraints)
+        val restPlaceable = measurables[2].measure(newConstraints)
+        layout(width, height) {
+          val dayTop = (height - dayPlaceable.height - lunarPlaceable.height) / 2
+          dayPlaceable.placeRelative(
+            x = (width - dayPlaceable.measuredWidth) / 2,
+            y = dayTop,
+          )
+          lunarPlaceable.placeRelative(
+            x = (width - lunarPlaceable.width) / 2,
+            y = dayTop + dayPlaceable.height,
+          )
+          restPlaceable.placeRelative(
+            x = (width + dayPlaceable.measuredWidth) / 2 - 2.dp.roundToPx(),
+            y = dayTop - 2.dp.roundToPx(),
+          )
+        }
+      }
+    }
+  )
+}
+
+@Composable
+private fun CalendarDateDayCompose(
+  date: Date,
+  show: CalendarDateShowValue,
+) {
+  Text(
+    modifier = Modifier,
+    text = date.dayOfMonth.toString(),
+    color = when {
+      date == Today && show == CalendarDateShowValue.Clicked -> Color.White
+      date == Today -> Color.Blue
+      else -> Color.Black
+    },
+    fontSize = 19.sp,
+    fontWeight = FontWeight.Bold,
+  )
+}
+
+@Composable
+private fun CalendarDateLunarCompose(
+  date: Date,
+  show: CalendarDateShowValue,
+) {
+  val specialDay = remember(date) { Festival.get(date) ?: SolarTerms.get(date)?.chinese }
+  Text(
+    modifier = Modifier,
+    text = specialDay ?: date.toChineseCalendar().run {
+      if (dayOfMonth == 1) getMonthStr() else getDayStr()
+    },
+    color = when {
+      date == Today && show == CalendarDateShowValue.Clicked -> Color.White
+      specialDay != null -> Color.Blue
+      else -> Color.Gray
+    },
+    fontSize = 9.sp,
+  )
+}
+
+@Composable
+private fun CalendarDateRestCompose(
+  date: Date,
+  show: CalendarDateShowValue,
+) {
+  Text(
+    modifier = Modifier,
+    text = "休",
+    color = when {
+      date == Today && show == CalendarDateShowValue.Clicked -> Color.White
+      else -> Color.Green
+    },
+    fontSize = 8.sp,
+  )
 }

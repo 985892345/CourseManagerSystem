@@ -2,25 +2,23 @@ package com.course.components.view.calendar.month
 
 import androidx.compose.animation.core.animate
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.MutatePriority
+import androidx.compose.foundation.gestures.DragScope
+import androidx.compose.foundation.gestures.DraggableState
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.lazy.layout.LazyLayout
 import androidx.compose.foundation.lazy.layout.LazyLayoutItemProvider
 import androidx.compose.foundation.lazy.layout.LazyLayoutPrefetchState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.onSizeChanged
 import com.course.components.utils.time.Date
+import com.course.components.view.calendar.CalendarDateShowValue
 import com.course.components.view.calendar.scroll.HorizontalScrollState
 import com.course.components.view.calendar.scroll.VerticalScrollState
 import com.course.components.view.calendar.state.CalendarState
@@ -39,55 +37,83 @@ import kotlin.math.roundToInt
 @Composable
 fun CalendarState.CalendarMonthCompose(
   modifier: Modifier = Modifier,
-  weekContent: @Composable (begin: Date, show: Date) -> Unit,
+  itemContent: @Composable (date: Date, show: CalendarDateShowValue) -> Unit,
 ) {
   val prefetchState = remember { LazyLayoutPrefetchState() }
   val showIndexSet = remember { mutableSetOf<Int>() }
-  val itemProvider = remember {
+  val itemProvider = remember(this) {
     CalendarMonthItemProvider(
       verticalScrollState = verticalScrollState,
       horizontalScrollState = horizontalScrollState,
       startDateState = startDateState,
       endDateState = endDateState,
       clickDateState = clickDateState,
-      lineHeightState = lineHeightState,
-      weekContent = weekContent,
       showIndexSet = showIndexSet,
+      itemContent = itemContent,
+    )
+  }
+  val measurePolicy = remember(this) {
+    CalendarMonthMeasurePolicy(
+      verticalScrollState = verticalScrollState,
+      horizontalScrollState = horizontalScrollState,
+      startDateState = startDateState,
+      endDateState = endDateState,
+      clickDateState = clickDateState,
+      showIndexSet = showIndexSet,
+      lineHeightState = lineHeightState,
+      itemProvider = itemProvider,
     )
   }
   LazyLayout(
     modifier = modifier.clipToBounds()
-      .dragPager(this)
+      .dragPager(this, prefetchState, measurePolicy)
       .onSizeChanged {
         layoutWidth = it.width
       },
     itemProvider = remember<() -> LazyLayoutItemProvider> { { itemProvider } },
     prefetchState = prefetchState,
-    measurePolicy = remember {
-      CalendarMonthMeasurePolicy(
-        verticalScrollState = verticalScrollState,
-        horizontalScrollState = horizontalScrollState,
-        startDate = startDateState,
-        endDate = endDateState,
-        clickDate = clickDateState,
-        showIndexSet = showIndexSet,
-      )
-    }
+    measurePolicy = measurePolicy,
   )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Stable
 @Composable
 private fun Modifier.dragPager(
   calendar: CalendarState,
+  prefetchState: LazyLayoutPrefetchState,
+  measurePolicy: CalendarMonthMeasurePolicy,
 ): Modifier {
-  val calendarState by rememberUpdatedState(calendar)
-  var isInDraggable by remember { mutableStateOf(false) }
+  val draggable = remember(calendar) {
+    CalendarMonthPagerDraggable(calendar, prefetchState, measurePolicy)
+  }
+  return draggable(
+    state = draggable,
+    orientation = Orientation.Horizontal,
+    onDragStarted = {
+      draggable.onDragStarted()
+    },
+    onDragStopped = { velocity ->
+      draggable.onDragStopped(velocity)
+    }
+  )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+private class CalendarMonthPagerDraggable(
+  private val calendarState: CalendarState,
+  private val prefetchState: LazyLayoutPrefetchState,
+  private val measurePolicy: CalendarMonthMeasurePolicy
+) : DraggableState {
+
   // 当前页面偏移量，在页面拖动越界时与 horizontalScrollState 不一致以实现越界阻尼
-  var realOffset by remember { mutableStateOf(0f) }
-  val draggableState = rememberDraggableState {
+  private var realOffset = 0f
+
+  private var animateJob: Job? = null
+
+  private val draggableState = DraggableState {
     with(calendarState) {
-      if (verticalScrollState.value is VerticalScrollState.Scrolling) return@rememberDraggableState
+      if (verticalScrollState.value is VerticalScrollState.Scrolling) return@DraggableState
       val diffPage = (horizontalScrollState.value.offset / layoutWidth).roundToInt()
       val nowDate =
         if (currentIsCollapsed) clickDateState.value.minusWeeks(diffPage)
@@ -108,62 +134,100 @@ private fun Modifier.dragPager(
         realOffset = horizontalScrollState.value.offset + it
         horizontalScrollState.value = HorizontalScrollState.Scrolling(realOffset)
       }
+      prefetchItem(oldOffset + diffPage * layoutWidth, horizontalScrollState.value.offset)
     }
   }
-  val coroutineScope = rememberCoroutineScope()
-  var animateJob: Job? by remember { mutableStateOf(null) }
-  return draggable(
-    state = draggableState,
-    orientation = Orientation.Horizontal,
-    startDragImmediately = isInDraggable,
-    onDragStarted = {
-      isInDraggable = true
-      animateJob?.cancel()
-      realOffset = calendar.horizontalScrollState.value.offset
-    },
-    onDragStopped = { velocity ->
-      isInDraggable = false
-      with(calendarState) {
-        // clickDataState 对应的页数
-        val clickPage = getPage(clickDateState.value)
-        // 当前滑到的中心页
-        val nowPage = clickPage - (horizontalScrollState.value.offset / layoutWidth).roundToInt()
-        // 动画目标页
-        val targetPage =
-          (if (velocity > 1000) nowPage - 1 else if (velocity < -1000) nowPage + 1 else nowPage)
-            .coerceIn(0, pageCount - 1)
-        // 动画目标页所需偏移量
-        val targetValue = (clickPage - targetPage) * layoutWidth.toFloat()
-        var newDate =
-          if (currentIsCollapsed) clickDateState.value.plusWeeks(targetPage - clickPage)
-          else clickDateState.value.plusMonths(targetPage - clickPage)
-        newDate = newDate.coerceIn(startDateState.value, endDateState.value)
-        if (horizontalScrollState.value.offset == targetValue) {
+
+  /**
+   * 用于提前预取屏幕外的 item，需要在移动后调用
+   *
+   * @param oldOffset 移动前 horizontalScrollState.value 的值
+   * @param newOffset 移动后 horizontalScrollState.value 的值
+   */
+  private fun prefetchItem(oldOffset: Float, newOffset: Float) {
+//    if (calendarState.currentIsExpanded) {
+      // 在完全展开的状态下进行预取
+//      val width = measurePolicy.itemConstraints.maxWidth
+//      val offset = newOffset - oldOffset // 向右滑动则大于 0
+//      val columnDiff = (offset / width).roundToInt()
+//      val leftTopDate =
+//        measurePolicy.getLeftTopDateExpended(measurePolicy.itemConstraints.maxWidth, oldOffset)
+//      var topDate = if (columnDiff > 0) leftTopDate else measurePolicy.getTopDate(leftTopDate, 8)
+//      repeat(abs(columnDiff)) {
+//        topDate =
+//          if (columnDiff > 0) measurePolicy.getTopDate(topDate, -1)
+//          else measurePolicy.getTopDate(topDate, 1)
+//        if (!measurePolicy.prefetchExpendedTopDate.containsKey(topDate)) {
+//          val handle = measurePolicy.forEachColumn(topDate) {
+//            prefetchState.schedulePrefetch(it, measurePolicy.itemConstraints)
+//          }
+//          measurePolicy.prefetchExpendedTopDate[topDate] = {
+//            repeat(handle.size) {
+//              handle[it].cancel()
+//            }
+//          }
+//        }
+//      }
+//    }
+  }
+
+  fun onDragStarted() {
+    animateJob?.cancel()
+    animateJob = null
+    realOffset = calendarState.horizontalScrollState.value.offset
+  }
+
+  fun onDragStopped(velocity: Float) {
+    with(calendarState) {
+      // clickDataState 对应的页数
+      val clickPage = getPage(clickDateState.value)
+      // 当前滑到的中心页
+      val nowPage = clickPage - (horizontalScrollState.value.offset / layoutWidth).roundToInt()
+      // 动画目标页
+      val targetPage =
+        (if (velocity > 1000) nowPage - 1 else if (velocity < -1000) nowPage + 1 else nowPage)
+          .coerceIn(0, pageCount - 1)
+      // 动画目标页所需偏移量
+      val targetValue = (clickPage - targetPage) * layoutWidth.toFloat()
+      var newDate =
+        if (currentIsCollapsed) clickDateState.value.plusWeeks(targetPage - clickPage)
+        else clickDateState.value.plusMonths(targetPage - clickPage)
+      newDate = newDate.coerceIn(startDateState.value, endDateState.value)
+      if (horizontalScrollState.value.offset == targetValue) {
+        Snapshot.withMutableSnapshot {
+          clickDateState.value = newDate
+          horizontalScrollState.value = HorizontalScrollState.Idle
+          tempClickDate?.let { updateClickDate(it) }
+        }
+      } else {
+        // 这里如果使用 onDragStopped 开启协程则会导致后续触摸事件延迟
+        animateJob = coroutineScope.launch {
+          animate(
+            initialValue = horizontalScrollState.value.offset,
+            targetValue = targetValue,
+            initialVelocity = velocity,
+          ) { value, _ ->
+            prefetchItem(horizontalScrollState.value.offset, value)
+            horizontalScrollState.value = HorizontalScrollState.Scrolling(value)
+          }
           Snapshot.withMutableSnapshot {
             clickDateState.value = newDate
             horizontalScrollState.value = HorizontalScrollState.Idle
             tempClickDate?.let { updateClickDate(it) }
           }
-        } else {
-          // 这里如果使用 onDragStopped 开启协程则会导致后续触摸事件延迟
-          animateJob = coroutineScope.launch {
-            animate(
-              initialValue = horizontalScrollState.value.offset,
-              targetValue = targetValue,
-              initialVelocity = velocity,
-            ) { value, _ ->
-              horizontalScrollState.value = HorizontalScrollState.Scrolling(value)
-            }
-            Snapshot.withMutableSnapshot {
-              clickDateState.value = newDate
-              horizontalScrollState.value = HorizontalScrollState.Idle
-              tempClickDate?.let { updateClickDate(it) }
-            }
-          }
         }
       }
     }
-  )
+  }
+
+  override fun dispatchRawDelta(delta: Float) {
+    draggableState.dispatchRawDelta(delta)
+  }
+
+  override suspend fun drag(dragPriority: MutatePriority, block: suspend DragScope.() -> Unit) {
+    draggableState.drag(dragPriority, block)
+  }
+
 }
 
 internal fun Date.monthLineCount(): Int {

@@ -82,18 +82,19 @@ class CalendarNestedScroll(
       if (scrollOffset == maxScrollOffset) return 0F
       if (scrollOffset + y >= maxScrollOffset) {
         val result = maxScrollOffset - scrollOffset
-        state.verticalScrollState.value = VerticalScrollState.Scrolling(maxScrollOffset)
+        state.verticalScrollState.value = VerticalScrollState.Scrolling(maxScrollOffset, 1F)
         return result
       }
     } else {
       if (scrollOffset == 0F) return 0F
       if (scrollOffset + y <= 0) {
         val result = -scrollOffset
-        state.verticalScrollState.value = VerticalScrollState.Scrolling(0F)
+        state.verticalScrollState.value = VerticalScrollState.Scrolling(0F, 0F)
         return result
       }
     }
-    state.verticalScrollState.value = VerticalScrollState.Scrolling(scrollOffset + y)
+    val newOffset = scrollOffset + y
+    state.verticalScrollState.value = VerticalScrollState.Scrolling(newOffset, newOffset / maxScrollOffset)
     return y
   }
 }

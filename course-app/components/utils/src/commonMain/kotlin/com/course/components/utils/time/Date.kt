@@ -54,6 +54,12 @@ value class Date(
   val lengthOfMonth: Int
     get() = lengthOfMonth(year, monthNumber)
 
+  val firstDate: Date
+    get() = copy(dayOfMonth = 1)
+
+  val lastDate: Date
+    get() = copy(dayOfMonth = lengthOfMonth)
+
   fun daysUntil(date: Date): Int {
     return date.toEpochDays() - toEpochDays()
   }
