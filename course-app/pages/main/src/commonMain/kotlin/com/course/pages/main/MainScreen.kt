@@ -1,4 +1,4 @@
-package com.course.applications.pro
+package com.course.pages.main
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import com.course.components.base.navigator.screen.CourseRemoteScreen
 import com.course.components.utils.serializable.ObjectSerializable
-import com.course.pages.course.page.CourseScreenContent
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -33,7 +32,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 @ObjectSerializable
 @OptIn(ExperimentalFoundationApi::class)
-data object ProMainRemoteScreen : Screen {
+data object MainScreen : Screen {
 
   private lateinit var pagerState: PagerState
 
@@ -55,7 +54,7 @@ private fun ProMainScreenContent(pagerState: PagerState) {
       userScrollEnabled = false,
     ) {
       when (it) {
-        0 -> CourseScreenContent(CourseRemoteScreen(stuNum = "2020214988"))
+        0 -> CourseRemoteScreen(stuNum = "2020214988").Content()
         else -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
           Text(text = it.toString())
         }

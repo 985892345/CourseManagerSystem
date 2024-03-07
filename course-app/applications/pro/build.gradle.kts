@@ -2,8 +2,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 
 plugins {
   id("app.base.application")
-  id("app.function.provider")
-  id("app.function.serialization")
+  id("app.function.provider") // 启动模块使用 KSP 会出现 bug，有时候不会生成产物，已给官方提 issue
   id("app.function.navigator")
 }
 

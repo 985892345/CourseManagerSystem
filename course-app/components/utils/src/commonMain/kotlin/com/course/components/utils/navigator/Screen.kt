@@ -59,7 +59,7 @@ interface RemoteScreenEnterCollector {
       buildMap {
         collected.forEach { map ->
           map.forEach {
-            check(put(it.key, it.value) != null) {
+            check(put(it.key, it.value) == null) {
               "${it.key} 被作为 @ScreenEnter 函数参数多次使用"
             }
           }
