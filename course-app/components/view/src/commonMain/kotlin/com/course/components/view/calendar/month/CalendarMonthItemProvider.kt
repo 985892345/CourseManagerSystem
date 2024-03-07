@@ -71,41 +71,66 @@ internal class CalendarMonthItemProvider(
   }
 
   private fun getDateShowState(date: Date, isNowMonth: Boolean): CalendarDateShowValue {
-    // 处于 MonthOutside 的 item 不会存在点击状态
-    // 如果当前 MonthOutside 的 item 在第一行，则点击后自动跳转到上一个月的同日期 item，所以不存在点击状态
-    if (!isNowMonth) return CalendarDateShowValue.MonthOutside
+    // 处于 Outside 的 item 不会存在点击状态
+    // 如果当前 Outside 的 item 在第一行，则点击后自动跳转到上一个月的同日期 item，所以不存在点击状态
+    if (!isNowMonth) return CalendarDateShowValue.Outside
+    if (date !in startDateState.value..endDateState.value) return CalendarDateShowValue.Outside
+    val clickDate = clickDateState.value
+    val startDate = startDateState.value
+    val endDate = endDateState.value
     return if (verticalScrollState.value == VerticalScrollState.Collapsed) {
       if (horizontalScrollState.value == HorizontalScrollState.Idle) {
         // 对应 CalendarMonthMeasurePolicy.collapsedHorizontalIdleMeasure
-        val showLine =
-          clickDateState.value.run { copy(dayOfMonth = 1).dayOfWeekOrdinal + dayOfMonth - 1 } / 7
-        val dateLine = date.run { copy(dayOfMonth = 1).dayOfWeekOrdinal + dayOfMonth - 1 } / 7
-        if (date.dayOfWeekOrdinal == clickDateState.value.dayOfWeekOrdinal) {
-          if (dateLine in showLine - 1..showLine + 1 || date.monthNumber != clickDateState.value.monthNumber) {
+        val showLine = clickDate.run { firstDate.dayOfWeekOrdinal + dayOfMonth - 1 } / 7
+        val dateLine = date.run { firstDate.dayOfWeekOrdinal + dayOfMonth - 1 } / 7
+        if (date.dayOfWeekOrdinal == clickDate.dayOfWeekOrdinal) {
+          if (dateLine in showLine - 1..showLine + 1 || date.monthNumber != clickDate.monthNumber) {
             CalendarDateShowValue.Clicked
           } else {
             CalendarDateShowValue.Normal
           }
         } else {
-          CalendarDateShowValue.Normal
+          // 判断当前周显示的点击日期是否超出范围
+          if (date == startDate && date.dayOfWeek > clickDate.dayOfWeek) {
+            CalendarDateShowValue.Clicked
+          } else if (date == endDate && date.dayOfWeek < clickDate.dayOfWeek) {
+            CalendarDateShowValue.Clicked
+          } else {
+            CalendarDateShowValue.Normal
+          }
         }
       } else {
         // 对应 CalendarMonthMeasurePolicy.collapsedHorizontalScrollingMeasure
-        if (date.dayOfWeekOrdinal == clickDateState.value.dayOfWeekOrdinal) {
+        if (date.dayOfWeekOrdinal == clickDate.dayOfWeekOrdinal) {
+          CalendarDateShowValue.Clicked
+        } else {
+          // 判断当前周显示的点击日期是否超出范围
+          if (date == startDate && date.dayOfWeek > clickDate.dayOfWeek) {
+            CalendarDateShowValue.Clicked
+          } else if (date == endDate && date.dayOfWeek < clickDate.dayOfWeek) {
+            CalendarDateShowValue.Clicked
+          } else {
+            CalendarDateShowValue.Normal
+          }
+        }
+      }
+    } else {
+      // 对应 CalendarMonthMeasurePolicy.verticalScrollingMeasure 和 expandedMeasure
+      if (date.dayOfMonth == clickDate.dayOfMonth) {
+        CalendarDateShowValue.Clicked
+      } else {
+        // 判断当前月显示的点击日期是否超出范围
+        if (date.dayOfMonth == date.lengthOfMonth && date.lengthOfMonth < clickDate.dayOfMonth) {
+          CalendarDateShowValue.Clicked
+        } else if (date == startDate && date.dayOfMonth > clickDate.dayOfMonth) {
           CalendarDateShowValue.Clicked
         } else {
           CalendarDateShowValue.Normal
         }
       }
-    } else {
-      // 对应 CalendarMonthMeasurePolicy.verticalScrollingMeasure 和 expandedMeasure
-      if (date.dayOfMonth == clickDateState.value.dayOfMonth) {
-        CalendarDateShowValue.Clicked
-      } else {
-        CalendarDateShowValue.Normal
-      }
     }
   }
+
 
   /**
    * 用于获取 date 对应的位置
@@ -126,30 +151,34 @@ internal class CalendarMonthItemProvider(
    */
   fun getIndex(date: Date, isNowMonth: Boolean): Int {
     val startDate = startDateState.value
-    val firstDate = date.copy(dayOfMonth = 1)
-    val lastDate = date.copy(dayOfMonth = date.lengthOfMonth)
-    val isInFirstLine = date in firstDate.minusDays(firstDate.dayOfWeekOrdinal)..firstDate.plusDays(6 - firstDate.dayOfWeekOrdinal)
-    val isInLastLine = date in lastDate.minusDays(lastDate.dayOfWeekOrdinal)..lastDate.plusDays(6 - lastDate.dayOfWeekOrdinal)
+    val firstDate = date.firstDate
+    val lastDate = date.lastDate
+    val isInFirstLine =
+      date in firstDate.minusDays(firstDate.dayOfWeekOrdinal)..firstDate.plusDays(6 - firstDate.dayOfWeekOrdinal)
+    val isInLastLine =
+      date in lastDate.minusDays(lastDate.dayOfWeekOrdinal)..lastDate.plusDays(6 - lastDate.dayOfWeekOrdinal)
     // 判断当前周显示的一行中是否存在上一个月或者下一个月的日期
     val weekLineHasOtherMonth =
       (firstDate.dayOfWeekOrdinal != 0 && isInFirstLine) ||
           (lastDate.dayOfWeekOrdinal != 6 && isInLastLine)
     if (!weekLineHasOtherMonth || isNowMonth) {
       return ((date.year - startDate.year) * 12 + date.monthNumber - startDate.monthNumber) * 6 * 7 +
-          date.copy(dayOfMonth = 1).dayOfWeekOrdinal + date.dayOfMonth - 1
+          date.firstDate.dayOfWeekOrdinal + date.dayOfMonth - 1
     } else {
       // 当前周行存在另一个月的日期并且 isNowMonth = false，即不在自身表示的月份中显示
       if (date.dayOfMonth > 15) {
         // 月视图的第一行
-        val nextDate = date.plusMonths(1).copy(dayOfMonth = 1)
-        val index = ((nextDate.year - startDate.year) * 12 + nextDate.monthNumber - startDate.monthNumber) * 6 * 7 +
-            nextDate.dayOfWeekOrdinal + nextDate.dayOfMonth - 1
+        val nextDate = date.plusMonths(1).firstDate
+        val index =
+          ((nextDate.year - startDate.year) * 12 + nextDate.monthNumber - startDate.monthNumber) * 6 * 7 +
+              nextDate.dayOfWeekOrdinal + nextDate.dayOfMonth - 1
         return index - (nextDate.dayOfWeekOrdinal - date.dayOfWeekOrdinal)
       } else {
         // 月视图的最后一行
-        val prevDate = date.minusMonths(1).run { copy(dayOfMonth = lengthOfMonth) }
-        val index = ((prevDate.year - startDate.year) * 12 + prevDate.monthNumber - startDate.monthNumber) * 6 * 7 +
-            prevDate.copy(dayOfMonth = 1).dayOfWeekOrdinal + prevDate.dayOfMonth - 1
+        val prevDate = date.minusMonths(1).lastDate
+        val index =
+          ((prevDate.year - startDate.year) * 12 + prevDate.monthNumber - startDate.monthNumber) * 6 * 7 +
+              prevDate.firstDate.dayOfWeekOrdinal + prevDate.dayOfMonth - 1
         return index + date.dayOfWeekOrdinal - prevDate.dayOfWeekOrdinal
       }
     }

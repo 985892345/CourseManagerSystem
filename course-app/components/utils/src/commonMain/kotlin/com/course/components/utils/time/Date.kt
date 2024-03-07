@@ -60,6 +60,12 @@ value class Date(
   val lastDate: Date
     get() = copy(dayOfMonth = lengthOfMonth)
 
+  val weekBeginDate: Date
+    get() = minusDays(dayOfWeekOrdinal)
+
+  val weekFinalDate: Date
+    get() = plusDays(6 - dayOfWeekOrdinal)
+
   fun daysUntil(date: Date): Int {
     return date.toEpochDays() - toEpochDays()
   }

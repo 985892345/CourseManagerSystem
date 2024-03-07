@@ -61,10 +61,11 @@ internal class CalendarMonthMeasurePolicy(
     val lineCount = clickDateState.value.monthLineCount()
     val firstDate = clickDateState.value.firstDate
     return Array(lineCount) {
+      // 月份视图不会超出范围，所以打 !!
       if (it != lineCount - 1) {
-        measureWeekLine(firstDate.plusWeeks(it), parentConstraints)
+        measureWeekLine(firstDate.plusWeeks(it), parentConstraints)!!
       } else {
-        measureWeekLine(firstDate.lastDate, parentConstraints)
+        measureWeekLine(firstDate.lastDate, parentConstraints)!!
       }
     }
   }
@@ -78,7 +79,9 @@ internal class CalendarMonthMeasurePolicy(
   private fun LazyLayoutMeasureScope.measureWeekLine(
     date: Date,
     parentConstraints: Constraints,
-  ): Array<Placeable> {
+  ): Array<Placeable>? {
+    if (date < startDateState.value.firstDate.run { minusDays(dayOfWeekOrdinal) }) return null
+    if (date > endDateState.value.lastDate.run { plusDays(6 - dayOfWeekOrdinal) }) return null
     val beginDate = date.minusDays(date.dayOfWeekOrdinal)
     return Array(7) {
       val nowDate = beginDate.plusDays(it)
@@ -131,8 +134,8 @@ internal class CalendarMonthMeasurePolicy(
   private fun LazyLayoutMeasureScope.collapsedHorizontalIdleMeasure(constraints: Constraints): MeasureResult {
     val monthArray = measureMonth(constraints)
     val showLine = clickDateState.value.run { firstDate.dayOfWeekOrdinal + dayOfMonth - 1 } / 7
-    var lineLeft: Array<Placeable> = emptyArray()
-    var lineRight: Array<Placeable> = emptyArray()
+    var lineLeft: Array<Placeable>? = emptyArray()
+    var lineRight: Array<Placeable>? = emptyArray()
     when (showLine) {
       0 -> lineLeft = measureWeekLine(clickDateState.value.minusWeeks(1), constraints)
       1 -> clickDateState.value.minusWeeks(1).let {
@@ -150,11 +153,12 @@ internal class CalendarMonthMeasurePolicy(
       monthArray.lastIndex -> lineRight =
         measureWeekLine(clickDateState.value.plusWeeks(1), constraints)
     }
-    if (lineLeft.isEmpty()) {
+    // null 表示有但超过范围了，emptyArray 表示没有
+    if (lineLeft?.isEmpty() == true) {
       lineLeft = monthArray[showLine - 1]
       monthArray[showLine - 1] = emptyArray()
     }
-    if (lineRight.isEmpty()) {
+    if (lineRight?.isEmpty() == true) {
       lineRight = monthArray[showLine + 1]
       monthArray[showLine + 1] = emptyArray()
     }
@@ -177,10 +181,11 @@ internal class CalendarMonthMeasurePolicy(
   }
 
   private fun Placeable.PlacementScope.placeRelativeWithLayerHorizontal(
-    array: Array<Placeable>,
+    array: Array<Placeable>?,
     x: Int = 0,
     y: Int = 0
   ) {
+    array ?: return
     var left = x
     repeat(array.size) {
       val placeable = array[it]
@@ -218,6 +223,7 @@ internal class CalendarMonthMeasurePolicy(
       if (date !in beginDate..finalDate) return@Array null
       val weekClickDate =
         date.plusDays(clickDateState.value.dayOfWeekOrdinal - date.dayOfWeekOrdinal)
+          .coerceIn(startDateState.value, endDateState.value)
       measure(date, date.monthNumber == weekClickDate.monthNumber, constraints)
     }
     val lineHeight = itemConstraints.maxHeight
@@ -335,7 +341,7 @@ internal class CalendarMonthMeasurePolicy(
       // 以 30 号为准滑动的列数
       val columnDiff = (horizontalScrollState.value.offset / width).toInt()
       repeat(columnArray.size) { column ->
-        val placeableArray = columnArray[column]
+        val placeableArray = columnArray[column] ?: return@repeat
         val x =
           (horizontalScrollState.value.offset - (columnDiff + leftColumnDiff - column) * width).roundToInt()
         val lineDistance = if (placeableArray.size == 6) 0F else lineHeight / 4F
@@ -377,10 +383,20 @@ internal class CalendarMonthMeasurePolicy(
       }
   }
 
+  /**
+   * 从顶部 [topDate] 遍历当前列
+   */
   private inline fun <reified T> forEachColumn(
     topDate: Date,
     block: (itemIndex: Int) -> T
-  ): Array<T> {
+  ): Array<T>? {
+    // 只有展开时才会调用该方法，所以这里直接判断是否在月份显示视图的范围内
+    if (topDate <= startDateState.value.firstDate.minusMonths(1)
+        .run { plusDays(6 - dayOfWeekOrdinal) }
+    ) return null
+    if (topDate >= endDateState.value.lastDate.firstDate.plusMonths(1)
+        .run { minusDays(dayOfWeekOrdinal) }
+    ) return null
     val secondLineDate = topDate.plusWeeks(1)
     val monthNumber = secondLineDate.monthNumber
     val lineCount = secondLineDate.monthLineCount()
@@ -393,7 +409,7 @@ internal class CalendarMonthMeasurePolicy(
   private fun LazyLayoutMeasureScope.measureColumn(
     topDate: Date,
     parentConstraints: Constraints,
-  ): Array<Placeable> {
+  ): Array<Placeable>? {
     return forEachColumn(topDate) {
       measureInternal(it, parentConstraints)
     }

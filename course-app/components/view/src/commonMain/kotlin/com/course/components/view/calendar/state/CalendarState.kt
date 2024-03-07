@@ -19,6 +19,9 @@ import com.course.components.utils.time.Today
 import com.course.components.view.calendar.scroll.HorizontalScrollState
 import com.course.components.view.calendar.scroll.VerticalScrollState
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlin.math.roundToInt
@@ -34,7 +37,7 @@ class CalendarState(
   internal val coroutineScope: CoroutineScope,
   val startDateState: State<Date>,
   val endDateState: State<Date>,
-  var onClick: CalendarState.(Date) -> Unit
+  var onClick: ((Date) -> Unit)? = null,
 ) {
 
   val showBeginDate: Date
@@ -75,6 +78,28 @@ class CalendarState(
     }
   }
 
+  // 点击事件，自带容量为 1 的缓存，下游消耗不过来时会自动丢弃旧值
+  internal val clickEventFlowInternal = MutableSharedFlow<ClickEventData>(
+    extraBufferCapacity = 1,
+    onBufferOverflow = BufferOverflow.DROP_OLDEST,
+  )
+
+  /**
+   * 点击事件，下游消耗不过来时会自动丢弃旧值
+   */
+  val clickEventFlow: Flow<ClickEventData>
+    get() = clickEventFlowInternal
+
+  data class ClickEventData(
+    val old: Date,
+    val new: Date
+  )
+
+  init {
+    clickEventFlow.onEach {
+      onClick?.invoke(it.new) ?: updateClickDate(it.new)
+    }.launchIn(coroutineScope)
+  }
 
   /**
    * 更新选中的日期，如果不在当前页则会自动跳转
@@ -158,11 +183,7 @@ class CalendarState(
 fun rememberCalendarState(
   startDate: Date = Date(1901, 1, 1),
   endDate: Date = Date(2099, 12, 31),
-  onClick: CalendarState.(Date) -> Unit = {
-    if (it in startDate..endDate) {
-      updateClickDate(it)
-    }
-  },
+  onClick: ((Date) -> Unit)? = null,
 ): CalendarState {
   val coroutineScope = rememberCoroutineScope()
   val startDateState = rememberUpdatedState(startDate)

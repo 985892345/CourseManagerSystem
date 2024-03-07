@@ -170,7 +170,7 @@ fun CalendarState.WeekTextCompose(
 sealed interface CalendarDateShowValue {
   data object Normal : CalendarDateShowValue
   data object Clicked : CalendarDateShowValue
-  data object MonthOutside : CalendarDateShowValue
+  data object Outside : CalendarDateShowValue // 超出范围或者不在当前月的日期
 }
 
 @Composable
@@ -181,12 +181,12 @@ fun CalendarState.CalendarDateCompose(
   Layout(
     modifier = Modifier.graphicsLayer {
       alpha = if (date !in startDateState.value..endDateState.value) 0.3F else {
-        if (show == CalendarDateShowValue.MonthOutside)
+        if (show == CalendarDateShowValue.Outside)
           1F - verticalScrollState.value.fraction * 0.7F
         else 1F
       }
     }.clickableNoIndicator {
-      onClick.invoke(this, date)
+      clickEventFlowInternal.tryEmit(CalendarState.ClickEventData(clickDate, date))
     }.background(
       color = when {
         date == Today && show == CalendarDateShowValue.Clicked -> Color.Blue
