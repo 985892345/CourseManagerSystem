@@ -3,12 +3,20 @@ package com.course.components.base.page
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.ui.Modifier
-import com.course.components.base.navigator.CurrentScreen
-import com.course.components.base.navigator.Navigator
-import com.course.components.base.navigator.Screen
+import cafe.adriel.voyager.core.annotation.ExperimentalVoyagerApi
+import cafe.adriel.voyager.core.annotation.InternalVoyagerApi
+import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigatorSaver
+import cafe.adriel.voyager.navigator.Navigator
+import cafe.adriel.voyager.navigator.NavigatorSaver
+import cafe.adriel.voyager.transitions.SlideTransition
+import com.course.components.base.theme.AppTheme
 import com.course.components.base.ui.dialog.DialogCompose
 import com.course.components.base.ui.toast.ToastCompose
+import com.course.components.utils.serializable.ObjectSerializable
 
 /**
  * .
@@ -17,21 +25,42 @@ import com.course.components.base.ui.toast.ToastCompose
  * @date 2024/1/22 19:13
  */
 
-lateinit var mainScreen: Screen
-  private set
-
 lateinit var mainNavigator: Navigator
   private set
 
+@OptIn(ExperimentalVoyagerApi::class)
 @Composable
 fun MainPageCompose(screen: Screen) {
-  mainScreen = screen
-  Navigator(screen = screen) {
-    mainNavigator = it
+  AppTheme(darkTheme = false) {
     Box(modifier = Modifier.fillMaxSize()) {
-      CurrentScreen()
-      DialogCompose()
-      ToastCompose()
+      CompositionLocalProvider(
+        LocalNavigatorSaver provides NavigatorSaver
+      ) {
+        Navigator(screen = screen) {
+          mainNavigator = it
+          SlideTransition(it)
+        }
+      }
     }
+    DialogCompose()
+    ToastCompose()
   }
 }
+
+@OptIn(ExperimentalVoyagerApi::class, InternalVoyagerApi::class)
+private val NavigatorSaver: NavigatorSaver<Any> =
+  NavigatorSaver { _, key, stateHolder, disposeBehavior, parent ->
+    listSaver(
+      save = { navigator ->
+        navigator.items.map {
+          if (ObjectSerializable.isSerializable(it::class)) {
+            ObjectSerializable.serialize(it)
+          } else throw RuntimeException("${it::class} 不支持序列化, 请打上 @ObjectSerializable 注解")
+        }
+      },
+      restore = { items ->
+        val screens = items.map { ObjectSerializable.deserialize(it) as Screen }
+        Navigator(screens, key, stateHolder, disposeBehavior, parent)
+      }
+    )
+  }

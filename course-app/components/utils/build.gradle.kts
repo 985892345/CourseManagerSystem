@@ -2,6 +2,8 @@ plugins {
   id("app.base.library")
   id("app.function.compose")
   id("app.function.provider")
+  id("app.function.serialization")
+  id("app.function.navigator")
 }
 
 kotlin {
@@ -9,7 +11,6 @@ kotlin {
     commonMain.dependencies {
       implementation(libs.ktProvider.manager)
       api(libs.kotlinx.datetime)
-      api(libs.kotlinx.serialization)
       api(libs.multiplatform.settings)
       implementation(libs.multiplatform.settingsNoArg)
     }

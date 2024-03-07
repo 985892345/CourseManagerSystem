@@ -34,19 +34,22 @@ androidWheel = "0.0.1-alpha16-SNAPSHOT" # 985892345 的 Android 轮子库
 ktor-fit = "1.0.9"
 
 # https://github.com/985892345/KtProvider
-ktProvider = "1.3.2" # 985892345 的 kt 多平台跨模块服务提供框架
+ktProvider = "1.3.3-alpha09-SNAPSHOT" # 985892345 的 kt 多平台跨模块服务提供框架
 
 # https://github.com/russhwolf/multiplatform-settings
 multiplatformSettings = "1.1.1"
 
 # https://github.com/adrielcafe/voyager
-voyager = "1.1.0-alpha02"
+voyager = "1.1.0-alpha03"
 
 # https://github.com/Lavmee/constraintlayout-compose-multiplatform
 constraintLayout = "0.3.0-alpha01"
 
 # https://github.com/Kotlin/kotlinx.collections.immutable
 kotlinx-collections = "0.3.7"
+
+# https://github.com/square/kotlinpoet
+kotlinpoet = "1.15.1"
 
 
 spring-boot = "3.2.1"
@@ -71,7 +74,9 @@ kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core",
 kotlinx-coroutinesAndroid = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 
 kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
+ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 ktor-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-contentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
@@ -92,9 +97,10 @@ voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.
 voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }
 voyager-bottomSheetNavigator = { module = "cafe.adriel.voyager:voyager-bottom-sheet-navigator", version.ref = "voyager" }
 voyager-tabNavigator = { module = "cafe.adriel.voyager:voyager-tab-navigator", version.ref = "voyager" }
-voyager-transitions = { module = "cafe.adriel.voyager:voyager-tab-navigator", version.ref = "voyager" }
+voyager-transitions = { module = "cafe.adriel.voyager:voyager-transitions", version.ref = "voyager" }
 constraintLayout = { module = "tech.annexflow.compose:constraintlayout-compose-multiplatform", version.ref = "constraintLayout" }
 kotlinx-collections = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinx-collections" }
+kotlinpoet = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }
 
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "spring-boot" }
 spring-boot-druid = { module = "com.alibaba:druid-spring-boot-starter", version.ref = "druid" }

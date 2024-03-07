@@ -3,6 +3,8 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 plugins {
   id("app.base.application")
   id("app.function.provider")
+  id("app.function.serialization")
+  id("app.function.navigator")
 }
 
 composeApplication {

@@ -9,4 +9,5 @@ dependencies {
   implementation(libs.compose.gradlePlugin)
   implementation(libs.ksp.gradlePlugin)
   implementation(libs.ktProvider.gradlePlugin)
+  implementation(libs.kotlinx.serialization.gradlePlugin)
 }

@@ -3,6 +3,8 @@ plugins {
   id("app.function.compose")
 //  id("app.function.network")
   id("app.function.provider")
+  id("app.function.serialization")
+  id("app.function.navigator")
 }
 
 kotlin {

@@ -1,7 +1,8 @@
 import extensions.libsLibrary
+import utils.kspMultiplatform
 
 plugins {
-  com.google.devtools.ksp
+  id("com.google.devtools.ksp")
   id("app.base.multiplatform")
 }
 
@@ -16,10 +17,5 @@ kotlin {
 
 dependencies {
   val ktorfitKsp = libsLibrary("ktor-fit-ksp")
-  add("kspAndroid", ktorfitKsp)
-  add("kspDesktop", ktorfitKsp)
-  add("kspIosX64", ktorfitKsp)
-  add("kspIosArm64", ktorfitKsp)
-  add("kspIosSimulatorArm64", ktorfitKsp)
-//  add("kspWasmJs", ktorfitKsp)
+  kspMultiplatform(ktorfitKsp, false)
 }

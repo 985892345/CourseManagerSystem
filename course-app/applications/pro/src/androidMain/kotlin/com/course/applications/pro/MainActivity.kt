@@ -2,7 +2,6 @@ package com.course.applications.pro
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import com.course.components.base.BaseComposeActivity
 import com.course.components.base.page.MainPageCompose
@@ -12,7 +11,7 @@ class MainActivity : BaseComposeActivity() {
     super.onCreate(savedInstanceState)
 
     setContent {
-      MainPageCompose(remember { ProMainScreen() })
+      MainPageCompose(ProMainRemoteScreen)
     }
   }
 }

@@ -2,7 +2,7 @@ plugins {
   id("app.base.library")
   id("app.function.network")
   id("app.function.provider")
-  alias(libs.plugins.kotlinx.serialization)
+  id("app.function.serialization")
 }
 
 kotlin {

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.course.components.utils.time.Today
@@ -25,6 +26,11 @@ fun CoursePagerState.CourseItemGroupCompose(
     modifier = Modifier.then(modifier)
   ) {
 //    TodayBackgroundCompose()
+    items.forEach {
+      key(it.weeklyKey) {
+
+      }
+    }
   }
 }
 

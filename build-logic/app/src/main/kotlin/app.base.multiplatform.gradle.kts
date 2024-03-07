@@ -1,8 +1,9 @@
+
 import extensions.libsLibrary
 import utils.Config
 
 plugins {
-  `kotlin-multiplatform`
+  id("kotlin-multiplatform")
 }
 
 kotlin {

@@ -24,8 +24,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import com.course.components.base.navigator.Screen
+import com.course.components.base.navigator.screen.CourseRemoteScreen
 import com.course.components.utils.compose.derivedStateOfStructure
+import com.course.components.utils.navigator.RemoteScreenEnter
 import com.course.components.utils.time.SchoolCalendar
 import com.course.components.utils.time.Today
 import com.course.components.view.calendar.CalendarCompose
@@ -44,19 +45,10 @@ import kotlin.math.abs
  * @author 985892345
  * @date 2024/2/29 22:33
  */
-class CourseScreen(
-  private val stuNum: String
-) : Screen {
-
-  @Composable
-  override fun Content() {
-    CourseScreenContent(stuNum)
-  }
-}
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun CourseScreenContent(stuNum: String) {
+@RemoteScreenEnter
+fun CourseScreenContent(screen: CourseRemoteScreen) {
   val startDate = SchoolCalendar.beginDate[0]
   val calendarState = rememberCalendarState(
     startDate = startDate,
@@ -65,7 +57,7 @@ private fun CourseScreenContent(stuNum: String) {
     startDate = startDate,
   )
   Column(modifier = Modifier.systemBarsPadding()) {
-    CourseHeaderCompose(stuNum, calendarState, courseState)
+    CourseHeaderCompose(screen.stuNum, calendarState, courseState)
     CalendarCompose(
       modifier = Modifier.padding(start = 2.dp, end = 4.dp, top = 4.dp),
       state = calendarState

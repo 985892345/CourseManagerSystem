@@ -1,5 +1,6 @@
 package com.course.functions.account.oauth
 
+import com.course.components.utils.coroutine.AppCoroutineScope
 import com.course.components.utils.init.IInitialService
 import com.course.components.utils.preferences.Preferences
 import com.course.functions.account.api.RefreshTokenExpirationException
@@ -16,10 +17,8 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.Parameters
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -41,7 +40,6 @@ import kotlin.coroutines.resumeWithException
  * @author 985892345
  * @date 2024/1/20 16:25
  */
-@OptIn(DelicateCoroutinesApi::class)
 internal object Token {
 
   /**
@@ -50,11 +48,11 @@ internal object Token {
   val accessToken: String?
     get() = token?.accessToken
 
-  @Volatile
-  private var token: RefreshTokenBean? = tryGetTokenFromCache()
-
   private var tokenPreferences by Preferences.nullableString("token")
   private var tokenExpirationTimestamp by Preferences.long("token_expiration_timestamp", 0L)
+
+  @Volatile
+  private var token: RefreshTokenBean? = tryGetTokenFromCache()
 
   /**
    * 获取当前 accessToken，如果此时正在请求刷新 token，则进行等待
@@ -141,7 +139,7 @@ internal object Token {
   private fun getOrCreateRefreshTokenJob(): Deferred<RefreshTokenBean> {
     _refreshTokenJob?.let { return it }
     // 注意: 这里使用新的协程作用域
-    return GlobalScope.async(Dispatchers.IO) {
+    return AppCoroutineScope.async(Dispatchers.IO) {
       try {
         val refreshToken = token?.refreshToken
         check(refreshToken != null) { "refreshToken 为空" }
@@ -170,13 +168,13 @@ internal object Token {
   @ImplProvider(clazz = IInitialService::class, name = "CheckAccessTokenExpiration")
   object CheckAccessTokenExpiration : IInitialService {
     override fun onAppInit() {
-      val token = token ?: return
+      val oldToken = token ?: return
       val nowTimestamp = Clock.System.now().toEpochMilliseconds()
       val expiresInTimestamp = tokenExpirationTimestamp
       if (nowTimestamp >= expiresInTimestamp) {
         // 如果 token 过期，则在应用初始化时进行刷新
-        GlobalScope.launch(Dispatchers.IO) {
-          tryOrWaitRefreshToken(token.accessToken)
+        AppCoroutineScope.launch(Dispatchers.IO) {
+          tryOrWaitRefreshToken(oldToken.accessToken)
         }
       }
     }

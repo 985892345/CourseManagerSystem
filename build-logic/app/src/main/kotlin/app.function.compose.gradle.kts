@@ -1,11 +1,10 @@
+
 import com.android.build.gradle.BaseExtension
 import extensions.libsLibrary
 import extensions.libsVersion
-import org.gradle.kotlin.dsl.getValue
-import org.gradle.kotlin.dsl.getting
 
 plugins {
-  org.jetbrains.compose
+  id("org.jetbrains.compose")
   id("app.base.multiplatform")
 }
 

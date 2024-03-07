@@ -40,8 +40,7 @@ class CoursePagerState(
   val scrollState: ScrollState,
   val beginDateState: State<Date?>, // 为 null 时将不与日期关联，根据星期数来显示
   val items: SnapshotStateList<ICourseItemBean>,
-) {
-}
+)
 
 @Composable
 fun rememberCoursePagerState(

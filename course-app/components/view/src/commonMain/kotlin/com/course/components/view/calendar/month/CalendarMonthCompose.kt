@@ -134,41 +134,7 @@ private class CalendarMonthPagerDraggable(
         realOffset = horizontalScrollState.value.offset + it
         horizontalScrollState.value = HorizontalScrollState.Scrolling(realOffset)
       }
-      prefetchItem(oldOffset + diffPage * layoutWidth, horizontalScrollState.value.offset)
     }
-  }
-
-  /**
-   * 用于提前预取屏幕外的 item，需要在移动后调用
-   *
-   * @param oldOffset 移动前 horizontalScrollState.value 的值
-   * @param newOffset 移动后 horizontalScrollState.value 的值
-   */
-  private fun prefetchItem(oldOffset: Float, newOffset: Float) {
-//    if (calendarState.currentIsExpanded) {
-      // 在完全展开的状态下进行预取
-//      val width = measurePolicy.itemConstraints.maxWidth
-//      val offset = newOffset - oldOffset // 向右滑动则大于 0
-//      val columnDiff = (offset / width).roundToInt()
-//      val leftTopDate =
-//        measurePolicy.getLeftTopDateExpended(measurePolicy.itemConstraints.maxWidth, oldOffset)
-//      var topDate = if (columnDiff > 0) leftTopDate else measurePolicy.getTopDate(leftTopDate, 8)
-//      repeat(abs(columnDiff)) {
-//        topDate =
-//          if (columnDiff > 0) measurePolicy.getTopDate(topDate, -1)
-//          else measurePolicy.getTopDate(topDate, 1)
-//        if (!measurePolicy.prefetchExpendedTopDate.containsKey(topDate)) {
-//          val handle = measurePolicy.forEachColumn(topDate) {
-//            prefetchState.schedulePrefetch(it, measurePolicy.itemConstraints)
-//          }
-//          measurePolicy.prefetchExpendedTopDate[topDate] = {
-//            repeat(handle.size) {
-//              handle[it].cancel()
-//            }
-//          }
-//        }
-//      }
-//    }
   }
 
   fun onDragStarted() {
@@ -207,7 +173,6 @@ private class CalendarMonthPagerDraggable(
             targetValue = targetValue,
             initialVelocity = velocity,
           ) { value, _ ->
-            prefetchItem(horizontalScrollState.value.offset, value)
             horizontalScrollState.value = HorizontalScrollState.Scrolling(value)
           }
           Snapshot.withMutableSnapshot {
