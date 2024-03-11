@@ -14,17 +14,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.Snapshot
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.course.components.utils.compose.reflexScrollableForMouse
 import com.course.components.utils.time.Date
+import com.course.components.utils.time.MinuteTimeDate
 import com.course.components.utils.time.Today
-import com.course.pages.course.ui.item.ICourseItemBean
 import com.course.pages.course.ui.pager.CoursePagerCompose
 import com.course.pages.course.ui.pager.rememberCoursePagerState
+import com.course.pages.course.ui.pager.scroll.timeline.TimelineDelayMinuteTime
+import com.course.pages.course.utils.CourseData
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -54,11 +55,11 @@ fun CourseCompose(
   HorizontalPager(
     state = state.pagerState,
     modifier = Modifier.then(modifier).reflexScrollableForMouse(),
-    key = { state.beginDate.plusWeeks(it).time },
+    key = { state.beginDate.plusWeeks(it).value },
     pageContent = { page ->
+      val weekBeginDate = state.beginDate.plusWeeks(page)
       val coursePagerState = rememberCoursePagerState(
-        beginDate = state.beginDate.plusWeeks(page),
-        items = state.data
+        items = state.data.getOrCreate(MinuteTimeDate(weekBeginDate, TimelineDelayMinuteTime))
       )
       CoursePagerCompose(
         state = coursePagerState
@@ -75,7 +76,7 @@ class CourseState(
   val pagerState: PagerState,
   val startDateState: State<Date>,
   val endDateState: State<Date>,
-  val data: SnapshotStateList<ICourseItemBean>,
+  val data: CourseData,
 ) {
 
   val beginDate: Date
@@ -108,7 +109,7 @@ class CourseState(
 fun rememberCourseState(
   startDate: Date = Date(1901, 1, 1),
   endDate: Date = Date(2099, 12, 31),
-  data: SnapshotStateList<ICourseItemBean> = remember { SnapshotStateList() },
+  data: CourseData = remember { CourseData() },
 ): CourseState {
   val coroutineScope = rememberCoroutineScope()
   val startDateState = rememberUpdatedState(startDate)

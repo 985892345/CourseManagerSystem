@@ -31,7 +31,7 @@ lateinit var mainNavigator: Navigator
 @OptIn(ExperimentalVoyagerApi::class)
 @Composable
 fun MainPageCompose(screen: Screen) {
-  AppTheme(darkTheme = false) {
+  AppTheme {
     Box(modifier = Modifier.fillMaxSize()) {
       CompositionLocalProvider(
         LocalNavigatorSaver provides NavigatorSaver

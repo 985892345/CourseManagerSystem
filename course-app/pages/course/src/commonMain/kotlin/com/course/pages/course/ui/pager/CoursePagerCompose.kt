@@ -6,14 +6,17 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
-import com.course.components.utils.time.Date
 import com.course.pages.course.ui.item.ICourseItemBean
 import com.course.pages.course.ui.pager.scroll.CourseScrollCompose
+import com.course.pages.course.ui.pager.scroll.timeline.CourseTimelineData
+import com.course.pages.course.ui.pager.scroll.timeline.createTimeline
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * .
@@ -38,22 +41,25 @@ fun CoursePagerCompose(
 @Stable
 class CoursePagerState(
   val scrollState: ScrollState,
-  val beginDateState: State<Date?>, // 为 null 时将不与日期关联，根据星期数来显示
   val items: SnapshotStateList<ICourseItemBean>,
+  val timeline: List<CourseTimelineData>
 )
 
 @Composable
 fun rememberCoursePagerState(
-  beginDate: Date?,
   items: SnapshotStateList<ICourseItemBean> = remember { SnapshotStateList() },
 ): CoursePagerState {
   val scrollState = rememberScrollState()
-  val beginDateState = rememberUpdatedState(beginDate?.minusDays(beginDate.dayOfWeekOrdinal))
+  val timeline = rememberSaveable(
+    saver = Saver(
+      save = { Json.encodeToString(it) },
+      restore = { Json.decodeFromString<List<CourseTimelineData>>(it) })
+  ) { createTimeline() }
   return remember {
     CoursePagerState(
       scrollState = scrollState,
-      beginDateState = beginDateState,
-      items = items
+      items = items,
+      timeline = timeline,
     )
   }
 }

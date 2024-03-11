@@ -34,7 +34,7 @@ androidWheel = "0.0.1-alpha16-SNAPSHOT" # 985892345 的 Android 轮子库
 ktor-fit = "1.0.9"
 
 # https://github.com/985892345/KtProvider
-ktProvider = "1.3.3-alpha09-SNAPSHOT" # 985892345 的 kt 多平台跨模块服务提供框架
+ktProvider = "1.3.3-alpha12-SNAPSHOT" # 985892345 的 kt 多平台跨模块服务提供框架
 
 # https://github.com/russhwolf/multiplatform-settings
 multiplatformSettings = "1.1.1"

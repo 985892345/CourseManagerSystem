@@ -24,7 +24,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.Measurable
+import androidx.compose.ui.layout.MeasurePolicy
+import androidx.compose.ui.layout.MeasureResult
+import androidx.compose.ui.layout.MeasureScope
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -35,6 +41,7 @@ import com.course.components.utils.time.Date
 import com.course.components.utils.time.SchoolCalendar
 import com.course.components.utils.time.Today
 import com.course.components.view.calendar.CalendarCompose
+import com.course.components.view.calendar.layout.CalendarContentOffsetMeasurePolicy
 import com.course.components.view.calendar.state.CalendarState
 import com.course.components.view.calendar.state.rememberCalendarState
 import com.course.pages.course.ui.CourseCompose
@@ -73,6 +80,9 @@ fun CourseScreenContent(screen: CourseRemoteScreen) {
       state = calendarState
     ) {
       CourseCompose(
+        modifier = Modifier.layout(remember(calendarState) {
+          CalendarContentOffsetMeasurePolicy(calendarState)
+        }),
         state = courseState
       )
     }
@@ -112,6 +122,16 @@ fun CourseScreenContent(screen: CourseRemoteScreen) {
       }
     }
   }
+}
+
+private class CalendarCourseLayout : MeasurePolicy {
+  override fun MeasureScope.measure(
+    measurables: List<Measurable>,
+    constraints: Constraints
+  ): MeasureResult {
+    TODO("Not yet implemented")
+  }
+
 }
 
 @Composable

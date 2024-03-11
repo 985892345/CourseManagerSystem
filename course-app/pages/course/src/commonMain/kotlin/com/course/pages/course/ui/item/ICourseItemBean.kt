@@ -2,9 +2,9 @@ package com.course.pages.course.ui.item
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import com.course.components.utils.time.Date
+import com.course.components.utils.time.MinuteTimeDate
+import com.course.components.utils.time.toMinuteTimeDate
 import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
@@ -16,9 +16,16 @@ import kotlinx.datetime.toLocalDateTime
  */
 @Stable
 interface ICourseItemBean : Comparable<ICourseItemBean> {
-  val date: Date
-  val startTime: LocalTime
-  val endTime: LocalTime
+
+  /**
+   * 开始时间
+   */
+  val startTime: MinuteTimeDate
+
+  /**
+   * 长度，单位分钟
+   */
+  val minutePeriod: Int
 
   /**
    * 数字越大，优先级越高，优先显示在上面
@@ -26,9 +33,9 @@ interface ICourseItemBean : Comparable<ICourseItemBean> {
   val rank: Int
 
   /**
-   * 周内 item 唯一的 key 值，可用于定位 item 是否发生移动，不要与时间有关联
+   * item 唯一的 key 值，可用于定位 item 是否发生移动，不要与时间有关联
    */
-  val weeklyKey: Any
+  val itemKey: Any
 
   @Composable
   fun Content()
@@ -39,25 +46,27 @@ interface ICourseItemBean : Comparable<ICourseItemBean> {
   override fun compareTo(other: ICourseItemBean): Int {
     if (this === other) return 0 // 如果是同一个对象直接返回 0
     if (this == other && hashCode() == other.hashCode()) return 0
-    return compareDiff(date.daysUntil(other.date)) {
-      val s1 = startTime
-      val e1 = endTime
-      val s2 = endTime
-      val e2 = other.endTime
-      if (e1 < s1) -1 else if (e2 < s1) 1
-      // 存在重叠的时候
-      else compareDiff(other.rank - rank) {
-        if (s1 >= s2 && e1 <= e2 || s1 <= s2 && e1 >= e2) { // 包含关系
-          compareDiff((e1.toSecondOfDay() - s1.toSecondOfDay()) - (e2.toSecondOfDay() - s2.toSecondOfDay())) {
-            hashCode() - other.hashCode() // 我们假设 hashcode 不会冲突
-          }
-        } else { // 交叉关系
-          val nowTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).time
-          // 长度相同，但起始位置不同，以当前时间来计算谁在谁上面
-          compareDiff(nowTime.toSecondOfDay() - maxOf(s1, s2).toSecondOfDay()) {
-            hashCode() - other.hashCode() // 我们假设 hashcode 不会冲突
-          }
+    val s1 = startTime
+    val e1 = s1.plusMinutes(minutePeriod)
+    val s2 = other.startTime
+    val e2 = s2.plusMinutes(other.minutePeriod)
+    return if (e1 < s1) -1 else if (e2 < s1) 1
+    // 存在重叠的时候
+    else compareDiff(other.rank - rank) {
+      if (s1 >= s2 && e1 <= e2 || s1 <= s2 && e1 >= e2) { // 包含关系
+        compareDiff((s1.minutesUntil(e1)) - (s2.minutesUntil(e2))) {
+          hashCode() - other.hashCode() // 我们假设 hashcode 不会冲突
         }
+      } else { // 交叉关系
+        // 以当前时间来计算谁在谁上面
+        val nowTime = Clock.System.now()
+          .toLocalDateTime(TimeZone.currentSystemDefault())
+          .toMinuteTimeDate()
+        if (s1 < s2 && nowTime < s2) 1
+        else if (s1 < s2 && nowTime >= s2) -1
+        else if (s1 > s2 && nowTime < s1) -1
+        else if (s1 > s2 && nowTime >= s1) 1
+        else hashCode() - other.hashCode() // 我们假设 hashcode 不会冲突
       }
     }
   }

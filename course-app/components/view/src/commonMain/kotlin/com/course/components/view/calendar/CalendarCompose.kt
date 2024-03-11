@@ -103,7 +103,7 @@ fun CalendarState.MonthTextCompose(
       .padding(top = 12.dp)
       .height(lineHeightState.value.px2dp.coerceAtLeast(1.dp)),
     state = pagerState,
-    key = { startDateState.value.plusMonths(it).copy(dayOfMonth = 1).time },
+    key = { startDateState.value.plusMonths(it).copy(dayOfMonth = 1).value },
   ) {
     val date = startDateState.value.plusMonths(it)
     Box(modifier = Modifier.fillMaxSize().width(IntrinsicSize.Min)) {

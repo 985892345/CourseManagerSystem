@@ -12,7 +12,7 @@ class MainActivity : BaseComposeActivity() {
     super.onCreate(savedInstanceState)
 
     setContent {
-      MainPageCompose(MainScreen)
+      ProApp.Content()
     }
   }
 }

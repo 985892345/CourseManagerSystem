@@ -66,8 +66,8 @@ internal class CalendarMonthItemProvider(
     val firstDate = startDateState.value.plusMonths(monthDiff).copy(dayOfMonth = 1)
     val nowDate = firstDate.plusDays(dayDiff - firstDate.dayOfWeekOrdinal)
     return if (nowDate.monthNumber != firstDate.monthNumber) {
-      -nowDate.time // nowDate 不在自身表示的月份中显示，返回负的 time 来进行区分
-    } else nowDate.time
+      -nowDate.value // nowDate 不在自身表示的月份中显示，返回负的 time 来进行区分
+    } else nowDate.value
   }
 
   private fun getDateShowState(date: Date, isNowMonth: Boolean): CalendarDateShowValue {

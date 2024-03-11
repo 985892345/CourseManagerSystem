@@ -5,6 +5,7 @@ import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
 import kotlinx.datetime.isoDayNumber
+import kotlinx.serialization.Serializable
 import kotlin.jvm.JvmInline
 import kotlin.math.abs
 
@@ -19,8 +20,9 @@ import kotlin.math.abs
  */
 @Stable
 @JvmInline
+@Serializable
 value class Date(
-  val time: Int,
+  val value: Int,
 ) : Comparable<Date> {
 
   constructor(
@@ -31,16 +33,16 @@ value class Date(
   ) : this(getTime(year, month, dayOfMonth, noOverflow))
 
   val year: Int
-    get() = time shr 9
+    get() = value shr 9
 
   val month: Month
     get() = Month(monthNumber)
 
   val monthNumber: Int
-    get() = time shr 5 and 0xF
+    get() = value shr 5 and 0xF
 
   val dayOfMonth: Int
-    get() = time and 0x1F
+    get() = value and 0x1F
 
   val dayOfWeek: DayOfWeek
     get() = DayOfWeek(((toEpochDays() + 3) % 7).let { if (it < 0) it + 7 else it } + 1)
@@ -207,10 +209,10 @@ value class Date(
         m = if (monthNumber > 0) (monthNumber - 1) % 12 + 1 else monthNumber % 12 + 12
         d = dayOfMonth.coerceIn(1, DateUtils.lengthOfMonth(y, m))
       } else {
-        check(year > 0) { "year = $year, must > 0" }
-        check(monthNumber in 1..12) { ", month = $monthNumber, must in 1..12" }
+        require(year > 0) { "year = $year, must > 0" }
+        require(monthNumber in 1..12) { ", month = $monthNumber, must in 1..12" }
         val lengthOfMonth = DateUtils.lengthOfMonth(year, monthNumber)
-        check(dayOfMonth in 1..lengthOfMonth) {
+        require(dayOfMonth in 1..lengthOfMonth) {
           "month = $monthNumber, dayOfMonth = $dayOfMonth, must in 1..$lengthOfMonth"
         }
         y = year
@@ -270,14 +272,7 @@ value class Date(
   }
 
   override fun compareTo(other: Date): Int {
-    var cmp: Int = year - other.year
-    if (cmp == 0) {
-      cmp = monthNumber - other.monthNumber
-      if (cmp == 0) {
-        cmp = dayOfMonth - other.dayOfMonth
-      }
-    }
-    return cmp
+    return value.compareTo(other.value)
   }
 }
 

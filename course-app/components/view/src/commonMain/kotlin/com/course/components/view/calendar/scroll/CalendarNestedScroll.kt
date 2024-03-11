@@ -18,10 +18,14 @@ class CalendarNestedScroll(
   private val state: CalendarState,
 ) : NestedScrollConnection {
 
-  private var childScrollOffset = 0F
+  private var childScrollOffset = -1F
 
   override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-    if (childScrollOffset == 0F || state.verticalIsScrolling) {
+    if (state.verticalIsExpanded) {
+      // 展开状态直接拦截
+      childScrollOffset = 0F
+    }
+    if (childScrollOffset == 0F) {
       return Offset(x = 0F, y = scrollBy(available.y))
     }
     return Offset.Zero
@@ -41,6 +45,7 @@ class CalendarNestedScroll(
   }
 
   override suspend fun onPreFling(available: Velocity): Velocity {
+    childScrollOffset = -1F
     if (state.verticalIsScrolling && (available.y != 0F || available == Velocity.Zero)) {
       val target = if (available.y > 1000) state.maxVerticalScrollOffset
       else if (available.y < -1000) 0F
@@ -74,7 +79,7 @@ class CalendarNestedScroll(
   private fun scrollBy(y: Float): Float {
     if (y == 0F) return 0F
     // 翻页中不允许上下滑
-    if (state.horizontalScrollState.value is HorizontalScrollState.Scrolling) return 0F
+    if (state.horizontalIsScrolling) return 0F
     val scrollOffset = state.verticalScrollOffset
     val maxScrollOffset = state.maxVerticalScrollOffset
     if (y > 0) {

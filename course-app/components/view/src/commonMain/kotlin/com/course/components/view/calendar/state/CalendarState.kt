@@ -136,8 +136,16 @@ class CalendarState(
     verticalScrollState.value.offset == maxVerticalScrollOffset
   }
 
+  val verticalIsExpanded: Boolean by derivedStateOfStructure {
+    verticalScrollState.value is VerticalScrollState.Expanded
+  }
+
   val currentIsCollapsed: Boolean by derivedStateOfStructure {
     verticalScrollState.value.offset == 0F
+  }
+
+  val verticalIsCollapsed: Boolean by derivedStateOfStructure {
+    verticalScrollState.value is VerticalScrollState.Collapsed
   }
 
   val verticalIsScrolling: Boolean by derivedStateOfStructure {

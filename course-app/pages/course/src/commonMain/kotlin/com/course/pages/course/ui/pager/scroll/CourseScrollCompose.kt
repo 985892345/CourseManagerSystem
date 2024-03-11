@@ -1,10 +1,13 @@
 package com.course.pages.course.ui.pager.scroll
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.dp
@@ -12,6 +15,9 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMapIndexed
 import com.course.components.utils.compose.reflexScrollableForMouse
 import com.course.pages.course.ui.pager.CoursePagerState
+import com.course.pages.course.ui.pager.scroll.timeline.MutableTimelineData
+import kotlinx.coroutines.flow.drop
+import kotlin.math.roundToInt
 
 /**
  * .
@@ -28,22 +34,32 @@ fun CoursePagerState.CourseScrollCompose(
   }
 ) {
   Layout(
-    modifier = Modifier.then(modifier).reflexScrollableForMouse().verticalScroll(state = scrollState),
+    modifier = modifier
+      .reflexScrollableForMouse()
+      .verticalScroll(state = scrollState)
+      .padding(vertical = 6.dp),
     content = content,
-    measurePolicy = remember {
+    measurePolicy = remember(this) {
       { measurables, constraints ->
-        // 因为被 CourseScrollCompose 包裹，所以传递最小高度给子布局
-        var consume = 0
+        var widthConsume = 0
+        var initialWeight = 0F
+        var nowWeight = 0F
+        timeline.fastForEach {
+          initialWeight += it.initialWeight
+          nowWeight += it.nowWeight
+        }
+        // 因为有 verticalScroll，所以这里 minHeight 就是父布局的高度
+        val height = (constraints.minHeight * (nowWeight / initialWeight)).roundToInt()
         val placeables = measurables.fastMapIndexed { index, measurable ->
           measurable.measure(
             constraints.copy(
-              minWidth = if (index == measurables.lastIndex) constraints.maxWidth - consume else 0,
-              maxWidth = constraints.maxWidth - consume,
-              maxHeight = constraints.minHeight
+              minWidth = if (index == measurables.lastIndex) constraints.maxWidth - widthConsume else 0,
+              maxWidth = constraints.maxWidth - widthConsume,
+              maxHeight = height
             )
-          ).apply { consume += width }
+          ).apply { widthConsume += width }
         }
-        layout(constraints.maxWidth, constraints.minHeight) {
+        layout(constraints.maxWidth, height) {
           var start = 0
           placeables.fastForEach {
             it.placeRelative(x = start, y = 0)
@@ -53,4 +69,13 @@ fun CoursePagerState.CourseScrollCompose(
       }
     }
   )
+  LaunchedEffect(this) {
+    val lastTimeline = timeline.last()
+    if (lastTimeline is MutableTimelineData) {
+      // 最后一个展开时需要向上滚动
+      snapshotFlow { lastTimeline.nowWeight }.drop(1).collect {
+        scrollState.scrollTo(scrollState.maxValue)
+      }
+    }
+  }
 }
