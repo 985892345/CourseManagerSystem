@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,33 +35,38 @@ import kotlinx.coroutines.delay
  * @date 2023/12/22 10:14
  */
 
-@StateFactoryMarker
 fun toast(msg: CharSequence, duration: Long = 1500L) = Toast(msg, duration).show()
 
-@StateFactoryMarker
 fun toastLong(msg: CharSequence) = toast(msg, 3000L)
 
 internal class Toast(
   val msg: CharSequence,
   val duration: Long,
 ) {
-  fun show(): Boolean {
-    if (!AppToastEnable) {
+  fun show() {
+    if (AppToastState === Empty) {
       AppToastState = this
-      AppToastEnable = true
-      return true
+      AppToastVisible = true
+    } else {
+      if (AppToastState === this) return
+      AppToastList.add(this)
     }
-    return false
+  }
+
+  companion object {
+    val Empty = Toast("", 0L)
   }
 }
 
-private var AppToastEnable by mutableStateOf(false)
+private val AppToastList = mutableListOf<Toast>()
 
-private var AppToastState: Toast by mutableStateOf(Toast("", 0L))
+private var AppToastVisible by mutableStateOf(false)
+
+private var AppToastState: Toast by mutableStateOf(Toast.Empty)
 
 @Composable
 internal fun ToastCompose() {
-  AnimatedVisibility(visible = AppToastEnable, enter = fadeIn(), exit = fadeOut()) {
+  AnimatedVisibility(visible = AppToastVisible, enter = fadeIn(), exit = fadeOut()) {
     Column {
       Spacer(modifier = Modifier.weight(1F))
       Box(modifier = Modifier.weight(7F).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
@@ -83,11 +89,22 @@ internal fun ToastCompose() {
         }
       }
     }
+    DisposableEffect(Unit) {
+      onDispose {
+        val last = AppToastList.removeLastOrNull()
+        if (last == null) {
+          AppToastState = Toast.Empty
+        } else {
+          AppToastState = last
+          AppToastVisible = true
+        }
+      }
+    }
   }
-  LaunchedEffect(AppToastEnable) {
-    if (AppToastEnable) {
+  LaunchedEffect(AppToastVisible) {
+    if (AppToastVisible) {
       delay(AppToastState.duration)
-      AppToastEnable = false
+      AppToastVisible = false
     }
   }
 }

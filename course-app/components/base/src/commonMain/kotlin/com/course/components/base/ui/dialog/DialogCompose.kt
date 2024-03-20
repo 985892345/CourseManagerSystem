@@ -1,6 +1,10 @@
 package com.course.components.base.ui.dialog
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,58 +20,82 @@ import androidx.compose.ui.window.DialogProperties
  * @date 2023/12/22 10:41
  */
 
-@StateFactoryMarker
 fun showDialog(
+  priority: Int = Int.MAX_VALUE / 2,
   properties: DialogProperties = DialogProperties(),
   onDismissRequest: Dialog.() -> Unit = { hide() },
   content: @Composable () -> Unit,
-) = object : Dialog() {
-  override val properties: DialogProperties
-    get() = properties
-  override val onDismissRequest: Dialog.() -> Unit
-    get() = onDismissRequest
+) {
+  object : Dialog() {
+    override val priority: Int
+      get() = priority
+    override val properties: DialogProperties
+      get() = properties
+    override val onDismissRequest: Dialog.() -> Unit
+      get() = onDismissRequest
 
-  @Composable
-  override fun Content(): Unit = content.invoke()
+    @Composable
+    override fun Content(): Unit = content.invoke()
+  }.show()
 }
 
 @Stable
 abstract class Dialog {
+  abstract val priority: Int
   abstract val properties: DialogProperties
   abstract val onDismissRequest: Dialog.() -> Unit
   @Composable
   abstract fun Content()
 
-  fun show(): Boolean {
-    if (!AppDialogEnable) {
+  fun show() {
+    if (AppDialogState === Empty) {
       AppDialogState = this
-      AppDialogEnable = true
-      return true
+      AppDialogVisible = true
+    } else {
+      if (AppDialogState === this) return
+      var l = 0
+      var r = AppDialogList.size - 1
+      while (l <= r) {
+        val half = (l + r) ushr 1
+        val dialog = AppDialogList[half]
+        if (dialog.priority < priority) {
+          l = half + 1
+        } else {
+          r = half - 1
+        }
+      }
+      AppDialogList[l] = this
     }
-    return false
   }
 
   fun hide() {
-    if (AppDialogEnable) {
-      AppDialogEnable = false
+    if (AppDialogState === this) {
+      AppDialogVisible = false
+      return
     }
+    AppDialogList.remove(this)
   }
 
-  companion object : Dialog() {
-    override val properties: DialogProperties = DialogProperties()
-    override val onDismissRequest: Dialog.() -> Unit = { hide() }
-    @Composable
-    override fun Content() = Unit
+  companion object {
+    val Empty = object : Dialog() {
+      override val priority: Int = Int.MAX_VALUE / 2
+      override val properties: DialogProperties = DialogProperties()
+      override val onDismissRequest: Dialog.() -> Unit = { hide() }
+      @Composable
+      override fun Content() = Unit
+    }
   }
 }
 
-private var AppDialogEnable by mutableStateOf(false)
+private val AppDialogList = mutableListOf<Dialog>()
 
-private var AppDialogState: Dialog by mutableStateOf(Dialog)
+private var AppDialogVisible by mutableStateOf(false)
+
+private var AppDialogState: Dialog by mutableStateOf(Dialog.Empty)
 
 @Composable
 internal fun DialogCompose() {
-  if (AppDialogEnable) {
+  AnimatedVisibility(visible = AppDialogVisible, enter = fadeIn(), exit = fadeOut()) {
     Dialog(
       properties = AppDialogState.properties,
       onDismissRequest = {
@@ -75,6 +103,17 @@ internal fun DialogCompose() {
       }
     ) {
       AppDialogState.Content()
+    }
+    DisposableEffect(Unit) {
+      onDispose {
+        val last = AppDialogList.removeLastOrNull()
+        if (last == null) {
+          AppDialogState = Dialog.Empty
+        } else {
+          AppDialogState = last
+          AppDialogVisible = true
+        }
+      }
     }
   }
 }
