@@ -19,13 +19,16 @@ import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.course.components.utils.compose.reflexScrollableForMouse
-import com.course.components.utils.time.Date
-import com.course.components.utils.time.MinuteTimeDate
+import com.course.shared.time.Date
+import com.course.shared.time.MinuteTimeDate
 import com.course.components.utils.time.Today
+import com.course.pages.course.api.data.CourseDataProvider
+import com.course.pages.course.api.data.CourseDataProvider.Companion.TimelineDelayMinuteTime
 import com.course.pages.course.ui.pager.CoursePagerCompose
 import com.course.pages.course.ui.pager.rememberCoursePagerState
-import com.course.pages.course.ui.pager.scroll.timeline.TimelineDelayMinuteTime
-import com.course.pages.course.utils.CourseData
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -49,7 +52,7 @@ import kotlinx.coroutines.CoroutineScope
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CourseCompose(
-  state: CourseState,
+  state: CourseComposeState,
   modifier: Modifier = Modifier,
 ) {
   HorizontalPager(
@@ -59,7 +62,11 @@ fun CourseCompose(
     pageContent = { page ->
       val weekBeginDate = state.beginDate.plusWeeks(page)
       val coursePagerState = rememberCoursePagerState(
-        items = state.data.getOrCreate(MinuteTimeDate(weekBeginDate, TimelineDelayMinuteTime))
+        items = remember(state) {
+          state.data.map {
+            it.getOrCreate(MinuteTimeDate(weekBeginDate, TimelineDelayMinuteTime))
+          }.toImmutableList()
+        }
       )
       CoursePagerCompose(
         state = coursePagerState
@@ -71,12 +78,12 @@ fun CourseCompose(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Stable
-class CourseState(
+class CourseComposeState(
   private val coroutineScope: CoroutineScope,
   val pagerState: PagerState,
   val startDateState: State<Date>,
   val endDateState: State<Date>,
-  val data: CourseData,
+  val data: ImmutableList<CourseDataProvider>,
 ) {
 
   val beginDate: Date
@@ -106,11 +113,11 @@ class CourseState(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun rememberCourseState(
+fun rememberCourseComposeState(
   startDate: Date = Date(1901, 1, 1),
   endDate: Date = Date(2099, 12, 31),
-  data: CourseData = remember { CourseData() },
-): CourseState {
+  data: ImmutableList<CourseDataProvider> = remember { persistentListOf(CourseDataProvider()) },
+): CourseComposeState {
   val coroutineScope = rememberCoroutineScope()
   val startDateState = rememberUpdatedState(startDate)
   val endDateState = rememberUpdatedState(endDate)
@@ -122,7 +129,7 @@ fun rememberCourseState(
     }
   ) { begin.daysUntil(final) / 7 + 1 }
   return remember {
-    CourseState(
+    CourseComposeState(
       coroutineScope = coroutineScope,
       pagerState = pagerState,
       startDateState = startDateState,

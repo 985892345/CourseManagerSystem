@@ -65,6 +65,7 @@ includeModule("course-app", rootDir.resolve("course-app"))
 includeModule("course-backend", rootDir.resolve("course-backend"))
 includeModule("course-server", rootDir.resolve("course-server"))
 includeModule("course-shared", rootDir.resolve("course-shared"))
+includeModule("course-source", rootDir.resolve("course-source"))
 /**
  * 如果你使用 AS 自带的模块模版，他会自动添加 include()，请删除掉，因为上面会自动读取
  */

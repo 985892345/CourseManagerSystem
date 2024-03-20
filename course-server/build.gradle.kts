@@ -23,8 +23,7 @@ dependencies {
   implementation(libs.jjwt.api)
   runtimeOnly(libs.jjwt.impl)
 
-  implementation(projects.courseShared.app)
-  implementation(projects.courseShared.backend)
+  implementation(projects.courseShared)
 }
 
 tasks.withType<KotlinCompile> {

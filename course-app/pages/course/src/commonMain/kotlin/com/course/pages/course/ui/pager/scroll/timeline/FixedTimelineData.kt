@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import com.course.components.utils.serializable.ColorSerializable
 import com.course.components.utils.serializable.TextUnitSerializable
-import com.course.components.utils.time.MinuteTime
+import com.course.shared.time.MinuteTime
 import kotlinx.serialization.Serializable
 
 /**
@@ -35,8 +35,6 @@ data class FixedTimelineData(
   @Serializable(ColorSerializable::class)
   override val color: Color = Color.Unspecified,
 ) : CourseTimelineData {
-  override val maxWeight: Float
-    get() = weight
   override val nowWeight: Float
     get() = weight
   override val initialWeight: Float

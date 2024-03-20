@@ -23,7 +23,7 @@ import com.course.components.utils.compose.clickableNoIndicator
 import com.course.components.utils.serializable.ColorSerializable
 import com.course.components.utils.serializable.FloatStateSerializable
 import com.course.components.utils.serializable.TextUnitSerializable
-import com.course.components.utils.time.MinuteTime
+import com.course.shared.time.MinuteTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -40,7 +40,7 @@ data class MutableTimelineData(
   override val text: String,
   override val startTime: MinuteTime,
   override val endTime: MinuteTime,
-  override val maxWeight: Float,
+  val maxWeight: Float,
   override val initialWeight: Float,
   @Serializable(TextUnitSerializable::class)
   override val fontSize: TextUnit = 12.sp,

@@ -2,6 +2,8 @@ package com.course.components.utils.time
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import com.course.shared.time.Date.Companion.lengthOfMonth
+import com.course.shared.time.toDate
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -47,7 +49,7 @@ fun LocalDate.copy(
   if (!noOverflow) dayOfMonth else {
     minOf(
       dayOfMonth,
-      DateUtils.lengthOfMonth(year + (monthNumber - 1) / 12, (monthNumber - 1) % 12 + 1)
+      lengthOfMonth(year + (monthNumber - 1) / 12, (monthNumber - 1) % 12 + 1)
     )
   }
 )
@@ -55,20 +57,3 @@ fun LocalDate.copy(
 val LocalDate.dayOfWeekNum: Int
   get() = dayOfWeek.ordinal + 1
 
-object DateUtils {
-  fun isLeapYear(year: Int): Boolean {
-    return year and 3 == 0 && (year % 100 != 0 || year % 400 == 0)
-  }
-
-  fun lengthOfMonth(year: Int, month: Int): Int {
-    return when (month) {
-      2 -> if (isLeapYear(year)) 29 else 28
-      4, 6, 9, 11 -> 30
-      else -> 31
-    }
-  }
-
-  fun lengthOfMonth(date: LocalDate): Int {
-    return lengthOfMonth(date.year, date.dayOfMonth)
-  }
-}

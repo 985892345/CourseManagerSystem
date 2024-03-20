@@ -11,10 +11,13 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
-import com.course.pages.course.ui.item.ICourseItemBean
+import com.course.pages.course.api.item.ICourseItem
 import com.course.pages.course.ui.pager.scroll.CourseScrollCompose
 import com.course.pages.course.ui.pager.scroll.timeline.CourseTimelineData
 import com.course.pages.course.ui.pager.scroll.timeline.createTimeline
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -41,19 +44,21 @@ fun CoursePagerCompose(
 @Stable
 class CoursePagerState(
   val scrollState: ScrollState,
-  val items: SnapshotStateList<ICourseItemBean>,
-  val timeline: List<CourseTimelineData>
+  val items: ImmutableList<SnapshotStateList<ICourseItem>>,
+  val timeline: ImmutableList<CourseTimelineData>
 )
 
 @Composable
 fun rememberCoursePagerState(
-  items: SnapshotStateList<ICourseItemBean> = remember { SnapshotStateList() },
+  items: ImmutableList<SnapshotStateList<ICourseItem>> = remember {
+    persistentListOf(SnapshotStateList())
+  },
 ): CoursePagerState {
   val scrollState = rememberScrollState()
   val timeline = rememberSaveable(
     saver = Saver(
-      save = { Json.encodeToString(it) },
-      restore = { Json.decodeFromString<List<CourseTimelineData>>(it) })
+      save = { Json.encodeToString<List<CourseTimelineData>>(it) },
+      restore = { Json.decodeFromString<List<CourseTimelineData>>(it).toImmutableList() })
   ) { createTimeline() }
   return remember {
     CoursePagerState(

@@ -12,7 +12,8 @@ kotlin {
       implementation(libs.ktProvider.manager)
       api(libs.kotlinx.datetime)
       api(libs.multiplatform.settings)
-      implementation(libs.multiplatform.settingsNoArg)
+      api(projects.courseShared)
+      api(projects.courseSource.app)
     }
     androidMain.dependencies {
       api(libs.androidWheel.extensions.android)

@@ -16,7 +16,6 @@ import androidx.compose.ui.util.fastMapIndexed
 import com.course.components.utils.compose.reflexScrollableForMouse
 import com.course.pages.course.ui.pager.CoursePagerState
 import com.course.pages.course.ui.pager.scroll.timeline.MutableTimelineData
-import kotlinx.coroutines.flow.drop
 import kotlin.math.roundToInt
 
 /**
@@ -73,7 +72,11 @@ fun CoursePagerState.CourseScrollCompose(
     val lastTimeline = timeline.last()
     if (lastTimeline is MutableTimelineData) {
       // 最后一个展开时需要向上滚动
-      snapshotFlow { lastTimeline.nowWeight }.drop(1).collect {
+      snapshotFlow {
+        if (scrollState.value == scrollState.maxValue) {
+          lastTimeline.nowWeight
+        }
+      }.collect {
         scrollState.scrollTo(scrollState.maxValue)
       }
     }

@@ -8,7 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import com.course.components.utils.compose.derivedStateOfStructure
-import com.course.components.utils.time.Date
+import com.course.shared.time.Date
 import com.course.components.view.calendar.CalendarDateShowValue
 import com.course.components.view.calendar.scroll.HorizontalScrollState
 import com.course.components.view.calendar.scroll.VerticalScrollState

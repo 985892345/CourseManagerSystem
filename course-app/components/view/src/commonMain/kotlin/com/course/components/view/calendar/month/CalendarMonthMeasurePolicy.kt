@@ -7,7 +7,7 @@ import androidx.compose.runtime.State
 import androidx.compose.ui.layout.MeasureResult
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.unit.Constraints
-import com.course.components.utils.time.Date
+import com.course.shared.time.Date
 import com.course.components.view.calendar.scroll.HorizontalScrollState
 import com.course.components.view.calendar.scroll.VerticalScrollState
 import kotlin.math.roundToInt

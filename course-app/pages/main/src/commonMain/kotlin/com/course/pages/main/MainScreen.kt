@@ -11,14 +11,19 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.BottomAppBar
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
-import com.course.components.base.navigator.screen.CourseRemoteScreen
+import com.course.components.base.account.Account
+import com.course.components.utils.provider.Provider
 import com.course.components.utils.serializable.ObjectSerializable
+import com.course.pages.course.api.ICourseService
+import com.course.pages.course.api.data.EmptyCourseDetail
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -52,11 +57,20 @@ private fun ProMainScreenContent(pagerState: PagerState) {
       modifier = Modifier.weight(1F),
       beyondBoundsPageCount = 2,
       userScrollEnabled = false,
-    ) {
-      when (it) {
-        0 -> CourseRemoteScreen(stuNum = "2020214988").Content()
+    ) { page ->
+      when (page) {
+        0 -> Provider.impl(ICourseService::class).apply {
+          val account by Account.observeAccount().collectAsState()
+          Content(
+            account?.let {
+              if (it.isStuOrElseTea) stuCourseDetail(it.num)
+              else teaCourseDetail(it.num)
+            } ?: EmptyCourseDetail
+          )
+        }
+
         else -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-          Text(text = it.toString())
+          Text(text = page.toString())
         }
       }
     }

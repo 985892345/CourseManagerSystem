@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.sp
 import com.course.components.utils.compose.clickableNoIndicator
 import com.course.components.utils.compose.reflexScrollableForMouse
 import com.course.components.utils.size.px2dp
-import com.course.components.utils.time.Date
+import com.course.shared.time.Date
 import com.course.components.utils.time.Festival
 import com.course.components.utils.time.SolarTerms
 import com.course.components.utils.time.Today

@@ -14,7 +14,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import com.course.components.utils.compose.derivedStateOfStructure
-import com.course.components.utils.time.Date
+import com.course.shared.time.Date
 import com.course.components.utils.time.Today
 import com.course.components.view.calendar.scroll.HorizontalScrollState
 import com.course.components.view.calendar.scroll.VerticalScrollState
@@ -37,7 +37,7 @@ class CalendarState(
   internal val coroutineScope: CoroutineScope,
   val startDateState: State<Date>,
   val endDateState: State<Date>,
-  var onClick: ((Date) -> Unit)? = null,
+  internal var onClick: ((Date) -> Unit)? = null,
 ) {
 
   val showBeginDate: Date
