@@ -22,9 +22,6 @@ ksp {
   )
 }
 
-// 添加处理轮数
-ktProvider.setProcessTimes(2)
-
 dependencies {
   val kspSerialization = rootProject.project("course-app:compiler:ksp-serialization")
   kspMultiplatform(kspSerialization)
