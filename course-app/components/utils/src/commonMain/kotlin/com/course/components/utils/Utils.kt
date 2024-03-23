@@ -1,5 +1,8 @@
 package com.course.components.utils
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import com.course.components.utils.coroutine.AppComposeCoroutineScope
 import com.course.components.utils.init.IInitialService
 import com.course.components.utils.provider.Provider
 
@@ -16,6 +19,11 @@ object Utils {
       it.value.get().onAppInit()
     }
     platformInitApp()
+  }
+
+  @Composable
+  fun initCompose() {
+    AppComposeCoroutineScope = rememberCoroutineScope()
   }
 }
 

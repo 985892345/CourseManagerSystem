@@ -10,3 +10,6 @@ import kotlinx.coroutines.CoroutineScope
  */
 
 expect val AppCoroutineScope: CoroutineScope
+
+lateinit var AppComposeCoroutineScope: CoroutineScope
+  internal set

@@ -1,7 +1,7 @@
 package com.course.components.utils.coroutine
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 
 /**
  * .
@@ -10,4 +10,4 @@ import kotlinx.coroutines.Dispatchers
  * @date 2024/2/19 13:45
  */
 
-actual val AppCoroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Main)
+actual val AppCoroutineScope: CoroutineScope = MainScope()

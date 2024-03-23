@@ -22,6 +22,7 @@ object ProApp {
 
   @Composable
   fun Content() {
+    Utils.initCompose()
     MainPageCompose(MainScreen)
   }
 }
