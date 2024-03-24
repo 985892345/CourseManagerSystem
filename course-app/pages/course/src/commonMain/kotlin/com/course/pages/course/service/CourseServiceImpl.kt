@@ -16,7 +16,7 @@ import com.g985892345.provider.api.annotation.ImplProvider
  * 2024/3/15 18:58
  */
 @ImplProvider
-class CourseServiceImpl : ICourseService {
+object CourseServiceImpl : ICourseService {
 
   @Composable
   override fun Content(detail: CourseDetail) {

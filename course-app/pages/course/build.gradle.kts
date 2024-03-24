@@ -3,8 +3,8 @@ plugins {
   id("app.function.compose")
 //  id("app.function.network")
   id("app.function.provider")
-  id("app.function.serialization")
   id("app.function.navigator")
+  id("app.function.serialization")
 }
 
 kotlin {
@@ -14,6 +14,7 @@ kotlin {
       implementation(projects.courseApp.components.utils)
       implementation(projects.courseApp.components.view)
       implementation(projects.courseApp.pages.course.api)
+      implementation(projects.courseApp.pages.main.api)
     }
   }
 }
