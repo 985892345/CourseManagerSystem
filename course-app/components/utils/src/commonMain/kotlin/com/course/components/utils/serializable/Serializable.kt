@@ -58,27 +58,18 @@ class ColorSerializable : KSerializer<Color> {
   }
 }
 
-class StateSerializable<T>(
-  serializer: KSerializer<T>,
-) : KSerializer<MutableState<T>> {
+class StringStateSerializable: KSerializer<MutableState<String>> {
 
-  private val wrapperSerializer = Wrapper.serializer(serializer)
+  override val descriptor: SerialDescriptor =
+    PrimitiveSerialDescriptor("androidx.compose.runtime.MutableState<String>", PrimitiveKind.STRING)
 
-  override val descriptor: SerialDescriptor = wrapperSerializer.descriptor
-
-  override fun deserialize(decoder: Decoder): MutableState<T> {
-    val wrapper = wrapperSerializer.deserialize(decoder)
-    return mutableStateOf(wrapper.state)
+  override fun deserialize(decoder: Decoder): MutableState<String> {
+    return mutableStateOf(decoder.decodeString())
   }
 
-  override fun serialize(encoder: Encoder, value: MutableState<T>) {
-    wrapperSerializer.serialize(encoder, Wrapper(value.value))
+  override fun serialize(encoder: Encoder, value: MutableState<String>) {
+    encoder.encodeString(value.value)
   }
-
-  @Serializable
-  private data class Wrapper<T>(
-    val state: T,
-  )
 }
 
 class FloatStateSerializable : KSerializer<MutableFloatState> {

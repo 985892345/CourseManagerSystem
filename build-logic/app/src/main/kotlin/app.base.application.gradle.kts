@@ -5,7 +5,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import utils.Config
 
 plugins {
-  com.android.application
+  id("com.android.application")
   id("app.base.multiplatform")
   id("app.function.compose")
 }

@@ -80,7 +80,7 @@ class SerializableSymbolProcess(
               typeNameOf<List<Triple<String, KClass<*>, KSerializer<*>>>>()
             ).addModifiers(KModifier.OVERRIDE)
               .initializer(
-                "listOf(${joinToString { "Triple(%S, %T::class, %T.serializer()), " }})",
+                "listOf(${joinToString { "Triple(%S, %T::class, %T.serializer())" }})",
                 *map {
                   listOf(it.qualifiedName!!.asString(), it.toClassName(), it.toClassName())
                 }.flatten().toTypedArray()

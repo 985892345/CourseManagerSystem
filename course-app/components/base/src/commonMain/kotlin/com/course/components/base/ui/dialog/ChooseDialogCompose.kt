@@ -5,10 +5,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -38,6 +38,7 @@ fun showChooseDialog(
   btnHeight: Dp = 38.dp,
   positiveBtnText: String = "确定",
   negativeBtnText: String = "取消",
+  priority: Int = Int.MAX_VALUE / 2,
   properties: DialogProperties = DialogProperties(),
   onDismissRequest: Dialog.() -> Unit = { hide() },
   onClickPositionBtn: Dialog.() -> Unit = { hide() },
@@ -51,6 +52,7 @@ fun showChooseDialog(
   btnHeight,
   positiveBtnText,
   negativeBtnText,
+  priority,
   properties,
   onDismissRequest,
   onClickPositionBtn,
@@ -66,6 +68,7 @@ internal class ChooseDialog(
   private val btnHeight: Dp,
   private val positiveBtnText: String,
   private val negativeBtnText: String,
+  override val priority: Int,
   override val properties: DialogProperties,
   override val onDismissRequest: Dialog.() -> Unit,
   private val onClickPositionBtn: Dialog.() -> Unit,
@@ -75,28 +78,20 @@ internal class ChooseDialog(
 
   @Composable
   override fun Content() {
-    Card(
-      modifier = Modifier
-        .width(width)
-        .height(height),
-      shape = RoundedCornerShape(16.dp),
-      contentColor = Color.White,
+    Column(
+      modifier = Modifier.size(width, height),
     ) {
-      Column(
-        modifier = Modifier.fillMaxSize(),
+      Box(
+        modifier = Modifier
+          .weight(1F)
+          .fillMaxWidth()
       ) {
-        Box(
-          modifier = Modifier
-            .weight(1F)
-            .fillMaxWidth()
-        ) {
-          content.invoke()
-        }
-        if (isTwoBtn) {
-          TwoBtnCompose()
-        } else {
-          OneBtnCompose()
-        }
+        content.invoke()
+      }
+      if (isTwoBtn) {
+        TwoBtnCompose()
+      } else {
+        OneBtnCompose()
       }
     }
   }
@@ -146,7 +141,7 @@ internal class ChooseDialog(
         modifier = Modifier.clickable(onClick = { onClickPositionBtn.invoke(this) }),
         contentAlignment = Alignment.Center
       ) {
-        Text(text = positiveBtnText)
+        Text(text = positiveBtnText, color = Color.White)
       }
     }
   }

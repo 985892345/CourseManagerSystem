@@ -7,8 +7,8 @@ kotlin {
   iosX64()
   iosArm64()
   iosSimulatorArm64()
-  @Suppress("OPT_IN_USAGE")
-  wasmJs {
-    browser()
-  }
+//  @Suppress("OPT_IN_USAGE")
+//  wasmJs {
+//    browser()
+//  }
 }

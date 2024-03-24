@@ -36,12 +36,6 @@ annotation class RemoteScreenEnter
  */
 @Stable
 abstract class RemoteScreen : Screen {
-  init {
-    check(ObjectSerializable.isSerializable(this::class)) {
-      "${this::class} 作为 @ScreenEnter 函数参数未使用 @ObjectSerializable 以支持序列化"
-    }
-  }
-
   @Composable
   final override fun Content() {
     RemoteScreenEnterCollector.getScreenContent(this::class).invoke(this)

@@ -4,7 +4,13 @@ import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
 import kotlinx.datetime.isoDayNumber
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlin.jvm.JvmInline
 import kotlin.math.abs
 
@@ -18,7 +24,7 @@ import kotlin.math.abs
  * @date 2024/2/25 15:17
  */
 @JvmInline
-@Serializable
+@Serializable(DateSerializer::class)
 value class Date(
   val value: Int,
 ) : Comparable<Date> {
@@ -276,4 +282,17 @@ value class Date(
 
 fun LocalDate.toDate(): Date {
   return Date(year, monthNumber, dayOfMonth)
+}
+
+class DateSerializer : KSerializer<Date> {
+  override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Date", PrimitiveKind.STRING)
+
+  override fun deserialize(decoder: Decoder): Date {
+    val split = decoder.decodeString().split("-")
+    return Date(split[0].toInt(), split[1].toInt(), split[2].toInt())
+  }
+
+  override fun serialize(encoder: Encoder, value: Date) {
+    encoder.encodeString("${value.year}-${value.monthNumber}-${value.dayOfMonth}")
+  }
 }

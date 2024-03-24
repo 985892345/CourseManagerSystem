@@ -1,6 +1,6 @@
 package com.course.components.base.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Shapes
 import androidx.compose.material.Typography
@@ -9,8 +9,10 @@ import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
@@ -22,7 +24,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun AppTheme(
-  darkTheme: Boolean = isSystemInDarkTheme(),
+  darkTheme: Boolean = false,
   content: @Composable () -> Unit,
 ) {
   CompositionLocalProvider(
@@ -46,6 +48,7 @@ val LocalAppDarkTheme = staticCompositionLocalOf { false }
 expect fun ConfigAppTheme(darkTheme: Boolean, content: @Composable () -> Unit)
 
 private val LightColor = lightColors(
+  background = Color(0xFFF2F3F8)
 )
 
 private val DarkColor = darkColors(
@@ -60,4 +63,6 @@ private val Typography = Typography(
 )
 
 private val Shapes = Shapes(
+  medium = RoundedCornerShape(8.dp),
+  large = RoundedCornerShape(16.dp),
 )

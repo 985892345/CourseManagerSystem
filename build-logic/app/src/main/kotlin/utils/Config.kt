@@ -10,22 +10,20 @@ import org.gradle.api.Project
  */
 object Config {
   fun getBaseName(project: Project): String {
-    val top = "course-app"
     var baseName = ""
     var p: Project? = project
-    while (p != null && p.name != top) {
-      baseName = p.name.replaceFirstChar { it.uppercaseChar() } + baseName
+    while (p != null && p != project.rootProject) {
+      baseName = p.name.substringAfterLast("-").replaceFirstChar { it.uppercaseChar() } + baseName
       p = p.parent
     }
     return baseName
   }
 
   fun getNamespace(project: Project): String {
-    val top = "course-app"
     var namespace = ""
     var p: Project? = project
-    while (p != null && p.name != top) {
-      namespace = ".${p.name}$namespace"
+    while (p != null && p != project.rootProject) {
+      namespace = ".${p.name.substringAfterLast("-")}$namespace"
       p = p.parent
     }
     return "com.course$namespace"

@@ -1,7 +1,9 @@
 package com.course.components.utils.source
 
 import com.course.components.utils.provider.Provider
+import com.course.source.app.response.FailureResponseWrapper
 import com.course.source.app.response.ResponseWrapper
+import com.course.source.app.response.SuccessResponseWrapper
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -22,12 +24,12 @@ object Source {
 
 @OptIn(ExperimentalContracts::class)
 inline fun <T> ResponseWrapper<T>.onFailure(
-  action: (response: ResponseWrapper<T>) -> Unit
+  action: (response: FailureResponseWrapper<T>) -> Unit
 ): ResponseWrapper<T> {
   contract {
     callsInPlace(action, InvocationKind.AT_MOST_ONCE)
   }
-  if (!isSuccess()) action.invoke(this)
+  if (this is FailureResponseWrapper) action.invoke(this)
   return this
 }
 
@@ -38,20 +40,23 @@ inline fun <T> ResponseWrapper<T>.onSuccess(
   contract {
     callsInPlace(action, InvocationKind.AT_MOST_ONCE)
   }
-  if (isSuccess()) action.invoke(data)
+  if (this is SuccessResponseWrapper) action.invoke(data)
   return this
 }
 
 fun <T> ResponseWrapper<T>.getOrDefault(defaultValue: T): T {
-  return if (isSuccess()) data else defaultValue
+  return if (this is SuccessResponseWrapper) data else defaultValue
 }
 
 fun <T> ResponseWrapper<T>.getOrNull(): T? {
-  return if (isSuccess()) data else null
+  return if (this is SuccessResponseWrapper) data else null
 }
 
 fun <T> ResponseWrapper<T>.getOrThrow(): T {
-  return if (isSuccess()) data else throw ResponseException(this)
+  return when (this) {
+    is SuccessResponseWrapper -> data
+    is FailureResponseWrapper -> throw ResponseException(this)
+  }
 }
 
 @OptIn(ExperimentalContracts::class)
@@ -59,21 +64,20 @@ inline fun <R, T : R> ResponseWrapper<T>.getOrElse(onFailure: (exception: Throwa
   contract {
     callsInPlace(onFailure, InvocationKind.AT_MOST_ONCE)
   }
-  return if (isSuccess()) data else onFailure(Exception())
+  return if (this is SuccessResponseWrapper) data else onFailure(Exception())
 }
 
 fun <T> ResponseWrapper<T>.throwOnFailure() {
-  if (!isSuccess()) throw ResponseException(this)
+  if (this is FailureResponseWrapper) throw ResponseException(this)
 }
 
 fun <T> ResponseWrapper<T>.result(): Result<T> {
-  return if (isSuccess()) {
-    Result.success(data)
-  } else {
-    Result.failure(ResponseException(this))
+  return when (this) {
+    is SuccessResponseWrapper -> Result.success(data)
+    is FailureResponseWrapper -> Result.failure(ResponseException(this))
   }
 }
 
 class ResponseException(
-  val response: ResponseWrapper<*>
+  val response: FailureResponseWrapper<*>
 ) : RuntimeException(response.toString())

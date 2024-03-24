@@ -1,4 +1,5 @@
 import extensions.libsBundle
+import utils.Config
 import utils.kspMultiplatform
 
 plugins {
@@ -14,7 +15,7 @@ kotlin {
 }
 
 ksp {
-  arg("NavigatorPackageName", getPackageName(project))
+  arg("NavigatorPackageName", Config.getNamespace(project))
   arg(
     "NavigatorClassName",
     "${project.name.replaceFirstChar { it.uppercase() }}RemoteScreenEnterCollector"
@@ -24,16 +25,4 @@ ksp {
 dependencies {
   val kspNavigator = rootProject.project("course-app:compiler:ksp-navigator")
   kspMultiplatform(kspNavigator)
-}
-
-fun getPackageName(project: Project): String {
-  val prefix = "com.course."
-  var packageName = project.name
-  var p = project
-  while (p.parent!!.name != "course-app") {
-    p = p.parent!!
-    packageName = "${p.name}.$packageName"
-  }
-  packageName = prefix + packageName.lowercase().replace(Regex("[^0-9a-zA-Z.]"), "")
-  return packageName
 }

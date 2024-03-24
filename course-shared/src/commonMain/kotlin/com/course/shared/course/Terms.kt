@@ -1,5 +1,12 @@
 package com.course.shared.course
 
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+
 /**
  * .
  *
@@ -23,4 +30,16 @@ enum class Terms(val chinese: String) {
   SeventhSpring("大七下"),
   EighthFall("大八上"),
   EighthSpring("大八下"),
+}
+
+class TermsIntSerializer : KSerializer<Terms> {
+  override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Terms", PrimitiveKind.INT)
+
+  override fun deserialize(decoder: Decoder): Terms {
+    return Terms.entries[decoder.decodeInt()]
+  }
+
+  override fun serialize(encoder: Encoder, value: Terms) {
+    encoder.encodeInt(value.ordinal)
+  }
 }

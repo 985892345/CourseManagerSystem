@@ -1,4 +1,5 @@
 import extensions.libsLibrary
+import utils.Config
 import utils.kspMultiplatform
 
 plugins {
@@ -15,7 +16,7 @@ kotlin {
 }
 
 ksp {
-  arg("SerializablePackageName", getPackageName(project))
+  arg("SerializablePackageName", Config.getNamespace(project))
   arg(
     "SerializableClassName",
     "${project.name.replaceFirstChar { it.uppercase() }}ObjectSerializableCollector"
@@ -25,16 +26,4 @@ ksp {
 dependencies {
   val kspSerialization = rootProject.project("course-app:compiler:ksp-serialization")
   kspMultiplatform(kspSerialization)
-}
-
-fun getPackageName(project: Project): String {
-  val prefix = "com.course."
-  var packageName = project.name
-  var p = project
-  while (p.parent!!.name != "course-app") {
-    p = p.parent!!
-    packageName = "${p.name}.$packageName"
-  }
-  packageName = prefix + packageName.lowercase().replace(Regex("[^0-9a-zA-Z.]"), "")
-  return packageName
 }
