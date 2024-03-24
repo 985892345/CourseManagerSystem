@@ -25,7 +25,7 @@ interface IDataSourceService {
   /**
    * @return 返回自定义保存的数据，返回 null 时说明不能创建数据，建议此时 toast 原因
    */
-  fun createSourceData(code: String?, vararg editContent: String?): String?
+  fun createSourceData(code: String, editContents: List<String>): String?
 
   /**
    * 进行请求

@@ -5,15 +5,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import com.course.components.utils.preferences.createSettings
 import com.course.components.utils.provider.Provider
 import com.russhwolf.settings.long
 import com.russhwolf.settings.set
+import kotlinx.coroutines.withTimeout
 import kotlinx.datetime.Clock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.measureTime
 
 /**
  * .
@@ -42,8 +47,9 @@ data class RequestContent<T : Any>(
 
   private val settings = createSettings("RequestContent-$name")
 
-  val requestUnits: MutableList<RequestUnit> = settings.getStringOrNull("requestUnits")
-    ?.let { Json.decodeFromString(it) } ?: mutableListOf()
+  val requestUnits: SnapshotStateList<RequestUnit> = settings.getStringOrNull("requestUnits")
+    ?.let { Json.decodeFromString<List<RequestUnit>>(it).toMutableStateList() }
+    ?: SnapshotStateList()
 
   var requestTimestamp: Long by mutableLongStateOf(settings.getLong("requestTimestamp", 0L))
     private set
@@ -55,14 +61,15 @@ data class RequestContent<T : Any>(
 
   var cacheExpiration: Long by settings.long("cacheExpiration", 12.hours.inWholeMilliseconds)
 
-  var requestStatus: RequestStatus by mutableStateOf(
+  var requestContentStatus: RequestContentStatus by mutableStateOf(
     when {
-      requestUnits.isEmpty() -> RequestStatus.Empty
-      requestTimestamp == 0L -> RequestStatus.None
-      responseTimestamp >= requestTimestamp -> RequestStatus.Success
-      else -> RequestStatus.Failure
+      requestUnits.isEmpty() -> RequestContentStatus.Empty
+      requestTimestamp == 0L -> RequestContentStatus.None
+      responseTimestamp >= requestTimestamp -> RequestContentStatus.Success
+      else -> RequestContentStatus.Failure
     }
   )
+    private set
 
   suspend fun request(isForce: Boolean, vararg values: String): T {
     if (values.size != parameterWithHint.size)
@@ -72,47 +79,56 @@ data class RequestContent<T : Any>(
     val isCacheValid = cache != null && nowTime - responseTimestamp < cacheExpiration
     if (isForce || !isCacheValid) {
       if (requestUnits.isEmpty()) throw IllegalStateException("未设置请求")
-      requestStatus = RequestStatus.Requesting
+      requestContentStatus = RequestContentStatus.Requesting
       requestTimestamp = nowTime
       var index = 0
       val parameters = parameterWithHint.mapValues { values[index++] }
       for (unit in requestUnits) {
         try {
-          val response = unit.request(parameters)
+          unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Requesting
+          val response: String
+          unit.duration = measureTime {
+            response = withTimeout(10.seconds) {
+              unit.request(parameters)
+            }
+          }
+          unit.response = response
           val result = Json.decodeFromString(resultSerializer, response)
           // 如果 result 反序列化异常，则认为请求失败
           responseTimestamp = Clock.System.now().toEpochMilliseconds()
           prevRequestCache = response
           save()
-          requestStatus = RequestStatus.Success
+          requestContentStatus = RequestContentStatus.Success
+          unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Success
           return result
         } catch (e: Exception) {
           // nothing
           unit.error = e.stackTraceToString()
+          unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Failure
         }
       }
       save()
       if (isCacheValid) {
-        requestStatus = RequestStatus.FailureButHitCache
+        requestContentStatus = RequestContentStatus.FailureButHitCache
         return Json.decodeFromString(resultSerializer, cache!!)
       } else {
-        requestStatus = RequestStatus.Failure
+        requestContentStatus = RequestContentStatus.Failure
         throw IllegalStateException("请求全部失败")
       }
     } else {
-      requestStatus = RequestStatus.HitCache
+      requestContentStatus = RequestContentStatus.HitCache
       return Json.decodeFromString(resultSerializer, cache!!)
     }
   }
 
-  private fun save() {
-    settings.putString("requestUnits", Json.encodeToString(requestUnits))
+  fun save() {
+    settings.putString("requestUnits", Json.encodeToString<List<RequestUnit>>(requestUnits))
     settings.putLong("requestTimestamp", requestTimestamp)
     settings.putLong("responseTimestamp", responseTimestamp)
     settings["cache"] = prevRequestCache
   }
 
-  enum class RequestStatus {
+  enum class RequestContentStatus {
     Empty, // 未设置请求
     None, // 设置了请求但未触发过请求
     HitCache, // 命中缓存

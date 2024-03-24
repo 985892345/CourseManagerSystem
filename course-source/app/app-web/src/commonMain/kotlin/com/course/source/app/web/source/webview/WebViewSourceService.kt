@@ -25,7 +25,7 @@ object WebViewSourceService : IDataSourceService {
   @Composable
   override fun Identifier() {
     Image(
-      painter = painterResource(DrawableResource("ic_web.xml")),
+      painter = painterResource(DrawableResource("drawable/ic_web.xml")),
       contentDescription = null
     )
   }
@@ -68,9 +68,9 @@ object WebViewSourceService : IDataSourceService {
     )
   }
 
-  override fun createSourceData(code: String?, vararg editContent: String?): String? {
-    val url = editContent[0]
-    return if (url != null || code != null) Json.encodeToString(WebViewData(url, code)) else {
+  override fun createSourceData(code: String, editContents: List<String>): String? {
+    val url = editContents[0]
+    return if (url.isNotBlank() || code.isNotBlank()) Json.encodeToString(WebViewData(url, code)) else {
       toast("url 和 js 不能都为空")
       null
     }

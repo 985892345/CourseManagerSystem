@@ -2,15 +2,15 @@ package com.course.source.app.web.request
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.course.components.utils.provider.Provider
 import com.course.components.utils.serializable.StringStateSerializable
 import com.course.source.app.web.source.service.IDataSourceService
-import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.measureTime
 
 /**
  * .
@@ -21,27 +21,36 @@ import kotlin.time.measureTime
 @Stable
 @Serializable
 class RequestUnit(
-  var title: String,
+  @Serializable(StringStateSerializable::class)
+  val title: MutableState<String>,
   val serviceKey: String,
-  val id: Int = -1,
+  val id: Int,
   var sourceData: String? = null,
   var error: String? = null,
   var response: String? = null,
   var duration: Duration = (-1).seconds,
 ) {
 
+  var requestUnitStatus by mutableStateOf(
+    when {
+      error != null -> RequestUnitStatus.Failure
+      response != null -> RequestUnitStatus.Success
+      else -> RequestUnitStatus.None
+    }
+  )
+
   suspend fun request(
     parameters: Map<String, String>,
   ): String {
     val service = Provider.implOrNull(IDataSourceService::class, serviceKey)
       ?: throw RuntimeException("未找到服务 $serviceKey")
-    val newResponse: String
-    duration = measureTime {
-      newResponse = withTimeout(10.seconds) {
-        service.request(sourceData, parameters)
-      }
-    }
-    response = newResponse
-    return newResponse
+    return service.request(sourceData, parameters)
+  }
+
+  enum class RequestUnitStatus {
+    None, // 设置了请求但未触发过请求
+    Requesting, // 请求中
+    Success, // 请求成功
+    Failure, // 请求失败
   }
 }

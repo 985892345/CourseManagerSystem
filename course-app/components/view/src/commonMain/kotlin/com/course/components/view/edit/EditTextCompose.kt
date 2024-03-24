@@ -1,4 +1,4 @@
-package com.course.components.view.calendar.edit
+package com.course.components.view.edit
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
 /**
@@ -28,13 +27,13 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun EditTextCompose(
-  text: MutableState<TextFieldValue>,
+  text: MutableState<String>,
   keyboardType: KeyboardType = KeyboardType.Text,
   hint: String = "",
   modifier: Modifier = Modifier,
   isShowIndicatorLine: Boolean = true,
   textStyle: TextStyle = remember { TextStyle() },
-  onValueChange: (TextFieldValue) -> Unit = {
+  onValueChange: (String) -> Unit = {
     text.value = it
   },
 ) {
@@ -57,7 +56,7 @@ fun EditTextCompose(
     interactionSource = interactionSource,
     textStyle = textStyle,
     decorationBox = {
-      if (text.value.text.isEmpty()) {
+      if (text.value.isEmpty()) {
         Text(
           modifier = Modifier.fillMaxWidth(),
           text = hint,

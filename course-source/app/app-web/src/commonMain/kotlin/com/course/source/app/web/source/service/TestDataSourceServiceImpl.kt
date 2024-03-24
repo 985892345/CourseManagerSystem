@@ -25,7 +25,7 @@ class TestDataSourceServiceImpl : IDataSourceService {
     )
   }
 
-  override fun createSourceData(code: String?, vararg editContent: String?): String? {
+  override fun createSourceData(code: String, editContents: List<String>): String? {
     return null
   }
 

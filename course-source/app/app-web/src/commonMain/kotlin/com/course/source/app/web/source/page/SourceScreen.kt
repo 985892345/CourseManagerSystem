@@ -35,13 +35,13 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import com.course.components.base.theme.LocalAppColors
 import com.course.components.utils.serializable.ObjectSerializable
 import com.course.source.app.web.request.RequestContent
-import com.course.source.app.web.request.RequestContent.RequestStatus.Empty
-import com.course.source.app.web.request.RequestContent.RequestStatus.Failure
-import com.course.source.app.web.request.RequestContent.RequestStatus.FailureButHitCache
-import com.course.source.app.web.request.RequestContent.RequestStatus.HitCache
-import com.course.source.app.web.request.RequestContent.RequestStatus.None
-import com.course.source.app.web.request.RequestContent.RequestStatus.Requesting
-import com.course.source.app.web.request.RequestContent.RequestStatus.Success
+import com.course.source.app.web.request.RequestContent.RequestContentStatus.Empty
+import com.course.source.app.web.request.RequestContent.RequestContentStatus.Failure
+import com.course.source.app.web.request.RequestContent.RequestContentStatus.FailureButHitCache
+import com.course.source.app.web.request.RequestContent.RequestContentStatus.HitCache
+import com.course.source.app.web.request.RequestContent.RequestContentStatus.None
+import com.course.source.app.web.request.RequestContent.RequestContentStatus.Requesting
+import com.course.source.app.web.request.RequestContent.RequestContentStatus.Success
 import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.DrawableResource
@@ -90,7 +90,7 @@ class SourceScreen : Screen {
       ) {
         Image(
           modifier = Modifier.size(16.dp),
-          painter = painterResource(DrawableResource("ic_back.xml")),
+          painter = painterResource(DrawableResource("drawable/ic_back.xml")),
           contentDescription = null,
         )
       }
@@ -105,12 +105,15 @@ class SourceScreen : Screen {
 
   @Composable
   private fun ListCompose() {
-    val keys = remember { RequestContent.RequestMap.keys.toList() }
+    val requestContents = remember { RequestContent.RequestMap.values.toList() }
     LazyColumn(
       modifier = Modifier.fillMaxSize()
     ) {
-      items(keys) {
-        ListItemCompose(RequestContent.RequestMap.getValue(it))
+      items(
+        items = requestContents,
+        key = { it.name }
+      ) {
+        ListItemCompose(it)
       }
     }
   }
@@ -122,7 +125,6 @@ class SourceScreen : Screen {
       modifier = Modifier.padding(top = 12.dp, start = 12.dp, end = 12.dp)
         .fillMaxWidth()
         .wrapContentHeight(),
-      shape = RoundedCornerShape(8.dp),
       elevation = 2.dp,
     ) {
       val navigator = LocalNavigator.current
@@ -145,7 +147,7 @@ class SourceScreen : Screen {
             modifier = Modifier.padding(top = 10.dp, start = 2.dp),
             text = AnnotatedString.Builder().append(
               AnnotatedString(
-                "状态：",
+                "状态: ",
                 SpanStyle(color = LocalAppColors.current.tvLv3),
               ),
               getRequestStatue(requestContent)
@@ -174,7 +176,7 @@ class SourceScreen : Screen {
         }
         Image(
           modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp),
-          painter = painterResource(DrawableResource("ic_arrow_right.xml")),
+          painter = painterResource(DrawableResource("drawable/ic_arrow_right.xml")),
           contentDescription = null,
         )
       }
@@ -183,7 +185,7 @@ class SourceScreen : Screen {
 
   @Stable
   private fun getRequestStatue(requestContent: RequestContent<*>): AnnotatedString {
-    return when (requestContent.requestStatus) {
+    return when (requestContent.requestContentStatus) {
       Empty -> AnnotatedString("未设置请求", SpanStyle(Color.Gray))
       None -> AnnotatedString("未触发请求", SpanStyle(Color(0xFF0099CC)))
       HitCache -> AnnotatedString("命中缓存", SpanStyle(Color(0xFF9DAC00)))
