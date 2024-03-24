@@ -2,8 +2,7 @@ package com.course.components.view.calendar.edit
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ExperimentalMaterialApi
@@ -13,7 +12,6 @@ import androidx.compose.material.TextFieldDefaults.indicatorLine
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -59,12 +57,19 @@ fun EditTextCompose(
     interactionSource = interactionSource,
     textStyle = textStyle,
     decorationBox = {
-      Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        if (text.value.text.isEmpty()) {
-          Text(text = hint, color = Color.Gray)
-        }
-        it.invoke()
+      if (text.value.text.isEmpty()) {
+        Text(
+          modifier = Modifier.fillMaxWidth(),
+          text = hint,
+          color = Color.Gray,
+          fontSize = textStyle.fontSize,
+          fontFamily = textStyle.fontFamily,
+          letterSpacing = textStyle.letterSpacing,
+          textAlign = textStyle.textAlign,
+          lineHeight = textStyle.lineHeight,
+        )
       }
+      it.invoke()
     }
   )
 }
