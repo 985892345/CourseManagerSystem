@@ -2,25 +2,27 @@ package com.course.components.view.code
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Measurable
@@ -49,6 +51,7 @@ fun CodeCompose(
   editable: Boolean = true,
   modifier: Modifier = Modifier,
   hint: String = "",
+  minLine: Int = 1,
   fontFamily: FontFamily = JBFontFamily(),
   style: MutableState<TextStyle> = remember {
     mutableStateOf(
@@ -59,27 +62,23 @@ fun CodeCompose(
     )
   },
 ) {
-  var xOffset by mutableFloatStateOf(0F)
-  var yOffset by mutableFloatStateOf(0F)
   var innerWidth by mutableIntStateOf(0)
   var outerWidth by mutableIntStateOf(0)
   var innerHeight by mutableIntStateOf(0)
   var outerHeight by mutableIntStateOf(0)
   Layout(
-    modifier = modifier.pointerInput(Unit) {
-      detectTransformGestures { _: Offset, pan: Offset, zoom: Float, _: Float ->
-        xOffset = (xOffset + pan.x).coerceIn((outerWidth - innerWidth).toFloat(), 0F)
-        yOffset = (yOffset + pan.y).coerceIn((outerHeight - innerHeight).toFloat(), 0F)
-        style.value = style.value.copy(fontSize = style.value.fontSize * zoom)
-      }
-    }.graphicsLayer {
-      translationY = yOffset
-    },
+    modifier = modifier
+      .pointerInput(Unit) {
+        detectTransformGestures { _: Offset, _: Offset, zoom: Float, _: Float ->
+          style.value = style.value.copy(fontSize = style.value.fontSize * zoom)
+        }
+      }.verticalScroll(rememberScrollState()).horizontalScroll(rememberScrollState()),
     content = {
       val paddingTop = 8.dp
-      val textLinesBottomState = mutableStateOf(emptyList<Float>())
-      val hintLinesBottomState = mutableStateOf(emptyList<Float>())
+      val textLinesBottomState = remember { mutableStateOf(emptyList<Float>()) }
+      val hintLinesBottomState = remember { mutableStateOf(emptyList<Float>()) }
       LineNumberCompose(
+        minLine = minLine,
         paddingTop = paddingTop,
         style = style,
         linesBottom = remember {
@@ -99,9 +98,7 @@ fun CodeCompose(
         },
       )
       TextCompose(
-        modifier = Modifier.graphicsLayer {
-          translationX = xOffset
-        },
+        modifier = Modifier,
         text = text,
         editable = editable,
         hint = hint,
@@ -116,12 +113,12 @@ fun CodeCompose(
         val textPlaceable = measurables[1].measure(Constraints())
         val linePlaceable = measurables[0].measure(
           Constraints(
-            minHeight = textPlaceable.height + 20,
-            maxHeight = textPlaceable.height + 20,
+            minHeight = textPlaceable.height
           )
         )
         val width =
-          if (constraints.hasBoundedWidth) constraints.maxWidth else linePlaceable.width + textPlaceable.width + 50
+          if (constraints.hasBoundedWidth) constraints.maxWidth
+          else maxOf(linePlaceable.width + textPlaceable.width + 50, constraints.minWidth)
         val height = linePlaceable.height.coerceIn(constraints.minHeight, constraints.maxHeight)
         innerWidth = maxOf(width, linePlaceable.width + textPlaceable.width + 50)
         outerWidth = width
@@ -138,16 +135,18 @@ fun CodeCompose(
 
 @Composable
 private fun LineNumberCompose(
+  minLine: Int,
   paddingTop: Dp,
   style: MutableState<TextStyle>,
   linesBottom: State<List<Float>>,
 ) {
-  val count by remember { derivedStateOf { linesBottom.value.size } }
+  val minLineState = rememberUpdatedState(minLine)
+  val count by remember { derivedStateOf { linesBottom.value.size.coerceAtLeast(minLineState.value) } }
   Layout(
     modifier = Modifier.background(Color(0xFFE6E6E6))
-      .padding(top = paddingTop, start = 8.dp, bottom = 4.dp, end = 6.dp),
+      .padding(top = paddingTop, start = 8.dp, bottom = 8.dp, end = 6.dp),
     content = {
-      val color = { Color(0xFF595959) }
+      val color = remember { { Color(0xFF595959) } }
       repeat(count) {
         BasicText(
           text = "${it + 1}",
@@ -159,21 +158,26 @@ private fun LineNumberCompose(
     measurePolicy = remember {
       { measurables, constraints ->
         var maxWidth = 0
+        var itemsHeight = 0
         val placeables = measurables.fastMapIndexed { index, measurable ->
           measurable.measure(Constraints()).also {
             maxWidth = maxOf(maxWidth, it.width)
+            itemsHeight += it.height
           }
         }
-        layout(maxWidth, constraints.maxHeight) {
+        val layoutHeight = maxOf(itemsHeight, linesBottom.value.lastOrNull()?.roundToInt() ?: 0)
+          .coerceIn(constraints.minHeight, constraints.maxHeight)
+        layout(maxWidth, layoutHeight) {
           var top = 0F
           placeables.fastForEachIndexed { index, placeable ->
-            // 在删除行时先触发的 layout，此时 linesBottom 已经被提前修改，但 placeables 数量却还未修改
-            if (index >= count) return@fastForEachIndexed
+            val height = if (index < linesBottom.value.size) {
+              linesBottom.value[index] - top
+            } else placeable.height.toFloat()
             placeable.placeRelative(
               x = maxWidth - placeable.width,
-              y = (top + (linesBottom.value[index] - top - placeable.height) / 2).roundToInt()
+              y = (top + (height - placeable.height) / 2).roundToInt()
             )
-            top = linesBottom.value[index]
+            top += height
           }
         }
       }
@@ -192,9 +196,10 @@ private fun TextCompose(
   textLinesBottom: MutableState<List<Float>>,
   hintLinesBottom: MutableState<List<Float>>,
 ) {
+  val hintState by rememberUpdatedState(hint)
   Box(
     modifier = modifier.background(Color.Transparent)
-      .padding(top = paddingTop, start = 8.dp)
+      .padding(top = paddingTop, start = 6.dp)
   ) {
     if (editable) {
       val interactionSource = remember { MutableInteractionSource() }
@@ -214,7 +219,7 @@ private fun TextCompose(
                 placeable.placeRelative(0, 0)
               }
             },
-            text = hint,
+            text = hintState,
             color = { if (text.value.isEmpty()) Color.Gray else Color.Transparent },
             style = style.value,
             onTextLayout = { result ->
