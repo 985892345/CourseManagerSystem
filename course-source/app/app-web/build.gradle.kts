@@ -15,7 +15,7 @@ kotlin {
       implementation(projects.courseApp.pages.main.api)
     }
     desktopMain.dependencies {
-      implementation("net.sourceforge.htmlunit:htmlunit:2.70.0")
+      implementation("org.htmlunit:htmlunit:3.11.0")
     }
   }
 }

@@ -3,15 +3,16 @@ package com.course.source.app.web.source.webview
 import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
+import android.webkit.JavascriptInterface
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.annotation.Keep
 import com.g985892345.android.utils.context.appContext
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 /**
@@ -31,17 +32,18 @@ class AndroidWebViewUnit {
       // 支持 js
       @SuppressLint("SetJavaScriptEnabled")
       settings.javaScriptEnabled = true
+      addJavascriptInterface(mAndroidBridge, "courseBridge")
     }
   }
 
   private var mContinuation: CancellableContinuation<String>? = null
 
-  private fun result(result: String) {
+  private val mAndroidBridge = Android2JsBridge { result ->
     mContinuation?.let {
       mContinuation = null
       mainHandler.post {
         clearWebView()
-        it.resume(result)
+        it.resumeWith(result)
       }
     }
   }
@@ -70,17 +72,15 @@ class AndroidWebViewUnit {
 
   private fun loadUrl(url: String, js: String?) {
     mainHandler.post {
-      mWebView.webViewClient = object : RequestWebViewClient(url, { result(it) }) {
+      mWebView.webViewClient = object : RequestWebViewClient(url, { mAndroidBridge.error(it) }) {
         override fun onPageFinished(view: WebView, url: String) {
           super.onPageFinished(view, url)
           if (js != null) {
-            view.evaluateJavascript(js) {
-              result(it)
-            }
+            view.evaluateJavascript(js, null)
           } else {
-            view.evaluateJavascript("document.body.textContent;") {
-              result(it)
-            }
+            view.evaluateJavascript("""
+              androidBridge.success(document.body.textContent);
+            """.trimIndent(), null)
           }
         }
       }
@@ -99,6 +99,22 @@ class AndroidWebViewUnit {
 
   private fun clearWebView() {
     mWebView.webViewClient = mEmptyWebClient
+  }
+
+  @Keep
+  private inner class Android2JsBridge(
+    val callback: (result: Result<String>) -> Unit
+  ) {
+
+    @JavascriptInterface
+    fun success(result: String) {
+      callback.invoke(Result.success(result))
+    }
+
+    @JavascriptInterface
+    fun error(result: String) {
+      callback.invoke(Result.failure(RuntimeException(result)))
+    }
   }
 
   private open class RequestWebViewClient(

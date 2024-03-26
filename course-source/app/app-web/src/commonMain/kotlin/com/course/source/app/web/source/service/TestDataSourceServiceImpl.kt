@@ -3,6 +3,7 @@ package com.course.source.app.web.source.service
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import com.g985892345.provider.api.annotation.ImplProvider
+import kotlinx.collections.immutable.persistentMapOf
 
 /**
  * .
@@ -21,7 +22,7 @@ class TestDataSourceServiceImpl : IDataSourceService {
     return IDataSourceService.Config(
       codeHint = "",
       codeContent = null,
-      editTitleHintContent = emptyList(),
+      editTitleHintContent = persistentMapOf(),
     )
   }
 

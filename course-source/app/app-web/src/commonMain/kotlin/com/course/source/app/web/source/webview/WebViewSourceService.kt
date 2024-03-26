@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import com.course.components.base.ui.toast.toast
 import com.course.source.app.web.source.service.IDataSourceService
 import com.g985892345.provider.api.annotation.ImplProvider
+import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -46,7 +47,10 @@ object WebViewSourceService : IDataSourceService {
           2. 填写 url 和 js，则在页面加载完后执行 js
         
         与端上交互规则:
-          js 末尾直接返回数据即可
+          // 调用 success() 返回结果，只允许调用一次
+          courseBridge.success('...'); 
+          // 调用 error() 返回异常，只允许调用一次
+          courseBridge.error('...');
           
         端上传递请求参数规则:
           端上可以传递参数到 url 和 js 上
@@ -62,8 +66,8 @@ object WebViewSourceService : IDataSourceService {
         该面板支持双指放大缩小
       """.trimIndent(),
       codeContent = webViewData.js,
-      listOf(
-        Triple("请求链接", "http/https (可以只写 js)", webViewData.url)
+      persistentMapOf(
+        "请求链接" to ("http/https (可以只写 js)" to webViewData.url)
       )
     )
   }
