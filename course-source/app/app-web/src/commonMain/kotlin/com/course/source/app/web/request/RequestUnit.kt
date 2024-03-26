@@ -1,12 +1,10 @@
 package com.course.source.app.web.request
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.course.components.utils.provider.Provider
-import com.course.components.utils.serializable.StringStateSerializable
 import com.course.source.app.web.source.service.IDataSourceService
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
@@ -21,8 +19,7 @@ import kotlin.time.Duration.Companion.seconds
 @Stable
 @Serializable
 class RequestUnit(
-  @Serializable(StringStateSerializable::class)
-  val title: MutableState<String>,
+  var title: String,
   val serviceKey: String,
   val id: Int,
   var sourceData: String? = null,

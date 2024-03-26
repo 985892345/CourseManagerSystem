@@ -5,6 +5,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -28,18 +31,18 @@ import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -54,9 +57,11 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import com.course.components.base.theme.LocalAppColors
 import com.course.components.base.ui.dialog.showChooseDialog
+import com.course.components.base.ui.dialog.showDialog
 import com.course.components.base.ui.toast.toast
 import com.course.components.utils.provider.Provider
 import com.course.components.utils.serializable.ObjectSerializable
+import com.course.components.view.code.CodeCompose
 import com.course.components.view.edit.EditTextCompose
 import com.course.source.app.web.request.RequestContent
 import com.course.source.app.web.request.RequestUnit
@@ -66,12 +71,13 @@ import com.course.source.app.web.request.RequestUnit.RequestUnitStatus.Requestin
 import com.course.source.app.web.request.RequestUnit.RequestUnitStatus.Success
 import com.course.source.app.web.source.service.IDataSourceService
 import kotlinx.coroutines.launch
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
-import kotlin.math.abs
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -90,79 +96,99 @@ class RequestContentScreen(
   @Transient
   private val requestContent = RequestContent.RequestMap.getValue(requestContentKey)
 
+  @Transient
+  private val floatBtnAnimFraction = mutableFloatStateOf(0F)
+
   @Composable
   override fun Content() {
-    Box {
+    val coroutineScope = rememberCoroutineScope()
+    Box(modifier = Modifier.pointerInput(Unit) {
+      awaitEachGesture {
+        awaitFirstDown(false, PointerEventPass.Initial)
+        // 接收每次 ACTION_DOWN 事件
+        if (floatBtnAnimFraction.value == 1F) {
+          coroutineScope.launch { closeFloatBtn() }
+        }
+      }
+    }) {
       Column(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
         ToolbarCompose(requestContent)
         ListCompose(requestContent)
       }
-      FloatingActionButtonCompose(requestContentKey)
+      FloatingActionButtonCompose()
     }
   }
-}
 
-@OptIn(ExperimentalResourceApi::class)
-@Composable
-private fun BoxScope.FloatingActionButtonCompose(requestContentKey: String) {
-  val dataSourceServices = remember {
-    Provider.getAllImpl(IDataSourceService::class).map { it.value.name to it.value.get() }
-  }
-  var animationFraction by remember { mutableFloatStateOf(0F) }
-  val navigator = LocalNavigator.current
-  if (dataSourceServices.size >= 2) {
-    dataSourceServices.fastForEachIndexed { index, pair ->
-      FloatingActionButton(
-        modifier = Modifier.align(Alignment.BottomEnd)
-          .padding(end = 46.dp, bottom = 66.dp)
-          .size(44.dp)
-          .graphicsLayer {
-            translationY = (-(index + 1) * 56.dp.toPx() - 8.dp.toPx()) * animationFraction
-            alpha = minOf(animationFraction * 1.25F, 1F) // 因阴影会失效，所以 alpha 特殊设置
-          },
-        onClick = { navigator?.push(RequestUnitScreen(requestContentKey, pair.first)) }
-      ) {
-        Box(
-          modifier = Modifier.fillMaxSize().graphicsLayer {
-            rotationZ = -90F * (1 - animationFraction)
-          },
-          contentAlignment = Alignment.Center
+  @OptIn(ExperimentalResourceApi::class)
+  @Composable
+  private fun BoxScope.FloatingActionButtonCompose() {
+    val dataSourceServices = remember {
+      Provider.getAllImpl(IDataSourceService::class).map { it.value.name to it.value.get() }
+    }
+    val navigator = LocalNavigator.current
+    if (dataSourceServices.size >= 2) {
+      dataSourceServices.fastForEachIndexed { index, pair ->
+        FloatingActionButton(
+          modifier = Modifier.align(Alignment.BottomEnd)
+            .padding(end = 46.dp, bottom = 66.dp)
+            .size(44.dp)
+            .graphicsLayer {
+              translationY = (-(index + 1) * 56.dp.toPx() - 8.dp.toPx()) * floatBtnAnimFraction.value
+              alpha = minOf(floatBtnAnimFraction.value * 1.25F, 1F) // 因阴影会失效，所以 alpha 特殊设置
+            },
+          onClick = { navigator?.push(RequestUnitScreen(requestContentKey, pair.first)) }
         ) {
-          pair.second.Identifier()
+          Box(
+            modifier = Modifier.fillMaxSize().graphicsLayer {
+              rotationZ = -90F * (1 - floatBtnAnimFraction.value)
+            },
+            contentAlignment = Alignment.Center
+          ) {
+            pair.second.Identifier()
+          }
         }
       }
     }
-  }
-  val coroutineScope = rememberCoroutineScope()
-  FloatingActionButton(
-    modifier = Modifier.align(Alignment.BottomEnd)
-      .padding(end = 40.dp, bottom = 60.dp),
-    onClick = {
-      if (dataSourceServices.size >= 2) {
-        if (animationFraction == 0F || animationFraction == 1F)
-          coroutineScope.launch {
-            animate(
-              animationFraction,
-              abs(animationFraction - 1),
-              animationSpec = tween(),
-            ) { value, _ ->
-              animationFraction = value
-            }
+    val coroutineScope = rememberCoroutineScope()
+    FloatingActionButton(
+      modifier = Modifier.align(Alignment.BottomEnd)
+        .padding(end = 40.dp, bottom = 60.dp),
+      onClick = {
+        if (dataSourceServices.size >= 2) {
+          if (floatBtnAnimFraction.value == 0F) {
+            coroutineScope.launch { openFloatBtn() }
           }
-      } else if (dataSourceServices.isEmpty()) {
-        toast("代码异常，未找到数据源服务")
-      } else {
-        navigator?.push(RequestUnitScreen(requestContentKey, dataSourceServices.first().first))
-      }
-    },
-  ) {
-    Image(
-      modifier = Modifier.graphicsLayer {
-        rotationZ = 45F * animationFraction
+        } else if (dataSourceServices.isEmpty()) {
+          toast("代码异常，未找到数据源服务")
+        } else {
+          navigator?.push(RequestUnitScreen(requestContentKey, dataSourceServices.first().first))
+        }
       },
-      painter = painterResource(DrawableResource("drawable/ic_add.xml")),
-      contentDescription = null
-    )
+    ) {
+      Image(
+        modifier = Modifier.graphicsLayer {
+          rotationZ = 45F * floatBtnAnimFraction.value
+        },
+        painter = painterResource(DrawableResource("drawable/ic_add.xml")),
+        contentDescription = null
+      )
+    }
+  }
+
+  private suspend fun openFloatBtn() {
+    if (floatBtnAnimFraction.value == 0F) {
+      animate(0F, 1F, animationSpec = tween()) { value, _ ->
+        floatBtnAnimFraction.value = value
+      }
+    }
+  }
+
+  private suspend fun closeFloatBtn() {
+    if (floatBtnAnimFraction.value == 1F) {
+      animate(1F, 0F, animationSpec = tween()) { value, _ ->
+        floatBtnAnimFraction.value = value
+      }
+    }
   }
 }
 
@@ -281,7 +307,7 @@ private fun ListItemCompose(requestContent: RequestContent<*>, requestUnit: Requ
     }) {
       Column(modifier = Modifier.padding(start = 14.dp, top = 14.dp)) {
         Text(
-          text = requestUnit.title.value,
+          text = requestUnit.title,
           fontSize = 18.sp,
           color = LocalAppColors.current.tvLv1,
           fontWeight = FontWeight.Bold
@@ -298,27 +324,49 @@ private fun ListItemCompose(requestContent: RequestContent<*>, requestUnit: Requ
           fontSize = 14.sp,
         )
       }
-      RequestResultImageCompose(requestUnit)
+      RequestResultImageCompose(requestContent, requestUnit)
     }
   }
 }
 
+private val PrettyPrintJson = Json {
+  prettyPrint = true
+}
+
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-private fun BoxScope.RequestResultImageCompose(requestUnit: RequestUnit) {
+private fun BoxScope.RequestResultImageCompose(requestContent: RequestContent<*>, requestUnit: RequestUnit) {
   if (requestUnit.requestUnitStatus == None || requestUnit.requestUnitStatus == Requesting) return
   Box(
     modifier = Modifier.align(Alignment.CenterEnd)
       .padding(end = 16.dp)
       .clip(RoundedCornerShape(4.dp))
       .clickable {
-
+        showDialog {
+          CodeCompose(
+            modifier = Modifier.width(280.dp).heightIn(min = 400.dp, max = 600.dp),
+            text = remember {
+              @Suppress("UNCHECKED_CAST")
+              mutableStateOf(
+                when (requestUnit.requestUnitStatus) {
+                  None, Requesting -> ""
+                  Success -> PrettyPrintJson.encodeToString(
+                    requestContent.resultSerializer as KSerializer<Any>,
+                    Json.decodeFromString(requestContent.resultSerializer, requestUnit.response!!)
+                  )
+                  Failure -> "请求失败\n返回值: ${requestUnit.response}\n\n异常信息: ${requestUnit.error}"
+                }
+              )
+            },
+            editable = false,
+          )
+        }
       }
   ) {
     Image(
-      modifier = Modifier.padding(4.dp),
+      modifier = Modifier.padding(4.dp).size(24.dp),
       painter = when (requestUnit.requestUnitStatus) {
-        None, Requesting -> ColorPainter(Color.Transparent)
+        None, Requesting -> ColorPainter(Color.Gray)
         Success -> painterResource(DrawableResource("drawable/ic_code.xml"))
         Failure -> painterResource(DrawableResource("drawable/ic_error.xml"))
       },

@@ -2,15 +2,16 @@ package com.course.components.utils.serializable
 
 import androidx.compose.runtime.MutableFloatState
 import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.MutableLongState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -95,5 +96,18 @@ class IntStateSerializable : KSerializer<MutableIntState> {
 
   override fun serialize(encoder: Encoder, value: MutableIntState) {
     encoder.encodeInt(value.value)
+  }
+}
+
+class LongStateSerializable : KSerializer<MutableLongState> {
+  override val descriptor: SerialDescriptor =
+    PrimitiveSerialDescriptor("androidx.compose.runtime.MutableLongState", PrimitiveKind.LONG)
+
+  override fun deserialize(decoder: Decoder): MutableLongState {
+    return mutableLongStateOf(decoder.decodeLong())
+  }
+
+  override fun serialize(encoder: Encoder, value: MutableLongState) {
+    encoder.encodeLong(value.value)
   }
 }

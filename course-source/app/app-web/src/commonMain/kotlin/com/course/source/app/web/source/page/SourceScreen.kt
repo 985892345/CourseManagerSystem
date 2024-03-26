@@ -78,21 +78,23 @@ class SourceScreen : Screen {
         color = LocalAppColors.current.tvLv2
       )
       val navigator = LocalNavigator.current
-      Box(
-        modifier = Modifier.align(Alignment.CenterStart)
-          .padding(start = 12.dp)
-          .size(32.dp)
-          .clip(RoundedCornerShape(8.dp))
-          .clickable {
-            navigator?.pop()
-          },
-        contentAlignment = Alignment.Center,
-      ) {
-        Image(
-          modifier = Modifier.size(16.dp),
-          painter = painterResource(DrawableResource("drawable/ic_back.xml")),
-          contentDescription = null,
-        )
+      if (navigator?.canPop == true) {
+        Box(
+          modifier = Modifier.align(Alignment.CenterStart)
+            .padding(start = 12.dp)
+            .size(32.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .clickable {
+              navigator.pop()
+            },
+          contentAlignment = Alignment.Center,
+        ) {
+          Image(
+            modifier = Modifier.size(16.dp),
+            painter = painterResource(DrawableResource("drawable/ic_back.xml")),
+            contentDescription = null,
+          )
+        }
       }
       Spacer(
         modifier = Modifier.align(Alignment.BottomStart)

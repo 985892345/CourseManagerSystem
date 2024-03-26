@@ -1,7 +1,10 @@
 package com.course.components.utils.serializable
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.TextUnit
 import com.course.components.utils.provider.Provider
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
@@ -30,15 +33,19 @@ annotation class ObjectSerializable {
       return ObjectSerializableCollector.ByClazz[clazz] != null
     }
 
-    fun serialize(data: Any): String {
-      val serializer = ObjectSerializableCollector.ByClazz[data::class]
-      check(serializer != null) { "未找到 ${data::class} 的 serializer, 请检查是否添加了 @SerializableCollector" }
+    fun serialize(data: Any?): String {
+      val clazz = if (data != null) data::class else Null::class
+      val serializer = ObjectSerializableCollector.ByClazz[clazz]
+      check(serializer != null) { "未找到 $clazz 的 serializer, 请检查是否添加了 @SerializableCollector" }
       val key = serializer.first
-      val clazz = Json.encodeToString(serializer.third as KSerializer<Any>, data)
-      return Json.encodeToString(key to clazz)
+      if (data == null) {
+        return Json.encodeToString(key to "")
+      }
+      val obj = Json.encodeToString(serializer.third as KSerializer<Any>, data)
+      return Json.encodeToString(key to obj)
     }
 
-    fun deserialize(str: String): Any {
+    fun deserialize(str: String): Any? {
       val pair = try {
         Json.decodeFromString<Pair<String, String>>(str)
       } catch (e: Exception) {
@@ -47,9 +54,13 @@ annotation class ObjectSerializable {
       val serializer = ObjectSerializableCollector.ByKey[pair.first]
       check(serializer != null) { "未找到 key = ${pair.first} 对应的 serializer" }
       try {
+        if (serializer.second == Null::class) return null
         return Json.decodeFromString(serializer.third as KSerializer<Any>, pair.second)
       } catch (e: Exception) {
-        throw RuntimeException("反序列化失败, str = $str, key = ${serializer.second}, serializer = ${serializer.third}", e)
+        throw RuntimeException(
+          "反序列化失败, str = $str, key = ${serializer.second}, serializer = ${serializer.third}",
+          e
+        )
       }
     }
   }
@@ -62,8 +73,14 @@ interface ObjectSerializableCollector {
 
   companion object {
     private val AllImpl by lazy {
-      Provider.getAllImpl(ObjectSerializableCollector::class).map { it.value.get().collected }
-        .flatten()
+      Provider.getAllImpl(ObjectSerializableCollector::class)
+        .map { it.value.get().collected }
+        .flatten() +
+          listOf(
+            Triple("Null", Null::class, Null.serializer()),
+            Triple("TextUnit", TextUnit::class, TextUnitSerializable()),
+            Triple("Color", Color::class, ColorSerializable()),
+          )
     }
     internal val ByKey by lazy {
       buildMap {
@@ -78,4 +95,5 @@ interface ObjectSerializableCollector {
   }
 }
 
-
+@Serializable
+private object Null

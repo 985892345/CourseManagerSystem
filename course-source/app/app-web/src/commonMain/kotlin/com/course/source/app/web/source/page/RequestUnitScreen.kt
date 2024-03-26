@@ -4,11 +4,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -42,18 +39,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import com.course.components.base.theme.LocalAppColors
 import com.course.components.base.ui.dialog.showChooseDialog
-import com.course.components.utils.provider.Provider
+import com.course.components.utils.navigator.BaseScreen
+import com.course.components.utils.serializable.IntStateSerializable
 import com.course.components.utils.serializable.ObjectSerializable
-import com.course.components.view.code.CodeCompose
 import com.course.components.view.edit.EditTextCompose
 import com.course.source.app.web.request.RequestContent
 import com.course.source.app.web.request.RequestUnit
-import com.course.source.app.web.source.service.IDataSourceService
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.jetbrains.compose.resources.DrawableResource
@@ -71,7 +66,7 @@ import org.jetbrains.compose.resources.painterResource
 class RequestUnitScreen(
   val requestContentName: String,
   val requestUnitIdOrServiceKey: String,
-) : Screen {
+) : BaseScreen() {
 
   @Transient
   private val requestContent = RequestContent.RequestMap.getValue(requestContentName)
@@ -80,24 +75,31 @@ class RequestUnitScreen(
   private val requestUnit = requestUnitIdOrServiceKey.toIntOrNull()?.let { id ->
     requestContent.requestUnits.singleOrNull { it.id == id }
   } ?: RequestUnit(
-    title = mutableStateOf(requestContent.name +
-        (requestContent.requestUnits.maxOfOrNull { it.id }?.plus(1) ?: 0)),
+    title = requestContent.name +
+        (requestContent.requestUnits.maxOfOrNull { it.id }?.plus(1) ?: 0),
     serviceKey = requestUnitIdOrServiceKey,
-    id = requestContent.requestUnits.maxOfOrNull { it.id }?.plus(1) ?: 0
+    id = requestContent.requestUnits.maxOfOrNull { it.id }?.plus(1) ?: 0,
   )
+
+  @Serializable(IntStateSerializable::class)
+  private val selectedTabIndexState = mutableIntStateOf(0)
+
+  private val formatScreen =
+    RequestUnitFormatScreen(requestContent.format, requestContent.parameterWithHint)
+
+  private val codeScreen = RequestUnitCodeScreen(requestContent.name, requestUnit)
 
   @OptIn(ExperimentalFoundationApi::class)
   @Composable
   override fun Content() {
     Column(modifier = Modifier.fillMaxSize()) {
-      val selectedTabIndexState = remember { mutableIntStateOf(0) }
       Card(
         shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp),
         elevation = 2.dp,
         backgroundColor = Color.White,
       ) {
         Column(modifier = Modifier.systemBarsPadding()) {
-          ToolbarCompose(requestContent, requestUnit)
+          ToolbarCompose()
           TabLayoutCompose(selectedTabIndexState)
         }
       }
@@ -109,8 +111,8 @@ class RequestUnitScreen(
         beyondBoundsPageCount = 1,
       ) {
         when (it) {
-          0 -> FormatPage(requestContent)
-          1 -> CodePage(requestContent, requestUnit)
+          0 -> formatScreen.Content()
+          1 -> codeScreen.Content()
         }
       }
       LaunchedEffect(Unit) {
@@ -127,60 +129,60 @@ class RequestUnitScreen(
       }
     }
   }
-}
 
-@OptIn(ExperimentalResourceApi::class)
-@Composable
-private fun ToolbarCompose(requestContent: RequestContent<*>, requestUnit: RequestUnit) {
-  Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
-    val text = remember {
-      mutableStateOf(requestUnit.title.value)
-    }
-    EditTextCompose(
-      text = text,
-      modifier = Modifier.align(Alignment.Center),
-      isShowIndicatorLine = false,
-      textStyle = TextStyle(
-        color = LocalAppColors.current.tvLv2,
-        fontSize = 21.sp,
-        fontWeight = FontWeight.Bold,
-        textAlign = TextAlign.Center,
-      ),
-    ) {
-      text.value = it
-      requestUnit.title.value = it
-    }
-    val navigator = LocalNavigator.current
-    Box(
-      modifier = Modifier.align(Alignment.CenterStart)
-        .padding(start = 12.dp)
-        .size(32.dp)
-        .clip(RoundedCornerShape(8.dp))
-        .clickable {
-          navigator?.pop()
-        },
-      contentAlignment = Alignment.Center,
-    ) {
-      Image(
-        modifier = Modifier.size(16.dp),
-        painter = painterResource(DrawableResource("drawable/ic_back.xml")),
-        contentDescription = null,
-      )
-    }
-    if (requestContent.requestUnits.any { it.id == requestUnit.id }) {
+  @OptIn(ExperimentalResourceApi::class)
+  @Composable
+  private fun ToolbarCompose() {
+    Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
+      val text = remember {
+        mutableStateOf(requestUnit.title)
+      }
+      EditTextCompose(
+        text = text,
+        modifier = Modifier.align(Alignment.Center),
+        isShowIndicatorLine = false,
+        textStyle = TextStyle(
+          color = LocalAppColors.current.tvLv2,
+          fontSize = 21.sp,
+          fontWeight = FontWeight.Bold,
+          textAlign = TextAlign.Center,
+        ),
+      ) {
+        text.value = it
+        requestUnit.title = it
+      }
+      val navigator = LocalNavigator.current
       Box(
-        modifier = Modifier.align(Alignment.CenterEnd)
-          .padding(end = 12.dp)
+        modifier = Modifier.align(Alignment.CenterStart)
+          .padding(start = 12.dp)
           .size(32.dp)
           .clip(RoundedCornerShape(8.dp))
-          .clickable { clickDelete(requestContent, requestUnit, navigator) },
+          .clickable {
+            navigator?.pop()
+          },
         contentAlignment = Alignment.Center,
       ) {
         Image(
-          modifier = Modifier.size(22.dp),
-          painter = painterResource(DrawableResource("drawable/ic_delete.xml")),
+          modifier = Modifier.size(16.dp),
+          painter = painterResource(DrawableResource("drawable/ic_back.xml")),
           contentDescription = null,
         )
+      }
+      if (requestContent.requestUnits.any { it.id == requestUnit.id }) {
+        Box(
+          modifier = Modifier.align(Alignment.CenterEnd)
+            .padding(end = 12.dp)
+            .size(32.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { clickDelete(requestContent, requestUnit, navigator) },
+          contentAlignment = Alignment.Center,
+        ) {
+          Image(
+            modifier = Modifier.size(22.dp),
+            painter = painterResource(DrawableResource("drawable/ic_delete.xml")),
+            contentDescription = null,
+          )
+        }
       }
     }
   }
@@ -266,119 +268,4 @@ private fun TabCompose(
   }
 }
 
-@Composable
-private fun FormatPage(requestContent: RequestContent<*>) {
-  Column(modifier = Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, top = 16.dp)) {
-    Text(text = "输入: ")
-    if (requestContent.parameterWithHint.isEmpty()) {
-      Text(
-        text = "无",
-        color = Color.DarkGray,
-        fontSize = 13.sp,
-        modifier = Modifier.padding(start = 16.dp)
-      )
-    } else {
-      requestContent.parameterWithHint.forEach {
-        Text(
-          text = "${it.key}: ${it.value}",
-          color = Color.Gray,
-          fontSize = 13.sp,
-          modifier = Modifier.padding(start = 16.dp, top = 3.dp)
-        )
-      }
-    }
-    Text(text = "输出: ", modifier = Modifier.padding(top = 8.dp))
-    Card(
-      modifier = Modifier.padding(top = 6.dp, bottom = 16.dp)
-    ) {
-      val formatState = remember { mutableStateOf(requestContent.format) }
-        .apply { value = requestContent.format }
-      CodeCompose(
-        text = formatState,
-        editable = false,
-      )
-    }
-  }
-}
 
-@Composable
-private fun CodePage(requestContent: RequestContent<*>, requestUnit: RequestUnit) {
-  val dataSourceService = remember(requestUnit.serviceKey) {
-    Provider.impl(IDataSourceService::class, requestUnit.serviceKey)
-  }
-  val dataSourceConfig = remember(requestUnit.sourceData) {
-    dataSourceService.config(requestUnit.sourceData)
-  }
-  Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp)) {
-    val editTitleHintContent = remember(dataSourceConfig) {
-      dataSourceConfig.editTitleHintContent.map {
-        Triple(it.first, it.second, mutableStateOf(it.third ?: ""))
-      }
-    }
-    editTitleHintContent.forEach {
-      Row(modifier = Modifier.padding(vertical = 6.dp).height(IntrinsicSize.Min)) {
-        Text(text = it.first + ": ", fontSize = 14.sp, modifier = Modifier)
-        EditTextCompose(
-          text = it.third,
-          modifier = Modifier.weight(1F).align(Alignment.Bottom),
-          textStyle = TextStyle(
-            fontSize = 14.sp,
-          ),
-          hint = it.second,
-        )
-      }
-    }
-    Box(
-      modifier = Modifier.padding(top = 8.dp).fillMaxWidth().weight(1F)
-    ) {
-      val codeState = remember { mutableStateOf(dataSourceConfig.codeContent ?: "") }
-      Card(modifier = Modifier.padding(bottom = 90.dp).fillMaxSize()) {
-        CodeCompose(
-          text = codeState,
-          hint = dataSourceConfig.codeHint,
-        )
-      }
-      Row(
-        modifier = Modifier.align(Alignment.BottomCenter)
-          .padding(bottom = 16.dp)
-          .fillMaxWidth()
-          .height(50.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Card(
-          modifier = Modifier.size(100.dp, 40.dp),
-          shape = MaterialTheme.shapes.large,
-        ) {
-          val navigator = LocalNavigator.current
-          Box(contentAlignment = Alignment.Center, modifier = Modifier.clickable {
-            val newSourceData = dataSourceService.createSourceData(
-              code = codeState.value,
-              editContents = editTitleHintContent.map { it.third.value },
-            )
-            if (newSourceData != null) {
-              requestUnit.sourceData = newSourceData
-              if (requestContent.requestUnits.all { it.id != requestUnit.id }) {
-                requestContent.requestUnits.add(requestUnit)
-              }
-              requestContent.save()
-              navigator?.pop()
-            }
-          }) {
-            Text(text = "确认", modifier = Modifier)
-          }
-        }
-        Card(
-          modifier = Modifier.size(100.dp, 40.dp),
-          shape = MaterialTheme.shapes.large,
-        ) {
-          Box(contentAlignment = Alignment.Center, modifier = Modifier.clickable {
-
-          }) {
-            Text(text = "测试", modifier = Modifier)
-          }
-        }
-      }
-    }
-  }
-}
