@@ -51,7 +51,7 @@ abstract class LessonItem : ICourseItem {
     get() = 100
 
   override val itemKey: Any
-    get() = bean.lesson.id
+    get() = bean.lesson.courseNum + bean.lesson.classroom + bean.lesson.teacher + bean.startTime
 
   @Composable
   override fun Content() {
@@ -68,7 +68,7 @@ abstract class LessonItem : ICourseItem {
           .padding(7.dp, 8.dp)
       ) {
         Text(
-          text = bean.lesson.lessonName,
+          text = bean.lesson.course,
           textAlign = TextAlign.Center,
           color = lessonNameColor,
           maxLines = 3,

@@ -32,7 +32,7 @@ class AndroidWebViewUnit {
       // 支持 js
       @SuppressLint("SetJavaScriptEnabled")
       settings.javaScriptEnabled = true
-      addJavascriptInterface(mAndroidBridge, "courseBridge")
+      addJavascriptInterface(mAndroidBridge, "dataBridge")
     }
   }
 
@@ -79,7 +79,7 @@ class AndroidWebViewUnit {
             view.evaluateJavascript(js, null)
           } else {
             view.evaluateJavascript("""
-              androidBridge.success(document.body.textContent);
+              dataBridge.success(document.body.textContent);
             """.trimIndent(), null)
           }
         }

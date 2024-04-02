@@ -28,18 +28,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import com.course.components.base.theme.LocalAppColors
+import com.course.components.utils.debug.logg
 import com.course.components.utils.provider.Provider
 import com.course.components.utils.serializable.ObjectSerializable
 import com.course.components.view.code.CodeCompose
 import com.course.components.view.edit.EditTextCompose
 import com.course.source.app.web.request.RequestContent
+import com.course.source.app.web.request.SourceRequest
 import com.course.source.app.web.source.service.IDataSourceService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -155,7 +160,7 @@ private fun ResultCompose(
   parameterWithValue: Map<String, State<String>>,
 ) {
   val resultState = remember { mutableStateOf("") }
-  var hint by remember { mutableStateOf("填入上方参数后点击该面板进行请求") }
+  var hint by remember { mutableStateOf("点击该面板进行请求") }
   val coroutineScope = rememberCoroutineScope()
   Card(modifier = Modifier.padding(top = 6.dp, bottom = 20.dp).fillMaxSize()) {
     CodeCompose(
@@ -189,11 +194,12 @@ private fun ResultCompose(
               val any = Json.decodeFromString(requestContent.resultSerializer, result)
               @Suppress("UNCHECKED_CAST")
               resultState.value = PrettyPrintJson.encodeToString(
-                requestContent.resultSerializer as KSerializer<Any>,
+                requestContent.resultSerializer as KSerializer<Any?>,
                 any
               )
             } catch (e: Exception) {
               hint = "反序列化失败\n返回值: $result\n\n异常信息: ${e.stackTraceToString()}"
+              e.printStackTrace()
             }
           }
         }

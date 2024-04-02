@@ -1,9 +1,7 @@
 package com.course.components.utils.source
 
 import com.course.components.utils.provider.Provider
-import com.course.source.app.response.FailureResponseWrapper
 import com.course.source.app.response.ResponseWrapper
-import com.course.source.app.response.SuccessResponseWrapper
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -23,61 +21,55 @@ object Source {
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun <T> ResponseWrapper<T>.onFailure(
-  action: (response: FailureResponseWrapper<T>) -> Unit
+inline fun <T : Any> ResponseWrapper<T>.onFailure(
+  action: (response: ResponseWrapper<T>) -> Unit
 ): ResponseWrapper<T> {
   contract {
     callsInPlace(action, InvocationKind.AT_MOST_ONCE)
   }
-  if (this is FailureResponseWrapper) action.invoke(this)
+  if (data == null) action.invoke(this)
   return this
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun <T> ResponseWrapper<T>.onSuccess(
+inline fun <T : Any> ResponseWrapper<T>.onSuccess(
   action: (response: T) -> Unit
 ): ResponseWrapper<T> {
   contract {
     callsInPlace(action, InvocationKind.AT_MOST_ONCE)
   }
-  if (this is SuccessResponseWrapper) action.invoke(data)
+  data?.let(action)
   return this
 }
 
-fun <T> ResponseWrapper<T>.getOrDefault(defaultValue: T): T {
-  return if (this is SuccessResponseWrapper) data else defaultValue
+fun <T : Any> ResponseWrapper<T>.getOrDefault(defaultValue: T): T {
+  return data ?: defaultValue
 }
 
-fun <T> ResponseWrapper<T>.getOrNull(): T? {
-  return if (this is SuccessResponseWrapper) data else null
+fun <T : Any> ResponseWrapper<T>.getOrNull(): T? {
+  return data
 }
 
-fun <T> ResponseWrapper<T>.getOrThrow(): T {
-  return when (this) {
-    is SuccessResponseWrapper -> data
-    is FailureResponseWrapper -> throw ResponseException(this)
-  }
+fun <T : Any> ResponseWrapper<T>.getOrThrow(): T {
+  return data ?: throw ResponseException(this)
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun <R, T : R> ResponseWrapper<T>.getOrElse(onFailure: (exception: Throwable) -> R): R {
+inline fun <R : Any, T : R> ResponseWrapper<T>.getOrElse(onFailure: (response: ResponseWrapper<T>) -> R): R {
   contract {
     callsInPlace(onFailure, InvocationKind.AT_MOST_ONCE)
   }
-  return if (this is SuccessResponseWrapper) data else onFailure(Exception())
+  return data ?: onFailure(this)
 }
 
-fun <T> ResponseWrapper<T>.throwOnFailure() {
-  if (this is FailureResponseWrapper) throw ResponseException(this)
+fun <T : Any> ResponseWrapper<T>.throwOnFailure() {
+  data ?: throw ResponseException(this)
 }
 
-fun <T> ResponseWrapper<T>.result(): Result<T> {
-  return when (this) {
-    is SuccessResponseWrapper -> Result.success(data)
-    is FailureResponseWrapper -> Result.failure(ResponseException(this))
-  }
+fun <T : Any> ResponseWrapper<T>.result(): Result<T> {
+  return runCatching { getOrThrow() }
 }
 
 class ResponseException(
-  val response: FailureResponseWrapper<*>
+  val response: ResponseWrapper<*>
 ) : RuntimeException(response.toString())

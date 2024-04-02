@@ -1,4 +1,3 @@
-
 import com.android.build.gradle.BaseExtension
 import extensions.libsLibrary
 import extensions.libsVersion

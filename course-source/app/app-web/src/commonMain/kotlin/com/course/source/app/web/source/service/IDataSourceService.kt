@@ -41,6 +41,12 @@ interface IDataSourceService {
   data class Config(
     val codeHint: String,
     val codeContent: String?,
-    val editTitleHintContent: ImmutableMap<String, Pair<String, String?>>,
+    val editTitleHintContent: ImmutableMap<String, EditContent>,
+  )
+
+  @Stable
+  data class EditContent(
+    val hint: String,
+    val content: String?,
   )
 }

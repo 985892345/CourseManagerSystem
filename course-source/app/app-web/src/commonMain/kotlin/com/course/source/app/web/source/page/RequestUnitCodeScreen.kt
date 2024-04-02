@@ -61,7 +61,13 @@ class RequestUnitCodeScreen(
   private val codeState = mutableStateOf(dataSourceConfig.codeContent ?: "")
 
   private val editContents = dataSourceConfig.editTitleHintContent
-    .map { EditContent(it.key, it.value.first, mutableStateOf(it.value.second ?: "")) }
+    .map {
+      EditComposeContent(
+        it.key,
+        it.value.hint,
+        mutableStateOf(it.value.content ?: "")
+      )
+    }
     .toMutableList()
 
   @Composable
@@ -87,6 +93,7 @@ class RequestUnitCodeScreen(
           CodeCompose(
             text = codeState,
             hint = dataSourceConfig.codeHint,
+            minLine = 10,
           )
         }
         BottomBtnCompose()
@@ -158,7 +165,7 @@ class RequestUnitCodeScreen(
 
 @Stable
 @Serializable
-class EditContent(
+class EditComposeContent(
   val title: String,
   val hint: String,
   @Serializable(StringStateSerializable::class)

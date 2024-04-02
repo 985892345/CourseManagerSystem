@@ -1,28 +1,28 @@
 package com.course.components.view.code
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerInputScope
+import androidx.compose.ui.input.pointer.isPrimaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Measurable
@@ -34,8 +34,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
+import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapIndexed
 import com.course.components.font.JBFontFamily
+import com.course.components.utils.debug.logg
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
 import kotlin.math.roundToInt
 
 /**
@@ -62,17 +66,19 @@ fun CodeCompose(
     )
   },
 ) {
-  var innerWidth by mutableIntStateOf(0)
-  var outerWidth by mutableIntStateOf(0)
-  var innerHeight by mutableIntStateOf(0)
-  var outerHeight by mutableIntStateOf(0)
+  val offsetX = remember { mutableStateOf(0F) }
+  val offsetY = remember { mutableStateOf(0F) }
   Layout(
     modifier = modifier
+      .graphicsLayer {
+        translationY = offsetY.value
+      }
+
       .pointerInput(Unit) {
-        detectTransformGestures { _: Offset, _: Offset, zoom: Float, _: Float ->
-          style.value = style.value.copy(fontSize = style.value.fontSize * zoom)
+        detectTransformGestures { _: Offset, zoom: Float ->
+//          style.value = style.value.copy(fontSize = style.value.fontSize * zoom)
         }
-      }.verticalScroll(rememberScrollState()).horizontalScroll(rememberScrollState()),
+      },
     content = {
       val paddingTop = 8.dp
       val textLinesBottomState = remember { mutableStateOf(emptyList<Float>()) }
@@ -98,7 +104,9 @@ fun CodeCompose(
         },
       )
       TextCompose(
-        modifier = Modifier,
+        modifier = Modifier.graphicsLayer {
+          translationX = offsetX.value
+        },
         text = text,
         editable = editable,
         hint = hint,
@@ -120,10 +128,6 @@ fun CodeCompose(
           if (constraints.hasBoundedWidth) constraints.maxWidth
           else maxOf(linePlaceable.width + textPlaceable.width + 50, constraints.minWidth)
         val height = linePlaceable.height.coerceIn(constraints.minHeight, constraints.maxHeight)
-        innerWidth = maxOf(width, linePlaceable.width + textPlaceable.width + 50)
-        outerWidth = width
-        innerHeight = maxOf(height, linePlaceable.height)
-        outerHeight = height
         layout(width, height) {
           textPlaceable.placeRelative(linePlaceable.width, 0)
           linePlaceable.placeRelative(0, 0)
@@ -245,6 +249,30 @@ private fun TextCompose(
           }
         }
       )
+    }
+  }
+}
+
+// 暂不支持触摸板多指：https://github.com/JetBrains/compose-multiplatform/issues/1953
+@OptIn(ExperimentalComposeUiApi::class)
+private suspend fun PointerInputScope.detectTransformGestures(
+  onGesture: (pan: Offset, zoom: Float) -> Unit
+) {
+//  detectTransformGestures { centroid, pan, zoom, rotation ->  }
+  awaitPointerEventScope {
+    var lastType = PointerEventType.Move
+    while (true) {
+      val event = awaitPointerEvent(pass = PointerEventPass.Initial)
+      if (event.type == PointerEventType.Press) {
+
+      }
+      if (event.type != lastType) {
+        lastType = event.type
+        logg("\n" +
+            "buttons = ${event.buttons}\n" +
+            "type = ${event.type}\n" +
+            "changed = ${event.changes.fastMap { it.id.value }}")
+      }
     }
   }
 }

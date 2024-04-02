@@ -33,7 +33,7 @@ interface ICourseItem : Comparable<ICourseItem> {
   val rank: Int
 
   /**
-   * item 唯一的 key 值，可用于定位 item 是否发生移动，不要与时间有关联，但可以关联周数
+   * item 唯一的 key 值，可用于定位 item 是否发生移动
    */
   val itemKey: Any
 

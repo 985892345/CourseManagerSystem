@@ -10,7 +10,6 @@ import com.course.pages.course.api.data.CourseDataProvider
 import com.course.pages.course.api.data.CourseDetail
 import com.course.pages.course.api.item.lesson.toCourseItem
 import com.course.pages.course.api.item.lesson.toLessonItemBean
-import com.course.shared.course.Terms
 import com.course.shared.time.Date
 import com.course.source.app.course.CourseBean
 import kotlinx.coroutines.CoroutineScope
@@ -46,7 +45,7 @@ class StuCourseDetailDataProvider(
   }
 
   override val subtitle: String by derivedStateOfStructure {
-    courseBeans.firstOrNull { it.beginDate < clickDate }?.term?.chinese ?: ""
+    courseBeans.firstOrNull { it.beginDate < clickDate }?.term ?: ""
   }
 
   private var prevCourseBeanJob: Job? = null
@@ -56,9 +55,9 @@ class StuCourseDetailDataProvider(
     clickDate = date
     val last = courseBeans.last()
     if (last.beginDate.daysUntil(date) < 60) {
-      if (prevCourseBeanJob == null && last.term.ordinal != 0) {
+      if (prevCourseBeanJob == null && last.termIndex != 0) {
         prevCourseBeanJob = StuLessonRepository
-          .getCourseBean(stuNum, Terms.entries[courseBeans.last().term.ordinal - 1])
+          .getCourseBean(stuNum, last.termIndex - 1)
           .flowOn(Dispatchers.IO)
           .onEach {
             addAll(it.toLessonItemBean().toCourseItem())

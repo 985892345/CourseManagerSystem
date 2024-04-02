@@ -20,7 +20,7 @@ abstract class SourceRequest {
     format: String,
   ) : ReadOnlyProperty<SourceRequest, RequestContent<T>> {
     val requestContent =
-      RequestContent(name, parameterWithHint, Json.serializersModule.serializer<T>(), format)
+      RequestContent(name, parameterWithHint, Json.serializersModule.serializer<T?>(), format)
     requestContentMap[name] = requestContent
     // 使用属性代理以只允许全局变量
     return ReadOnlyProperty { _, _ ->

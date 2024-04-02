@@ -59,7 +59,7 @@ class DesktopWebViewUnit {
     it.invokeOnCancellation { continuationMap.remove(key) }
     val scope = htmlPage.enclosingWindow.getScriptableObject<Scriptable>()
     ScriptableObject.defineClass(scope, Desktop2JsBridge::class.java)
-    htmlPage.executeJavaScript("window.courseBridge = new Desktop2JsBridge(\"$key\");")
+    htmlPage.executeJavaScript("window.dataBridge = new Desktop2JsBridge(\"$key\");")
     htmlPage.executeJavaScript(js)
   }
 

@@ -30,7 +30,7 @@ import kotlin.time.measureTime
 data class RequestContent<T : Any>(
   val name: String,
   val parameterWithHint: LinkedHashMap<String, String>,
-  val resultSerializer: KSerializer<T>,
+  val resultSerializer: KSerializer<T?>,
   val format: String,
 ) {
 
@@ -71,12 +71,12 @@ data class RequestContent<T : Any>(
   )
     private set
 
-  suspend fun request(isForce: Boolean, vararg values: String): T {
+  suspend fun request(isForce: Boolean, vararg values: String): T? {
     if (values.size != parameterWithHint.size)
       throw IllegalArgumentException("参数数量不匹配，应有 ${parameterWithHint.size}, 实有: ${values.size}")
     val cache = prevRequestCache
     val nowTime = Clock.System.now().toEpochMilliseconds()
-    val isCacheValid = cache != null && nowTime - responseTimestamp < cacheExpiration
+    val isCacheValid = cache != null && nowTime - responseTimestamp < cacheExpiration && cache != "{}"
     if (isForce || !isCacheValid) {
       if (requestUnits.isEmpty()) throw IllegalStateException("未设置请求")
       requestContentStatus = RequestContentStatus.Requesting

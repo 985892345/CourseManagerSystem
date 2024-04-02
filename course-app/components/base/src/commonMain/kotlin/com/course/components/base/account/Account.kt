@@ -30,7 +30,7 @@ object Account {
   fun refreshAccount() {
     Source.api(AccountApi::class).getAccount()
       .onSuccess {
-        if (it == null) {
+        if (it == AccountBean.Empty) {
           Settings.remove("account")
         } else {
           Settings["account"] = Json.encodeToString(it)

@@ -9,31 +9,18 @@ import kotlinx.serialization.Serializable
  * @date 2024/1/14 17:37
  */
 @Serializable
-sealed interface ResponseWrapper<T : Any?> {
-  val code: Int
-  val info: String
-
+data class ResponseWrapper<T : Any>(
+  val data: T?,
+  val code: Int,
+  val info: String,
+) {
   companion object {
-    fun <T : Any?> success(data: T, info: String = ""): SuccessResponseWrapper<T> {
-      return SuccessResponseWrapper(data, 10000, info)
+    fun <T : Any> success(data: T, info: String = ""): ResponseWrapper<T> {
+      return ResponseWrapper(data, 10000, info)
     }
 
-    fun <T : Any?> failure(code: Int, info: String): FailureResponseWrapper<T> {
-      return FailureResponseWrapper(code, info)
+    fun <T : Any> failure(code: Int, info: String): ResponseWrapper<T> {
+      return ResponseWrapper(null, code, info)
     }
   }
 }
-
-@Serializable
-data class SuccessResponseWrapper<T : Any?>(
-  val data: T,
-  override val code: Int,
-  override val info: String,
-) : ResponseWrapper<T>
-
-@Serializable
-class FailureResponseWrapper<T : Any?>(
-  override val code: Int,
-  override val info: String,
-) : ResponseWrapper<T>
-

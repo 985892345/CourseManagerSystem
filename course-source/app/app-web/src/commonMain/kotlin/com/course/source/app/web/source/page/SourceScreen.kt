@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -147,13 +148,15 @@ class SourceScreen : Screen {
           )
           Text(
             modifier = Modifier.padding(top = 10.dp, start = 2.dp),
-            text = AnnotatedString.Builder().append(
-              AnnotatedString(
-                "状态: ",
-                SpanStyle(color = LocalAppColors.current.tvLv3),
-              ),
-              getRequestStatue(requestContent)
-            ).toAnnotatedString(),
+            text = buildAnnotatedString {
+              append(
+                AnnotatedString(
+                  "状态: ",
+                  SpanStyle(color = LocalAppColors.current.tvLv3),
+                )
+              )
+              append(getRequestStatue(requestContent))
+            },
             fontSize = 14.sp,
           )
           Text(

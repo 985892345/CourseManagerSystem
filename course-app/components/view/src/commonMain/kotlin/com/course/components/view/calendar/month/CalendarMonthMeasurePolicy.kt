@@ -355,7 +355,7 @@ internal class CalendarMonthMeasurePolicy(
     }
   }
 
-  private inline fun getLeftTopDateExpended(
+  private fun getLeftTopDateExpended(
     width: Int,
     offset: Float = horizontalScrollState.value.offset
   ): Date {

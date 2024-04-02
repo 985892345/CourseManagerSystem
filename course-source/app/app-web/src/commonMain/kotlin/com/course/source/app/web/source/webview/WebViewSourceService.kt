@@ -48,9 +48,9 @@ object WebViewSourceService : IDataSourceService {
         
         与端上交互规则:
           // 调用 success() 返回结果，只允许调用一次
-          courseBridge.success('...'); 
+          dataBridge.success('...'); 
           // 调用 error() 返回异常，只允许调用一次
-          courseBridge.error('...');
+          dataBridge.error('...');
           
         端上传递请求参数规则:
           端上可以传递参数到 url 和 js 上
@@ -63,24 +63,35 @@ object WebViewSourceService : IDataSourceService {
             js 同样如此，但请注意这只是简单的替换字符串
           并不是所有请求都会有参数，是否存在参数请查看请求格式
           
-        该面板支持双指放大缩小
+        该面板支持双指放大缩小 (暂不支持桌面端触摸板)
       """.trimIndent(),
       codeContent = webViewData.js,
       persistentMapOf(
-        "请求链接" to ("http/https (可以只写 js)" to webViewData.url)
+        "请求链接" to IDataSourceService.EditContent(
+          "http/https (可以只写 js)",
+          webViewData.url,
+        ),
       )
     )
   }
 
   override fun createSourceData(code: String, editContents: List<String>): String? {
     val url = editContents[0]
-    return if (url.isNotBlank() || code.isNotBlank()) Json.encodeToString(WebViewData(url, code)) else {
+    return if (url.isNotBlank() || code.isNotBlank()) Json.encodeToString(
+      WebViewData(
+        url,
+        code
+      )
+    ) else {
       toast("url 和 js 不能都为空")
       null
     }
   }
 
-  override suspend fun request(sourceData: String?, parameterWithValue: Map<String, String>): String {
+  override suspend fun request(
+    sourceData: String?,
+    parameterWithValue: Map<String, String>
+  ): String {
     if (sourceData.isNullOrBlank()) throw IllegalArgumentException("sourceData 不能为空")
     val webViewDate = Json.decodeFromString<WebViewData>(sourceData)
     val url = webViewDate.url.replaceValue(parameterWithValue)
