@@ -77,7 +77,7 @@ class RequestUnitScreen(
   } ?: RequestUnit(
     title = requestContent.name +
         (requestContent.requestUnits.maxOfOrNull { it.id }?.plus(1) ?: 0) +
-        requestUnitIdOrServiceKey,
+        "-" + requestUnitIdOrServiceKey,
     serviceKey = requestUnitIdOrServiceKey,
     id = requestContent.requestUnits.maxOfOrNull { it.id }?.plus(1) ?: 0,
   )

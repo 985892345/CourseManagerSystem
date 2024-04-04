@@ -1,6 +1,10 @@
 package com.course.components.view.code
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -11,18 +15,22 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventTimeoutCancellationException
 import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.PointerInputScope
-import androidx.compose.ui.input.pointer.isPrimaryPressed
+import androidx.compose.ui.input.pointer.PointerType
+import androidx.compose.ui.input.pointer.isMetaPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Measurable
@@ -31,16 +39,17 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastAll
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
-import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapIndexed
+import androidx.compose.ui.util.fastSumBy
 import com.course.components.font.JBFontFamily
-import com.course.components.utils.debug.logg
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.isActive
 import kotlin.math.roundToInt
+import kotlin.math.sign
 
 /**
  * .
@@ -60,30 +69,46 @@ fun CodeCompose(
   style: MutableState<TextStyle> = remember {
     mutableStateOf(
       TextStyle(
-        fontSize = 14.sp,
+        fontSize = 12.sp,
         fontFamily = fontFamily,
       )
     )
   },
 ) {
-  val offsetX = remember { mutableStateOf(0F) }
-  val offsetY = remember { mutableStateOf(0F) }
+  val offsetX = remember { mutableFloatStateOf(0F) }
+  val offsetY = remember { mutableFloatStateOf(0F) }
+  val diffWidth = remember { mutableFloatStateOf(0F) }
+  val diffHeight = remember { mutableFloatStateOf(0F) }
   Layout(
-    modifier = modifier
-      .graphicsLayer {
-        translationY = offsetY.value
+    modifier = modifier.pointerInput(Unit) {
+      detectPanZoomGestures { pan, zoom ->
+        offsetX.floatValue = (offsetX.floatValue + pan.x).coerceIn(-diffWidth.floatValue, 0F)
+        offsetY.floatValue = (offsetY.floatValue + pan.y).coerceIn(-diffHeight.floatValue, 0F)
+        style.value = style.value.copy(
+          fontSize = style.value.fontSize.times(zoom)
+        )
       }
-
-      .pointerInput(Unit) {
-        detectTransformGestures { _: Offset, zoom: Float ->
-//          style.value = style.value.copy(fontSize = style.value.fontSize * zoom)
-        }
-      },
+    }.mouseWheelAnimScroll(Unit) {
+      offsetX.floatValue = (offsetX.floatValue + it.x).coerceIn(-diffWidth.floatValue, 0F)
+      offsetY.floatValue = (offsetY.floatValue + it.y).coerceIn(-diffHeight.floatValue, 0F)
+    }.mouseWheelRawScroll(Unit, consume = { event ->
+      event.changes.fastAll { !it.isConsumed } && event.keyboardModifiers.isMetaPressed
+    }) {
+      // 暂不支持触摸板多指：https://github.com/JetBrains/compose-multiplatform/issues/1953
+      // 桌面端底层触摸事件使用的 awt，不支持触摸板多指
+      val old = style.value.fontSize
+      style.value = style.value.copy(
+        fontSize = TextUnit(old.value + it.y.sign, old.type)
+      )
+    },
     content = {
       val paddingTop = 8.dp
       val textLinesBottomState = remember { mutableStateOf(emptyList<Float>()) }
       val hintLinesBottomState = remember { mutableStateOf(emptyList<Float>()) }
       LineNumberCompose(
+        modifier = Modifier.graphicsLayer {
+          translationY = offsetY.floatValue
+        },
         minLine = minLine,
         paddingTop = paddingTop,
         style = style,
@@ -105,7 +130,8 @@ fun CodeCompose(
       )
       TextCompose(
         modifier = Modifier.graphicsLayer {
-          translationX = offsetX.value
+          translationX = offsetX.floatValue
+          translationY = offsetY.floatValue
         },
         text = text,
         editable = editable,
@@ -120,14 +146,16 @@ fun CodeCompose(
       { measurables: List<Measurable>, constraints: Constraints ->
         val textPlaceable = measurables[1].measure(Constraints())
         val linePlaceable = measurables[0].measure(
-          Constraints(
-            minHeight = textPlaceable.height
-          )
+          Constraints(minHeight = textPlaceable.height)
         )
         val width =
           if (constraints.hasBoundedWidth) constraints.maxWidth
           else maxOf(linePlaceable.width + textPlaceable.width + 50, constraints.minWidth)
         val height = linePlaceable.height.coerceIn(constraints.minHeight, constraints.maxHeight)
+        diffWidth.floatValue = (linePlaceable.width + textPlaceable.width + 50 - width)
+          .coerceAtLeast(0).toFloat()
+        diffHeight.floatValue = (linePlaceable.height - height)
+          .coerceAtLeast(0).toFloat()
         layout(width, height) {
           textPlaceable.placeRelative(linePlaceable.width, 0)
           linePlaceable.placeRelative(0, 0)
@@ -139,6 +167,7 @@ fun CodeCompose(
 
 @Composable
 private fun LineNumberCompose(
+  modifier: Modifier,
   minLine: Int,
   paddingTop: Dp,
   style: MutableState<TextStyle>,
@@ -147,7 +176,7 @@ private fun LineNumberCompose(
   val minLineState = rememberUpdatedState(minLine)
   val count by remember { derivedStateOf { linesBottom.value.size.coerceAtLeast(minLineState.value) } }
   Layout(
-    modifier = Modifier.background(Color(0xFFE6E6E6))
+    modifier = modifier.background(Color(0xFFE6E6E6))
       .padding(top = paddingTop, start = 8.dp, bottom = 8.dp, end = 6.dp),
     content = {
       val color = remember { { Color(0xFF595959) } }
@@ -163,7 +192,7 @@ private fun LineNumberCompose(
       { measurables, constraints ->
         var maxWidth = 0
         var itemsHeight = 0
-        val placeables = measurables.fastMapIndexed { index, measurable ->
+        val placeables = measurables.fastMapIndexed { _, measurable ->
           measurable.measure(Constraints()).also {
             maxWidth = maxOf(maxWidth, it.width)
             itemsHeight += it.height
@@ -253,26 +282,82 @@ private fun TextCompose(
   }
 }
 
-// 暂不支持触摸板多指：https://github.com/JetBrains/compose-multiplatform/issues/1953
-@OptIn(ExperimentalComposeUiApi::class)
-private suspend fun PointerInputScope.detectTransformGestures(
+/**
+ * 监听移动和缩放
+ *
+ * 代码来自官方的 [detectTransformGestures]，去掉了质心和旋转，
+ * 同时将事件优先级更改为 Initial 以拦截子组件事件
+ */
+private suspend fun PointerInputScope.detectPanZoomGestures(
   onGesture: (pan: Offset, zoom: Float) -> Unit
 ) {
-//  detectTransformGestures { centroid, pan, zoom, rotation ->  }
-  awaitPointerEventScope {
-    var lastType = PointerEventType.Move
+  awaitEachGesture {
+    val first = awaitFirstBeforeLongPress() ?: return@awaitEachGesture
+    var event = currentEvent
     while (true) {
-      val event = awaitPointerEvent(pass = PointerEventPass.Initial)
-      if (event.type == PointerEventType.Press) {
+      val pointer = event.changes.firstOrNull { it.id == first.id } ?: break
+      if (!pointer.pressed) break
+      val zoomChange = event.calculateZoom()
+      val panChange = event.calculatePan()
+      onGesture(panChange, zoomChange)
+      event.changes.fastForEach {
+        it.consume()
+      }
+      event = awaitPointerEvent(PointerEventPass.Initial)
+    }
+  }
+}
 
+/**
+ * 挂起直到满足条件时才恢复
+ * - 第一根手指在长按触发前移动距离大于 touchSlop
+ * - 存在多根手指处于按下状态
+ * - Main pass 中事件未被消耗时
+ */
+private suspend fun AwaitPointerEventScope.awaitFirstBeforeLongPress(): PointerInputChange? {
+  val down = awaitFirstDownNotMouse()
+  return try {
+    val timeout = viewConfiguration.longPressTimeoutMillis
+    withTimeout(timeout) {
+      while (true) {
+        val initialEvent = awaitPointerEvent(PointerEventPass.Initial)
+        val initialFirst = initialEvent.changes.firstOrNull { it.id == down.id } ?: break
+        if (!initialFirst.pressed) break
+        if ((initialFirst.position - down.position).getDistance() > viewConfiguration.touchSlop) {
+          // 如果第一根手指移动距离大于 touchSlop 则返回 first
+          return@withTimeout initialFirst
+        }
+        if (initialEvent.changes.fastSumBy { if (it.pressed) 1 else 0 } >= 2) {
+          // 如果有多个手指按下则退出则返回 first
+          return@withTimeout initialFirst
+        }
+        val mainEvent = awaitPointerEvent(PointerEventPass.Main)
+        val mainFirst = mainEvent.changes.first { it.id == down.id }
+        if (!mainFirst.isConsumed) {
+          // 如果 Main pass 中事件未被消耗则返回 first
+          return@withTimeout mainFirst
+        }
       }
-      if (event.type != lastType) {
-        lastType = event.type
-        logg("\n" +
-            "buttons = ${event.buttons}\n" +
-            "type = ${event.type}\n" +
-            "changed = ${event.changes.fastMap { it.id.value }}")
-      }
+      null
+    }
+  } catch (_: PointerEventTimeoutCancellationException) {
+    val event = awaitPointerEvent(PointerEventPass.Main)
+    val first = event.changes.firstOrNull { it.id == down.id } ?: return null
+    if (first.pressed && !first.isConsumed) {
+      // 如果 Main pass 中事件未被消耗则返回 first
+      return first
+    }
+    null
+  }
+}
+
+// 挂起直到第一个指针非鼠标按下时才恢复
+private suspend fun AwaitPointerEventScope.awaitFirstDownNotMouse(): PointerInputChange {
+  while (true) {
+    val event = awaitPointerEvent(PointerEventPass.Initial)
+    val first = event.changes.first()
+    if (event.type == PointerEventType.Press && first.type != PointerType.Mouse && !first.isConsumed) {
+      return first
     }
   }
 }

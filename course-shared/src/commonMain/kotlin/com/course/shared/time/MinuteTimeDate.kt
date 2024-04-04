@@ -67,7 +67,7 @@ value class MinuteTimeDate(val value: Int) : Comparable<MinuteTimeDate> {
   }
 
   fun plusMonths(months: Int): MinuteTimeDate {
-    return MinuteTimeDate(date.plusMonths(1), time)
+    return MinuteTimeDate(date.plusMonths(months), time)
   }
 
   fun minusMonths(months: Int): MinuteTimeDate {

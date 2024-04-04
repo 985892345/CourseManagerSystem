@@ -63,7 +63,7 @@ object WebViewSourceService : IDataSourceService {
             js 同样如此，但请注意这只是简单的替换字符串
           并不是所有请求都会有参数，是否存在参数请查看请求格式
           
-        该面板支持双指放大缩小 (暂不支持桌面端触摸板)
+        该面板支持双指缩放，暂不支持触摸板双指缩放，但可使用 Ctrl+双指滑动 代替，
       """.trimIndent(),
       codeContent = webViewData.js,
       persistentMapOf(
