@@ -25,10 +25,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DataObject
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableFloatStateOf
@@ -37,10 +43,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
@@ -59,6 +65,7 @@ import com.course.components.base.theme.LocalAppColors
 import com.course.components.base.ui.dialog.showChooseDialog
 import com.course.components.base.ui.dialog.showDialog
 import com.course.components.base.ui.toast.toast
+import com.course.components.utils.compose.clickableCardIndicator
 import com.course.components.utils.provider.Provider
 import com.course.components.utils.serializable.ObjectSerializable
 import com.course.components.view.code.CodeCompose
@@ -75,9 +82,6 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.painterResource
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -119,7 +123,6 @@ class RequestContentScreen(
     }
   }
 
-  @OptIn(ExperimentalResourceApi::class)
   @Composable
   private fun BoxScope.FloatingActionButtonCompose() {
     val dataSourceServices = remember {
@@ -159,7 +162,7 @@ class RequestContentScreen(
             coroutineScope.launch { openFloatBtn() }
           }
         } else if (dataSourceServices.isEmpty()) {
-          toast("代码异常，未找到数据源服务")
+          toast("代码异常，不存在任何数据源服务")
         } else {
           navigator?.push(RequestUnitScreen(requestContentKey, dataSourceServices.first().first))
         }
@@ -169,7 +172,7 @@ class RequestContentScreen(
         modifier = Modifier.graphicsLayer {
           rotationZ = 45F * floatBtnAnimFraction.value
         },
-        painter = painterResource(DrawableResource("drawable/ic_add.xml")),
+        painter = rememberVectorPainter(Icons.Filled.Add),
         contentDescription = null
       )
     }
@@ -192,7 +195,6 @@ class RequestContentScreen(
   }
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun ToolbarCompose(requestContent: RequestContent<*>) {
   Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
@@ -208,15 +210,14 @@ private fun ToolbarCompose(requestContent: RequestContent<*>) {
       modifier = Modifier.align(Alignment.CenterStart)
         .padding(start = 12.dp)
         .size(32.dp)
-        .clip(RoundedCornerShape(8.dp))
-        .clickable {
+        .clickableCardIndicator {
           navigator?.pop()
         },
       contentAlignment = Alignment.Center,
     ) {
       Image(
-        modifier = Modifier.size(16.dp),
-        painter = painterResource(DrawableResource("drawable/ic_back.xml")),
+        modifier = Modifier,
+        painter = rememberVectorPainter(Icons.AutoMirrored.Default.ArrowBack),
         contentDescription = null,
       )
     }
@@ -230,15 +231,14 @@ private fun ToolbarCompose(requestContent: RequestContent<*>) {
       modifier = Modifier.align(Alignment.CenterEnd)
         .padding(end = 12.dp)
         .size(32.dp)
-        .clip(RoundedCornerShape(8.dp))
-        .clickable {
+        .clickableCardIndicator {
           showSettingDialog(requestContent)
         },
       contentAlignment = Alignment.Center,
     ) {
       Image(
-        modifier = Modifier.size(22.dp),
-        painter = painterResource(DrawableResource("drawable/ic_settings.xml")),
+        modifier = Modifier,
+        painter = rememberVectorPainter(Icons.Default.Settings),
         contentDescription = null,
       )
     }
@@ -303,7 +303,11 @@ private fun ListItemCompose(requestContent: RequestContent<*>, requestUnit: Requ
   ) {
     val navigator = LocalNavigator.current
     Box(modifier = Modifier.clickable {
-      navigator?.push(RequestUnitScreen(requestContent.name, requestUnit.id.toString()))
+      if (Provider.implOrNull(IDataSourceService::class, requestUnit.serviceKey) != null) {
+        navigator?.push(RequestUnitScreen(requestContent.name, requestUnit.id.toString()))
+      } else {
+        toast("代码异常，该数据源服务不存在\nkey=${requestUnit.serviceKey}")
+      }
     }) {
       Column(modifier = Modifier.padding(start = 14.dp, top = 14.dp)) {
         Text(
@@ -333,15 +337,13 @@ private val PrettyPrintJson = Json {
   prettyPrint = true
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun BoxScope.RequestResultImageCompose(requestContent: RequestContent<*>, requestUnit: RequestUnit) {
   if (requestUnit.requestUnitStatus == None || requestUnit.requestUnitStatus == Requesting) return
   Box(
     modifier = Modifier.align(Alignment.CenterEnd)
       .padding(end = 16.dp)
-      .clip(RoundedCornerShape(4.dp))
-      .clickable {
+      .clickableCardIndicator {
         showDialog {
           CodeCompose(
             modifier = Modifier.width(280.dp).heightIn(min = 400.dp, max = 600.dp),
@@ -363,12 +365,12 @@ private fun BoxScope.RequestResultImageCompose(requestContent: RequestContent<*>
         }
       }
   ) {
-    Image(
-      modifier = Modifier.padding(4.dp).size(24.dp),
+    Icon(
+      modifier = Modifier.padding(4.dp),
       painter = when (requestUnit.requestUnitStatus) {
         None, Requesting -> ColorPainter(Color.Gray)
-        Success -> painterResource(DrawableResource("drawable/ic_code.xml"))
-        Failure -> painterResource(DrawableResource("drawable/ic_error.xml"))
+        Success -> rememberVectorPainter(Icons.Default.DataObject)
+        Failure -> rememberVectorPainter(Icons.Default.ErrorOutline)
       },
       contentDescription = null,
     )

@@ -1,13 +1,11 @@
 package com.course.source.app.web.source.service
 
-import androidx.compose.foundation.Image
-import androidx.compose.material.Text
+import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.runtime.Composable
 import com.g985892345.provider.api.annotation.ImplProvider
 import kotlinx.collections.immutable.persistentMapOf
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.painterResource
 
 /**
  * .
@@ -15,14 +13,13 @@ import org.jetbrains.compose.resources.painterResource
  * @author 985892345
  * 2024/3/24 16:09
  */
-@ImplProvider
+@ImplProvider(clazz = IDataSourceService::class, name = "Text")
 class TextDataSourceServiceImpl : IDataSourceService {
 
-  @OptIn(ExperimentalResourceApi::class)
   @Composable
   override fun Identifier() {
-    Image(
-      painter = painterResource(DrawableResource("drawable/ic_text.xml")),
+    Icon(
+      imageVector = Icons.Default.Description,
       contentDescription = null,
     )
   }

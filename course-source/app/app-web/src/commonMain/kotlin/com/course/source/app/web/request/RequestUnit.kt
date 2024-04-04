@@ -18,7 +18,7 @@ import kotlin.time.Duration.Companion.seconds
  */
 @Stable
 @Serializable
-class RequestUnit(
+data class RequestUnit(
   var title: String,
   val serviceKey: String,
   val id: Int,

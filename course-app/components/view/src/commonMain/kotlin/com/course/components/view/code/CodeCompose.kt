@@ -102,7 +102,7 @@ fun CodeCompose(
       )
     },
     content = {
-      val paddingTop = 8.dp
+      val paddingTop = 6.dp
       val textLinesBottomState = remember { mutableStateOf(emptyList<Float>()) }
       val hintLinesBottomState = remember { mutableStateOf(emptyList<Float>()) }
       LineNumberCompose(

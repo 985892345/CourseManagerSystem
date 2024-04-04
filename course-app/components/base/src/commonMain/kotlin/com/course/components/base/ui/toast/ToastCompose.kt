@@ -18,10 +18,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.StateFactoryMarker
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.course.components.base.theme.LocalAppColors
@@ -83,7 +83,8 @@ internal fun ToastCompose() {
             Text(
               text = AppToastState.msg.toString(),
               color = if (LocalAppDarkTheme.current) Color.Black else Color.White,
-              fontSize = 14.sp
+              fontSize = 14.sp,
+              textAlign = TextAlign.Center,
             )
           }
         }

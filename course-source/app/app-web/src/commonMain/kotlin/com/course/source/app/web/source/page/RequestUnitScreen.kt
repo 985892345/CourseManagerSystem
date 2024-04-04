@@ -1,7 +1,6 @@
 package com.course.source.app.web.source.page
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -18,10 +17,14 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
@@ -34,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -43,6 +47,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import com.course.components.base.theme.LocalAppColors
 import com.course.components.base.ui.dialog.showChooseDialog
+import com.course.components.utils.compose.clickableCardIndicator
 import com.course.components.utils.navigator.BaseScreen
 import com.course.components.utils.serializable.IntStateSerializable
 import com.course.components.utils.serializable.ObjectSerializable
@@ -51,9 +56,6 @@ import com.course.source.app.web.request.RequestContent
 import com.course.source.app.web.request.RequestUnit
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.painterResource
 
 /**
  * .
@@ -131,7 +133,6 @@ class RequestUnitScreen(
     }
   }
 
-  @OptIn(ExperimentalResourceApi::class)
   @Composable
   private fun ToolbarCompose() {
     Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
@@ -157,15 +158,14 @@ class RequestUnitScreen(
         modifier = Modifier.align(Alignment.CenterStart)
           .padding(start = 12.dp)
           .size(32.dp)
-          .clip(RoundedCornerShape(8.dp))
-          .clickable {
+          .clickableCardIndicator {
             navigator?.pop()
           },
         contentAlignment = Alignment.Center,
       ) {
-        Image(
-          modifier = Modifier.size(16.dp),
-          painter = painterResource(DrawableResource("drawable/ic_back.xml")),
+        Icon(
+          modifier = Modifier,
+          painter = rememberVectorPainter(Icons.AutoMirrored.Default.ArrowBack),
           contentDescription = null,
         )
       }
@@ -174,13 +174,12 @@ class RequestUnitScreen(
           modifier = Modifier.align(Alignment.CenterEnd)
             .padding(end = 12.dp)
             .size(32.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .clickable { clickDelete(requestContent, requestUnit, navigator) },
+            .clickableCardIndicator { clickDelete(requestContent, requestUnit, navigator) },
           contentAlignment = Alignment.Center,
         ) {
-          Image(
-            modifier = Modifier.size(22.dp),
-            painter = painterResource(DrawableResource("drawable/ic_delete.xml")),
+          Icon(
+            modifier = Modifier,
+            painter = rememberVectorPainter(Icons.Default.DeleteOutline),
             contentDescription = null,
           )
         }

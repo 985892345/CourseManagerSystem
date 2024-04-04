@@ -1,6 +1,8 @@
 package com.course.source.app.web.source.webview
 
-import androidx.compose.foundation.Image
+import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Web
 import androidx.compose.runtime.Composable
 import com.course.components.base.ui.toast.toast
 import com.course.source.app.web.source.service.IDataSourceService
@@ -9,9 +11,6 @@ import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.painterResource
 
 /**
  * .
@@ -19,14 +18,13 @@ import org.jetbrains.compose.resources.painterResource
  * @author 985892345
  * 2024/3/20 22:10
  */
-@ImplProvider(clazz = IDataSourceService::class, name = "WebView")
+@ImplProvider(clazz = IDataSourceService::class, name = "Web")
 object WebViewSourceService : IDataSourceService {
 
-  @OptIn(ExperimentalResourceApi::class)
   @Composable
   override fun Identifier() {
-    Image(
-      painter = painterResource(DrawableResource("drawable/ic_web.xml")),
+    Icon(
+      imageVector = Icons.Default.Web,
       contentDescription = null
     )
   }

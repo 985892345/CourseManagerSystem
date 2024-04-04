@@ -15,16 +15,18 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -34,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import com.course.components.base.theme.LocalAppColors
+import com.course.components.utils.compose.clickableCardIndicator
 import com.course.components.utils.serializable.ObjectSerializable
 import com.course.source.app.web.request.RequestContent
 import com.course.source.app.web.request.RequestContent.RequestContentStatus.Empty
@@ -45,9 +48,6 @@ import com.course.source.app.web.request.RequestContent.RequestContentStatus.Req
 import com.course.source.app.web.request.RequestContent.RequestContentStatus.Success
 import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.painterResource
 
 /**
  * .
@@ -67,7 +67,6 @@ class SourceScreen : Screen {
     }
   }
 
-  @OptIn(ExperimentalResourceApi::class)
   @Composable
   private fun ToolbarCompose() {
     Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
@@ -84,15 +83,14 @@ class SourceScreen : Screen {
           modifier = Modifier.align(Alignment.CenterStart)
             .padding(start = 12.dp)
             .size(32.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .clickable {
+            .clickableCardIndicator {
               navigator.pop()
             },
           contentAlignment = Alignment.Center,
         ) {
           Image(
-            modifier = Modifier.size(16.dp),
-            painter = painterResource(DrawableResource("drawable/ic_back.xml")),
+            modifier = Modifier,
+            painter = rememberVectorPainter(Icons.AutoMirrored.Default.ArrowBack),
             contentDescription = null,
           )
         }
@@ -121,7 +119,6 @@ class SourceScreen : Screen {
     }
   }
 
-  @OptIn(ExperimentalResourceApi::class)
   @Composable
   private fun ListItemCompose(requestContent: RequestContent<*>) {
     Card(
@@ -181,7 +178,7 @@ class SourceScreen : Screen {
         }
         Image(
           modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp),
-          painter = painterResource(DrawableResource("drawable/ic_arrow_right.xml")),
+          painter = rememberVectorPainter(Icons.AutoMirrored.Default.ArrowForwardIos),
           contentDescription = null,
         )
       }

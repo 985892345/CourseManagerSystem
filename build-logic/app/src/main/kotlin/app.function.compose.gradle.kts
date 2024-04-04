@@ -17,6 +17,7 @@ kotlin {
       implementation(compose.material)
       implementation(compose.ui)
       implementation(compose.components.resources)
+      implementation(compose.materialIconsExtended)
     }
     desktopMain.dependencies {
       implementation(compose.desktop.currentOs)
