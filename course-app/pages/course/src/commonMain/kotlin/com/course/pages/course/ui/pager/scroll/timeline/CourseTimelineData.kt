@@ -6,10 +6,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
-import com.course.pages.course.api.data.CourseDataProvider.Companion.TimelineDelayMinuteTime
 import com.course.shared.time.MinuteTime
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.Serializable
 
 /**
@@ -29,16 +26,27 @@ sealed interface CourseTimelineData {
   val nowWeight: Float
   val initialWeight: Float
 
+  /**
+   * 时间轴存在越过24点的情况，添加该变量用于表示是否存在明天的时间段
+   */
+  val hasTomorrow: Boolean
+
   fun copyData(): CourseTimelineData
 
   @Composable
   fun ColumnScope.Content()
 }
 
+@Stable
+@Serializable
+class CourseTimeline(
+  val delayMinuteTime: MinuteTime = TimelineDelayMinuteTime,
+  val data: List<CourseTimelineData> = Timeline
+)
 
-fun createTimeline(): ImmutableList<CourseTimelineData> = Timeline.map { it.copyData() }.toImmutableList()
+private val TimelineDelayMinuteTime = MinuteTime(4, 0)
 
-val Timeline = listOf(
+private val Timeline = listOf(
   MutableTimelineData(
     text = "···",
     startTime = TimelineDelayMinuteTime,
@@ -46,9 +54,10 @@ val Timeline = listOf(
     maxWeight = 4F,
     initialWeight = 0.1F,
     color = Color.DarkGray,
+    hasTomorrow = false,
   ),
-  LessonTimelineData(1),
-  LessonTimelineData(2),
+  LessonTimelineData(1, false),
+  LessonTimelineData(2, false),
   FixedTimelineData(
     text = "大课间",
     startTime = MinuteTime(9, 40),
@@ -56,9 +65,10 @@ val Timeline = listOf(
     weight = 0.05F,
     fontSize = 8.sp,
     color = Color.DarkGray,
+    false
   ),
-  LessonTimelineData(3),
-  LessonTimelineData(4),
+  LessonTimelineData(3, false),
+  LessonTimelineData(4, false),
   MutableTimelineData(
     text = "中午",
     startTime = MinuteTime(11, 55),
@@ -67,9 +77,10 @@ val Timeline = listOf(
     initialWeight = 0.1F,
     fontSize = 10.sp,
     color = Color.DarkGray,
+    hasTomorrow = false,
   ),
-  LessonTimelineData(5),
-  LessonTimelineData(6),
+  LessonTimelineData(5, false),
+  LessonTimelineData(6, false),
   FixedTimelineData(
     text = "大课间",
     startTime = MinuteTime(15, 40),
@@ -77,9 +88,10 @@ val Timeline = listOf(
     weight = 0.05F,
     fontSize = 8.sp,
     color = Color.DarkGray,
+    hasTomorrow = false,
   ),
-  LessonTimelineData(7),
-  LessonTimelineData(8),
+  LessonTimelineData(7, false),
+  LessonTimelineData(8, false),
   MutableTimelineData(
     text = "傍晚",
     startTime = MinuteTime(17, 55),
@@ -88,11 +100,12 @@ val Timeline = listOf(
     initialWeight = 0.1F,
     fontSize = 10.sp,
     color = Color.DarkGray,
+    hasTomorrow = false,
   ),
-  LessonTimelineData(9),
-  LessonTimelineData(10),
-  LessonTimelineData(11),
-  LessonTimelineData(12),
+  LessonTimelineData(9, false),
+  LessonTimelineData(10, false),
+  LessonTimelineData(11, false),
+  LessonTimelineData(12, false),
   MutableTimelineData(
     text = "···",
     startTime = MinuteTime(22, 30),
@@ -100,5 +113,6 @@ val Timeline = listOf(
     maxWeight = 5.5F,
     initialWeight = 0.1F,
     color = Color.DarkGray,
+    hasTomorrow = true,
   ),
 )

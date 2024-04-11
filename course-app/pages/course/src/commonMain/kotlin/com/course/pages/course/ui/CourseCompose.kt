@@ -5,6 +5,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -18,17 +19,18 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.course.components.utils.compose.Wrapper
 import com.course.components.utils.compose.reflexScrollableForMouse
-import com.course.shared.time.Date
-import com.course.shared.time.MinuteTimeDate
 import com.course.components.utils.time.Today
 import com.course.pages.course.api.data.CourseDataProvider
-import com.course.pages.course.api.data.CourseDataProvider.Companion.TimelineDelayMinuteTime
 import com.course.pages.course.ui.pager.CoursePagerCompose
+import com.course.pages.course.ui.pager.WeekItemsProvider
 import com.course.pages.course.ui.pager.rememberCoursePagerState
+import com.course.pages.course.ui.pager.scroll.timeline.CourseTimeline
+import com.course.shared.time.Date
+import com.course.shared.time.MinuteTimeDate
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -54,7 +56,9 @@ import kotlinx.coroutines.CoroutineScope
 fun CourseCompose(
   state: CourseComposeState,
   modifier: Modifier = Modifier,
+  timeline: CourseTimeline = remember { CourseTimeline() },
 ) {
+  val weekItemsProvider = getWeekItemsProvider(timeline, state.data)
   HorizontalPager(
     state = state.pagerState,
     modifier = Modifier.then(modifier).reflexScrollableForMouse(),
@@ -62,17 +66,38 @@ fun CourseCompose(
     pageContent = { page ->
       val weekBeginDate = state.beginDate.plusWeeks(page)
       val coursePagerState = rememberCoursePagerState(
-        items = remember(state) {
-          state.data.map {
-            it.getOrCreate(MinuteTimeDate(weekBeginDate, TimelineDelayMinuteTime))
-          }.toImmutableList()
-        }
+        weekBeginDate = weekBeginDate,
+        timeline = timeline,
+        weekItems = weekItemsProvider.getWeekItems(
+          MinuteTimeDate(
+            weekBeginDate,
+            timeline.delayMinuteTime
+          )
+        )
       )
       CoursePagerCompose(
         state = coursePagerState
       )
     }
   )
+}
+
+@Composable
+private fun getWeekItemsProvider(
+  timeline: CourseTimeline,
+  data: ImmutableList<CourseDataProvider>
+): WeekItemsProvider {
+  val oldWeekItemsProvider = remember { Wrapper<WeekItemsProvider?>(null) }
+  val weekItemsProvider = remember(timeline) {
+    oldWeekItemsProvider.value?.destroy()
+    WeekItemsProvider(timeline)
+  }.also { it.init(data) }
+  DisposableEffect(Unit) {
+    onDispose {
+      weekItemsProvider.destroy()
+    }
+  }
+  return weekItemsProvider
 }
 
 

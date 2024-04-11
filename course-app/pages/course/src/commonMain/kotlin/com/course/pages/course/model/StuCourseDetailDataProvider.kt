@@ -1,13 +1,14 @@
 package com.course.pages.course.model
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.course.components.utils.compose.derivedStateOfStructure
 import com.course.components.utils.time.Today
 import com.course.pages.course.api.data.CourseDataProvider
 import com.course.pages.course.api.data.CourseDetail
+import com.course.pages.course.api.item.ICourseItem
 import com.course.pages.course.api.item.lesson.toCourseItem
 import com.course.pages.course.api.item.lesson.toLessonItemBean
 import com.course.shared.time.Date
@@ -18,6 +19,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 
 /**
@@ -31,50 +33,88 @@ class StuCourseDetailDataProvider(
   vararg dataProviders: CourseDataProvider
 ) : CourseDetail(*dataProviders) {
 
-  private val courseBeans = mutableStateListOf<CourseBean>()
+  private val courseBeans = mutableStateMapOf<Int, CourseBean>()
+  private val courseItems = mutableMapOf<Int, List<ICourseItem>>()
 
   override val startDate: Date by derivedStateOfStructure {
-    courseBeans.firstOrNull()?.beginDate ?: Today.firstDate
+    courseBeans.minByOrNull { it.key }?.value?.beginDate ?: Today.firstDate
   }
 
   private var clickDate by mutableStateOf(Today)
 
   override val title: String by derivedStateOfStructure {
-    val start = courseBeans.firstOrNull { it.beginDate < clickDate }?.beginDate
-    if (start == null) "" else getWeekStr(start, clickDate)
+    val start = getClickCourseBean()?.beginDate
+    if (start == null) "无数据" else getWeekStr(start, clickDate)
   }
 
   override val subtitle: String by derivedStateOfStructure {
-    courseBeans.firstOrNull { it.beginDate < clickDate }?.term ?: ""
+    getClickCourseBean()?.term ?: ""
   }
 
+  private fun getClickCourseBean(): CourseBean? {
+    return courseBeans.minByOrNull {
+      if (it.value.beginDate <= clickDate) {
+        it.value.beginDate.daysUntil(clickDate)
+      } else Int.MAX_VALUE
+    }?.value
+  }
+
+  private var firstCourseBeanJob: Job? = null
   private var prevCourseBeanJob: Job? = null
 
   override fun onChangedClickDate(date: Date) {
     super.onChangedClickDate(date)
-    clickDate = date
-    val last = courseBeans.last()
-    if (last.beginDate.daysUntil(date) < 60) {
-      if (prevCourseBeanJob == null && last.termIndex != 0) {
-        prevCourseBeanJob = StuLessonRepository
-          .getCourseBean(stuNum, last.termIndex - 1)
+    val clickCourseBean = getClickCourseBean()
+    if (clickCourseBean != null) {
+      if (clickDate != date) {
+        clickDate = date
+        if (clickCourseBean.beginDate.daysUntil(date) < 60) {
+          if (prevCourseBeanJob == null && clickCourseBean.termIndex != 0) {
+            // 加载上一个学期的课程
+            prevCourseBeanJob = StuLessonRepository
+              .getCourseBean(stuNum, clickCourseBean.termIndex - 1)
+              .flowOn(Dispatchers.IO)
+              .onEach { bean ->
+                setCourse(bean)
+              }.onCompletion {
+                prevCourseBeanJob = null
+              }.launchIn(coroutineScope)
+          }
+        }
+      }
+    } else {
+      if (firstCourseBeanJob == null) {
+        // 不存在数据时点击日期就尝试刷新
+        firstCourseBeanJob = StuLessonRepository.getCourseBean(stuNum)
           .flowOn(Dispatchers.IO)
-          .onEach {
-            addAll(it.toLessonItemBean().toCourseItem())
-            courseBeans.add(it)
+          .onEach { bean ->
+            setCourse(bean)
+          }.onCompletion {
+            firstCourseBeanJob = null
           }.launchIn(coroutineScope)
       }
     }
   }
 
-  override fun initProvider(coroutineScope: CoroutineScope) {
-    super.initProvider(coroutineScope)
-    StuLessonRepository.getCourseBean(stuNum)
-      .flowOn(Dispatchers.IO)
-      .onEach {
-        addAll(it.toLessonItemBean().toCourseItem())
-        courseBeans.add(it)
-      }.launchIn(coroutineScope)
+  override fun onComposeInit(coroutineScope: CoroutineScope) {
+    super.onComposeInit(coroutineScope)
+    if (firstCourseBeanJob == null) {
+      firstCourseBeanJob = StuLessonRepository.getCourseBean(stuNum)
+        .flowOn(Dispatchers.IO)
+        .onEach { bean ->
+          setCourse(bean)
+        }.onCompletion {
+          firstCourseBeanJob = null
+        }.launchIn(coroutineScope)
+    }
+  }
+
+  private fun setCourse(bean: CourseBean) {
+    courseBeans[bean.termIndex] = bean
+    val newItems = bean.toLessonItemBean().toCourseItem()
+    val oldItems = courseItems.put(bean.termIndex, newItems)
+    removeAll(oldItems)
+    addAll(newItems)
   }
 
   private fun getWeekStr(start: Date, date: Date): String {

@@ -70,6 +70,9 @@ class RequestUnitCodeScreen(
     }
     .toMutableList()
 
+  @Transient
+  private val testValues = mutableMapOf<String, String>()
+
   @Composable
   override fun Content() {
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -126,10 +129,10 @@ class RequestUnitCodeScreen(
             val origin = requestContent.requestUnits.find { it.id == requestUnit.id }
             if (origin != null) {
               origin.sourceData = newSourceData
+              origin.changedCount++
             } else {
               requestContent.requestUnits.add(requestUnit)
             }
-            requestContent.save()
             navigator?.pop()
           }
         }) {
@@ -148,10 +151,11 @@ class RequestUnitCodeScreen(
           if (newSourceData != null) {
             navigator?.push(
               RequestTestScreen(
-                requestContent.name,
+                requestContent.key,
                 newSourceData,
                 requestUnit.serviceKey,
-                requestContent.parameterWithHint
+                requestContent.parameterWithHint,
+                testValues,
               )
             )
           }

@@ -26,6 +26,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class LessonTimelineData(
   val lesson: Int,
+  override val hasTomorrow: Boolean,
 ) : CourseTimelineData {
 
   override val text: String = lesson.toString()

@@ -52,7 +52,7 @@ internal class CalendarMonthItemProvider(
 
   override fun getIndex(key: Any): Int {
     key as Int
-    val date = Date(key)
+    val date = Date(abs(key))
     val isNowMonth = key > 0
     val index = getIndex(date, isNowMonth)
     if (index !in showIndexSet) return -1

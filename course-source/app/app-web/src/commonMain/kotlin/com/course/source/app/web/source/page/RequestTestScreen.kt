@@ -68,6 +68,7 @@ class RequestTestScreen(
   val sourceData: String,
   val serviceKey: String,
   val parameterWithHint: LinkedHashMap<String, String>,
+  val values: MutableMap<String, String> = mutableMapOf(),
 ) : Screen {
 
   @Transient
@@ -79,18 +80,22 @@ class RequestTestScreen(
       ToolbarCompose()
       Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp)) {
         val editTitleHintContent = parameterWithHint.map {
-          Triple(it.key, it.value, mutableStateOf(""))
+          Triple(it.key, it.value, mutableStateOf(values[it.key] ?: ""))
         }
-        editTitleHintContent.forEach {
+        editTitleHintContent.forEach { triple ->
           Row(modifier = Modifier.padding(vertical = 6.dp).height(IntrinsicSize.Min)) {
-            Text(text = it.first + ": ", fontSize = 14.sp, modifier = Modifier)
+            Text(text = triple.first + ": ", fontSize = 14.sp, modifier = Modifier)
             EditTextCompose(
-              text = it.third,
+              text = triple.third,
               modifier = Modifier.weight(1F).align(Alignment.Bottom),
               textStyle = TextStyle(
                 fontSize = 14.sp,
               ),
-              hint = it.second,
+              hint = triple.second,
+              onValueChange = {
+                triple.third.value = it
+                values[triple.first] = it
+              }
             )
           }
         }
@@ -106,7 +111,6 @@ class RequestTestScreen(
   }
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun ToolbarCompose() {
   Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {

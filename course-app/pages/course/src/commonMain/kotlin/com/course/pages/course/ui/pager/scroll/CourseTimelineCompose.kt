@@ -20,7 +20,7 @@ fun CoursePagerState.CourseTimelineCompose(
   Column(
     modifier = Modifier.then(modifier)
   ) {
-    timeline.fastForEach {
+    timeline.data.fastForEach {
       it.apply { Content() }
     }
   }

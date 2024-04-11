@@ -1,7 +1,9 @@
 package com.course.components.utils.compose
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.StateFactoryMarker
 import androidx.compose.runtime.structuralEqualityPolicy
 
@@ -16,3 +18,10 @@ import androidx.compose.runtime.structuralEqualityPolicy
 fun <T> derivedStateOfStructure(
   calculation: () -> T,
 ): State<T> = derivedStateOf(structuralEqualityPolicy(), calculation)
+
+@Composable
+inline fun <T> rememberDerivedStateOfStructure(
+  crossinline calculation: () -> T,
+): State<T> = remember {
+  derivedStateOf(structuralEqualityPolicy()) { calculation.invoke() }
+}

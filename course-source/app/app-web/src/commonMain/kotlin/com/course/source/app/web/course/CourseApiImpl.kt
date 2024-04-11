@@ -17,7 +17,7 @@ import com.g985892345.provider.api.annotation.ImplProvider
 object CourseApiImpl : SourceRequest(), CourseApi {
 
   private val courseBeanRequest by requestContent<CourseBean>(
-    "课表",
+    "课程",
     linkedMapOf(
       "stuNum" to "学号",
       "term" to "学期，大一上为0，负数表示当前学期"

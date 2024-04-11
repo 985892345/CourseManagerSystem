@@ -11,16 +11,16 @@ import kotlinx.serialization.Serializable
  */
 interface AccountApi {
 
-  fun getAccount(): ResponseWrapper<AccountBean>
+  suspend fun getAccount(): ResponseWrapper<AccountBean>
 }
 
 @Serializable
 data class AccountBean(
   val num: String,
   val name: String,
-  val isStuOrElseTea: Boolean, // 学生为 true，老师为 false
-) {
-  companion object {
-    val Empty = AccountBean("", "", true)
-  }
+  val type: AccountType,
+)
+
+enum class AccountType {
+  Student, Teacher
 }

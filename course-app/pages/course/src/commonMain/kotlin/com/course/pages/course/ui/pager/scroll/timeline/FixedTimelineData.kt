@@ -34,6 +34,7 @@ data class FixedTimelineData(
   override val fontSize: TextUnit = 12.sp,
   @Serializable(ColorSerializable::class)
   override val color: Color = Color.Unspecified,
+  override val hasTomorrow: Boolean,
 ) : CourseTimelineData {
   override val nowWeight: Float
     get() = weight

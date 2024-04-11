@@ -41,12 +41,12 @@ data object MainScreen : Screen {
   }
 }
 
+private val mainPages = Provider.getAllImpl(IMainPage::class)
+  .mapValues { it.value.get() }
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ProMainScreenContent() {
-  val mainPages = remember {
-    Provider.getAllImpl(IMainPage::class).mapValues { it.value.get() }
-  }
   val sortedPageKeys by remember {
     derivedStateOfStructure {
       mainPages.keys.sortedBy { mainPages.getValue(it).priority }

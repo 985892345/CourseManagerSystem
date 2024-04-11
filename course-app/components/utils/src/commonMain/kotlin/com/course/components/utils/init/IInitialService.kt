@@ -1,5 +1,7 @@
 package com.course.components.utils.init
 
+import androidx.compose.runtime.Composable
+
 /**
  * .
  *
@@ -11,5 +13,8 @@ interface IInitialService {
   /**
    * 在应用初始化时的回调
    */
-  fun onAppInit()
+  fun onAppInit() {}
+
+  @Composable
+  fun onComposeInit() {}
 }

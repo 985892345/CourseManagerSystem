@@ -25,6 +25,8 @@ import com.course.components.utils.serializable.FloatStateSerializable
 import com.course.components.utils.serializable.TextUnitSerializable
 import com.course.shared.time.MinuteTime
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlin.math.roundToInt
@@ -46,6 +48,7 @@ data class MutableTimelineData(
   override val fontSize: TextUnit = 12.sp,
   @Serializable(ColorSerializable::class)
   override val color: Color = Color.Unspecified,
+  override val hasTomorrow: Boolean,
 ) : CourseTimelineData {
 
   @Serializable(FloatStateSerializable::class)
@@ -77,15 +80,20 @@ data class MutableTimelineData(
   private fun onClick(coroutineScope: CoroutineScope) {
     if (nowWeight == maxWeight || nowWeight == initialWeight) {
       coroutineScope.launch {
+        _clickAnimateState.value = true
         animate(
           nowWeight,
           if (nowWeight != maxWeight) maxWeight else initialWeight
         ) { value, _ ->
           nowWeightState.value = value
         }
+        _clickAnimateState.value = false
       }
     }
   }
+
+  private val _clickAnimateState = MutableStateFlow(false)
+  val clickAnimateState: StateFlow<Boolean> = _clickAnimateState
 }
 
 

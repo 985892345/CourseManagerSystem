@@ -29,9 +29,15 @@ abstract class CourseDetail(
     dataProviders.forEach { it.onChangedClickDate(date) }
   }
 
-  override fun initProvider(coroutineScope: CoroutineScope) {
-    super.initProvider(coroutineScope)
-    dataProviders.forEach { it.initProvider(coroutineScope) }
+  override fun onComposeInit(coroutineScope: CoroutineScope) {
+    super.onComposeInit(coroutineScope)
+    dataProviders.forEach { it.onComposeInit(coroutineScope) }
+  }
+
+  init {
+    dataProviders.forEach {
+      it.addDataChangedListener(this)
+    }
   }
 }
 

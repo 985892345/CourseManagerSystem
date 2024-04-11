@@ -1,16 +1,19 @@
 package com.course.source.app.web.source.page
 
 import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -23,8 +26,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Card
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
@@ -33,10 +34,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DataObject
+import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,6 +72,8 @@ import com.course.components.utils.compose.clickableCardIndicator
 import com.course.components.utils.provider.Provider
 import com.course.components.utils.serializable.ObjectSerializable
 import com.course.components.view.code.CodeCompose
+import com.course.components.view.drag.DragItemState
+import com.course.components.view.drag.DraggableColumn
 import com.course.components.view.edit.EditTextCompose
 import com.course.source.app.web.request.RequestContent
 import com.course.source.app.web.request.RequestUnit
@@ -200,7 +205,7 @@ private fun ToolbarCompose(requestContent: RequestContent<*>) {
   Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
     Text(
       modifier = Modifier.align(Alignment.Center),
-      text = requestContent.name,
+      text = requestContent.key,
       fontSize = 21.sp,
       fontWeight = FontWeight.Bold,
       color = LocalAppColors.current.tvLv2
@@ -215,9 +220,8 @@ private fun ToolbarCompose(requestContent: RequestContent<*>) {
         },
       contentAlignment = Alignment.Center,
     ) {
-      Image(
-        modifier = Modifier,
-        painter = rememberVectorPainter(Icons.AutoMirrored.Default.ArrowBack),
+      Icon(
+        imageVector = Icons.AutoMirrored.Default.ArrowBack,
         contentDescription = null,
       )
     }
@@ -236,9 +240,8 @@ private fun ToolbarCompose(requestContent: RequestContent<*>) {
         },
       contentAlignment = Alignment.Center,
     ) {
-      Image(
-        modifier = Modifier,
-        painter = rememberVectorPainter(Icons.Default.Settings),
+      Icon(
+        imageVector = Icons.Default.Settings,
         contentDescription = null,
       )
     }
@@ -283,28 +286,33 @@ private fun showSettingDialog(requestContent: RequestContent<*>) {
 
 @Composable
 private fun ListCompose(requestContent: RequestContent<*>) {
-  LazyColumn(modifier = Modifier.padding(top = 4.dp)) {
-    items(
-      items = requestContent.requestUnits,
-      key = { it.id }
-    ) {
-      ListItemCompose(requestContent, it)
-    }
+  DraggableColumn(
+    items = requestContent.requestUnits,
+    modifier = Modifier.fillMaxSize(),
+    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
+    verticalArrangement = Arrangement.spacedBy(12.dp),
+  ) {
+    ListItemCompose(
+      requestContent = requestContent,
+    )
   }
 }
 
 @Composable
-private fun ListItemCompose(requestContent: RequestContent<*>, requestUnit: RequestUnit) {
+private fun DragItemState<RequestUnit>.ListItemCompose(
+  requestContent: RequestContent<*>,
+) {
+  val requestUnit = item
+  val elevation by animateDpAsState(if (isDragging) 4.dp else 2.dp)
   Card(
-    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp, start = 12.dp, end = 12.dp)
-      .fillMaxWidth()
+    modifier = Modifier.fillMaxWidth()
       .wrapContentHeight(),
-    elevation = 2.dp,
+    elevation = elevation,
   ) {
     val navigator = LocalNavigator.current
     Box(modifier = Modifier.clickable {
       if (Provider.implOrNull(IDataSourceService::class, requestUnit.serviceKey) != null) {
-        navigator?.push(RequestUnitScreen(requestContent.name, requestUnit.id.toString()))
+        navigator?.push(RequestUnitScreen(requestContent.key, requestUnit.id.toString()))
       } else {
         toast("代码异常，该数据源服务不存在\nkey=${requestUnit.serviceKey}")
       }
@@ -329,6 +337,18 @@ private fun ListItemCompose(requestContent: RequestContent<*>, requestUnit: Requ
         )
       }
       RequestResultImageCompose(requestContent, requestUnit)
+      Box(
+        modifier = Modifier.align(Alignment.CenterEnd)
+          .padding(end = 4.dp)
+          .size(32.dp)
+          .draggableItem(false),
+        contentAlignment = Alignment.Center,
+      ) {
+        Icon(
+          imageVector = Icons.Default.DragHandle,
+          contentDescription = null,
+        )
+      }
     }
   }
 }
@@ -342,11 +362,11 @@ private fun BoxScope.RequestResultImageCompose(requestContent: RequestContent<*>
   if (requestUnit.requestUnitStatus == None || requestUnit.requestUnitStatus == Requesting) return
   Box(
     modifier = Modifier.align(Alignment.CenterEnd)
-      .padding(end = 16.dp)
+      .padding(end = 36.dp)
       .clickableCardIndicator {
         showDialog {
           CodeCompose(
-            modifier = Modifier.width(280.dp).heightIn(min = 400.dp, max = 600.dp),
+            modifier = Modifier.width(320.dp).heightIn(min = 400.dp, max = 600.dp),
             text = remember {
               @Suppress("UNCHECKED_CAST")
               mutableStateOf(

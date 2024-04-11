@@ -4,14 +4,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.util.fastForEach
 import com.course.pages.course.api.item.ICourseItem
 import com.course.pages.course.ui.pager.CoursePagerState
-import com.course.pages.course.ui.pager.scroll.timeline.CourseTimelineData
-import kotlinx.collections.immutable.ImmutableList
+import com.course.pages.course.ui.pager.WeekItemsProvider
+import com.course.pages.course.ui.pager.scroll.timeline.CourseTimeline
+import com.course.shared.time.Date
+import com.course.shared.time.MinuteTimeDate
 import kotlin.math.roundToInt
 
 /**
@@ -27,45 +28,59 @@ fun CoursePagerState.CourseItemGroupCompose(
   Box(
     modifier = Modifier.fillMaxSize().then(modifier)
   ) {
-    items.fastForEach {
+    // 使用 toList 避免并发修改
+    weekItems.toList().fastForEach {
       key(it) {
-        CourseItemsCompose(it, timeline)
+        CourseItemCompose(
+          date = WeekItemsProvider.getItemWhichDate(it, timeline),
+          item = it,
+          timeline = timeline,
+        )
       }
     }
   }
 }
 
 @Composable
-fun CourseItemsCompose(items: SnapshotStateList<ICourseItem>, timeline: ImmutableList<CourseTimelineData>) {
-  // 使用 toList 避免并发修改
-  items.toList().fastForEach {
-    key(it.itemKey) {
-      CourseItemCompose(it, timeline)
-    }
-  }
-}
-
-@Composable
-private fun CourseItemCompose(item: ICourseItem, timeline: ImmutableList<CourseTimelineData>) {
+private fun CourseItemCompose(
+  date: Date,
+  item: ICourseItem,
+  timeline: CourseTimeline,
+) {
   Box(modifier = Modifier.layout { measurable, constraints ->
-    var wholeWeight = 0F
     var startWeight = 0F
     var endWeight = 0F
-    timeline.fastForEach {
-      wholeWeight += it.nowWeight
-      val startTime = item.startTime.time
-      if (startTime <= it.endTime) {
-        startWeight += if (startTime < it.startTime) it.nowWeight else {
-          it.startTime.minutesUntil(startTime, true) /
-              it.startTime.minutesUntil(it.endTime, true).toFloat()
+    var allWeight = 0F
+    val startTime = item.startTime
+    val endTime = item.startTime.plusMinutes(item.minuteDuration)
+    timeline.data.fastForEach {
+      allWeight += it.nowWeight
+      val start: MinuteTimeDate
+      val end: MinuteTimeDate
+      if (it.hasTomorrow) {
+        if (it.startTime > it.endTime) {
+          start = MinuteTimeDate(date, it.startTime)
+          end = MinuteTimeDate(date.plusDays(1), it.endTime)
+        } else {
+          val tomorrow = date.plusDays(1)
+          start = MinuteTimeDate(tomorrow, it.startTime)
+          end = MinuteTimeDate(tomorrow, it.endTime)
         }
+      } else {
+        start = MinuteTimeDate(date, it.startTime)
+        end = MinuteTimeDate(date, it.endTime)
       }
-      val endTime = item.startTime.plusMinutes(item.minuteDuration).time
-      if (endTime <= it.endTime) {
-        endWeight += if (endTime < it.startTime) it.nowWeight else {
-          it.startTime.minutesUntil(endTime, true) /
-              it.startTime.minutesUntil(it.endTime, true).toFloat()
-        }
+      if (startTime > end) {
+        startWeight += it.nowWeight
+      } else if (startTime > start) {
+        startWeight += start.minutesUntil(startTime) /
+            start.minutesUntil(end).toFloat() * it.nowWeight
+      }
+      if (endTime > end) {
+        endWeight += it.nowWeight
+      } else if (endTime > start) {
+        endWeight += start.minutesUntil(endTime) /
+            start.minutesUntil(end).toFloat() * it.nowWeight
       }
     }
     val placeable = measurable.measure(
@@ -73,13 +88,13 @@ private fun CourseItemCompose(item: ICourseItem, timeline: ImmutableList<CourseT
         minWidth = 0,
         maxWidth = constraints.maxWidth / 7,
         minHeight = 0,
-        maxHeight = ((endWeight - startWeight) * constraints.maxHeight).roundToInt()
+        maxHeight = ((endWeight - startWeight) / allWeight * constraints.maxHeight).roundToInt()
       )
     )
-    layout(placeable.width, placeable.height) {
-      placeable.placeRelative(
-        x = item.startTime.date.dayOfWeekOrdinal * (constraints.maxWidth / 7),
-        y = (startWeight * constraints.maxHeight).roundToInt()
+    layout(constraints.maxWidth, constraints.maxHeight) {
+      placeable.placeRelativeWithLayer(
+        x = date.dayOfWeekOrdinal * (constraints.maxWidth / 7),
+        y = (startWeight / allWeight * constraints.maxHeight).roundToInt()
       )
     }
   }) {

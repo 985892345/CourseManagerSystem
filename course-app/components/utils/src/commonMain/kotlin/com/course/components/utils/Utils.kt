@@ -14,9 +14,11 @@ import com.course.components.utils.provider.Provider
  */
 object Utils {
 
+  private val initialServices = Provider.getAllImpl(IInitialService::class).map { it.value.get() }
+
   fun initApp() {
-    Provider.getAllImpl(IInitialService::class).forEach {
-      it.value.get().onAppInit()
+    initialServices.forEach {
+      it.onAppInit()
     }
     platformInitApp()
   }
@@ -24,6 +26,9 @@ object Utils {
   @Composable
   fun initCompose() {
     AppComposeCoroutineScope = rememberCoroutineScope()
+    initialServices.forEach {
+      it.onComposeInit()
+    }
   }
 }
 

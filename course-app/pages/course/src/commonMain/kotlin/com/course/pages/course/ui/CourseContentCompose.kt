@@ -76,7 +76,7 @@ fun CourseContentCompose(detail: CourseDetail) {
   }
   configCalendarCoursePager(calendarState, courseComposeState)
   LaunchedEffect(Unit) {
-    detail.initProvider(this)
+    detail.onComposeInit(this)
   }
   LaunchedEffect(detail, calendarState) {
     snapshotFlow { calendarState.clickDate }.collect {

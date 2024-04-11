@@ -62,7 +62,7 @@ fun CourseBean.toLessonItemBean(): List<LessonItemData> {
       val startTime = LessonItemData.getStartMinuteTime(lesson.beginLesson)
       val endTime = LessonItemData.getEndMinuteTime(lesson.beginLesson + lesson.length - 1)
       LessonItemData(
-        startTime = MinuteTimeDate(beginDate.plusWeeks(it), startTime),
+        startTime = MinuteTimeDate(beginDate.plusWeeks(it - 1).plusDays(lesson.dayOfWeek.ordinal), startTime),
         minuteDuration = startTime.minutesUntil(endTime),
         lesson = lesson,
       )

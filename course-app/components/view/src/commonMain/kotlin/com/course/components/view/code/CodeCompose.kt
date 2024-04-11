@@ -144,10 +144,11 @@ fun CodeCompose(
     },
     measurePolicy = remember {
       { measurables: List<Measurable>, constraints: Constraints ->
-        val textPlaceable = measurables[1].measure(Constraints())
-        val linePlaceable = measurables[0].measure(
-          Constraints(minHeight = textPlaceable.height)
-        )
+        val linePlaceable = measurables[0].measure(Constraints())
+        val textPlaceable = measurables[1].measure(Constraints(
+          minWidth = if (constraints.hasBoundedWidth) constraints.maxWidth else constraints.minWidth,
+          minHeight = linePlaceable.height,
+        ))
         val width =
           if (constraints.hasBoundedWidth) constraints.maxWidth
           else maxOf(linePlaceable.width + textPlaceable.width + 50, constraints.minWidth)
@@ -232,7 +233,8 @@ private fun TextCompose(
   val hintState by rememberUpdatedState(hint)
   Box(
     modifier = modifier.background(Color.Transparent)
-      .padding(top = paddingTop, start = 6.dp)
+      .padding(top = paddingTop, start = 6.dp),
+    propagateMinConstraints = true,
   ) {
     if (editable) {
       val interactionSource = remember { MutableInteractionSource() }

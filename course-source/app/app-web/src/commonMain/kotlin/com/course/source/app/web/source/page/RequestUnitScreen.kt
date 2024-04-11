@@ -76,10 +76,8 @@ class RequestUnitScreen(
   @Transient
   private val requestUnit = requestUnitIdOrServiceKey.toIntOrNull()?.let { id ->
     requestContent.requestUnits.singleOrNull { it.id == id }
-  } ?: RequestUnit(
-    title = requestContent.name +
-        (requestContent.requestUnits.maxOfOrNull { it.id }?.plus(1) ?: 0) +
-        "-" + requestUnitIdOrServiceKey,
+  } ?: RequestUnit.create(
+    contentKey = requestContent.key,
     serviceKey = requestUnitIdOrServiceKey,
     id = requestContent.requestUnits.maxOfOrNull { it.id }?.plus(1) ?: 0,
   )
@@ -90,7 +88,7 @@ class RequestUnitScreen(
   private val formatScreen =
     RequestUnitFormatScreen(requestContent.format, requestContent.parameterWithHint)
 
-  private val codeScreen = RequestUnitCodeScreen(requestContent.name, requestUnit)
+  private val codeScreen = RequestUnitCodeScreen(requestContent.key, requestUnit)
 
   @OptIn(ExperimentalFoundationApi::class)
   @Composable
@@ -174,7 +172,7 @@ class RequestUnitScreen(
           modifier = Modifier.align(Alignment.CenterEnd)
             .padding(end = 12.dp)
             .size(32.dp)
-            .clickableCardIndicator { clickDelete(requestContent, requestUnit, navigator) },
+            .clickableCardIndicator { clickDelete(requestUnit, navigator) },
           contentAlignment = Alignment.Center,
         ) {
           Icon(
@@ -189,13 +187,12 @@ class RequestUnitScreen(
 }
 
 private fun clickDelete(
-  requestContent: RequestContent<*>,
   requestUnit: RequestUnit,
   navigator: Navigator?
 ) {
   showChooseDialog(
     onClickPositionBtn = {
-      requestContent.requestUnits.remove(requestUnit)
+      requestUnit.delete()
       navigator?.pop()
       hide()
     }

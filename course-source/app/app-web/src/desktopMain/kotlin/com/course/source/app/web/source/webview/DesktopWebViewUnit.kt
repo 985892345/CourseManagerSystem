@@ -83,12 +83,12 @@ class DesktopWebViewUnit {
     }
 
     @JSFunction
-    fun success(result: Any) {
+    fun success(result: Any?) {
       continuationMap.remove(key)?.resume(result.toString())
     }
 
     @JSFunction
-    fun error(result: Any) {
+    fun error(result: Any?) {
       continuationMap.remove(key)?.resumeWithException(RuntimeException(result.toString()))
     }
 

@@ -7,19 +7,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import com.course.pages.course.api.item.ICourseItem
 import com.course.pages.course.ui.pager.scroll.CourseScrollCompose
-import com.course.pages.course.ui.pager.scroll.timeline.CourseTimelineData
-import com.course.pages.course.ui.pager.scroll.timeline.createTimeline
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import com.course.pages.course.ui.pager.scroll.timeline.CourseTimeline
+import com.course.shared.time.Date
 
 /**
  * .
@@ -44,26 +37,23 @@ fun CoursePagerCompose(
 @Stable
 class CoursePagerState(
   val scrollState: ScrollState,
-  val items: ImmutableList<SnapshotStateList<ICourseItem>>,
-  val timeline: ImmutableList<CourseTimelineData>
+  val weekBeginDate: Date,
+  val weekItems: SnapshotStateList<ICourseItem>,
+  val timeline: CourseTimeline
 )
 
 @Composable
 fun rememberCoursePagerState(
-  items: ImmutableList<SnapshotStateList<ICourseItem>> = remember {
-    persistentListOf(SnapshotStateList())
-  },
+  weekBeginDate: Date,
+  timeline: CourseTimeline,
+  weekItems: SnapshotStateList<ICourseItem>,
 ): CoursePagerState {
   val scrollState = rememberScrollState()
-  val timeline = rememberSaveable(
-    saver = Saver(
-      save = { Json.encodeToString<List<CourseTimelineData>>(it) },
-      restore = { Json.decodeFromString<List<CourseTimelineData>>(it).toImmutableList() })
-  ) { createTimeline() }
   return remember {
     CoursePagerState(
       scrollState = scrollState,
-      items = items,
+      weekBeginDate = weekBeginDate,
+      weekItems = weekItems,
       timeline = timeline,
     )
   }

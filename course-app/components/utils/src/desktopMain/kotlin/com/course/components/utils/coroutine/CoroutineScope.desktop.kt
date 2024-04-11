@@ -1,6 +1,8 @@
 package com.course.components.utils.coroutine
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
 import kotlin.system.exitProcess
 
@@ -18,7 +20,10 @@ private lateinit var AppCoroutineScopeInternal: CoroutineScope
 
 fun runApp(block: suspend CoroutineScope.() -> Unit) {
   runBlocking {
-    AppCoroutineScopeInternal = this
+    // AppCoroutineScopeInternal 使用 SupervisorJob 避免异常传播
+    val supervisor = SupervisorJob(coroutineContext[Job])
+    val coroutineScope = CoroutineScope(supervisor)
+    AppCoroutineScopeInternal = coroutineScope
     block()
   }
   exitProcess(0)

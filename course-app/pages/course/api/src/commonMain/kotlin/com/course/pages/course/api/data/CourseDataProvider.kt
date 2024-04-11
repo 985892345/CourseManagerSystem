@@ -1,12 +1,8 @@
 package com.course.pages.course.api.data
 
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import com.course.components.utils.provider.Provider
 import com.course.pages.course.api.item.ICourseItem
 import com.course.shared.time.Date
-import com.course.shared.time.MinuteTime
-import com.course.shared.time.MinuteTimeDate
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -17,45 +13,56 @@ import kotlinx.coroutines.CoroutineScope
  */
 
 @Stable
-open class CourseDataProvider {
+open class CourseDataProvider : DataChangedListener {
 
   protected lateinit var coroutineScope: CoroutineScope
     private set
 
-  private val listByDate = HashMap<MinuteTimeDate, SnapshotStateList<ICourseItem>>()
+  private val data = mutableListOf<ICourseItem>()
 
-  @Stable
-  fun getOrCreate(date: MinuteTimeDate): SnapshotStateList<ICourseItem> {
-    val begin = MinuteTimeDate(date.date.weekBeginDate, TimelineDelayMinuteTime)
-    return if (date >= begin) {
-      listByDate.getOrPut(begin) {
-        SnapshotStateList()
-      }
-    } else {
-      listByDate.getOrPut(begin.minusWeeks(1)) {
-        SnapshotStateList()
-      }
+  private val changedListeners = mutableListOf<DataChangedListener>()
+
+  override fun add(item: ICourseItem?) {
+    item ?: return
+    data.add(item)
+    changedListeners.forEach {
+      it.add(item)
     }
   }
 
-  /**
-   * 如果有大量数据建议使用 [addAll]，这里每次 add 都会复制一遍数组
-   */
-  fun add(item: ICourseItem) {
-    getOrCreate(item.startTime).add(item)
-  }
-
-  fun addAll(items: Collection<ICourseItem>) {
-    if (items.isEmpty()) return
-    items.groupBy {
-      MinuteTimeDate(it.startTime.date.weekBeginDate, TimelineDelayMinuteTime)
-    }.forEach {
-      listByDate.getOrPut(it.key) { SnapshotStateList() }.addAll(it.value)
+  override fun addAll(items: Collection<ICourseItem>?) {
+    items ?: return
+    data.addAll(items)
+    changedListeners.forEach {
+      it.addAll(items)
     }
   }
 
-  fun remove(item: ICourseItem) {
-    getOrCreate(item.startTime).remove(item)
+  override fun remove(item: ICourseItem?) {
+    item ?: return
+    data.remove(item)
+    changedListeners.forEach {
+      it.remove(item)
+    }
+  }
+
+  override fun removeAll(items: Collection<ICourseItem>?) {
+    items ?: return
+    data.removeAll(items)
+    changedListeners.forEach {
+      it.removeAll(items)
+    }
+  }
+
+  fun addDataChangedListener(listener: DataChangedListener, isNeedNowData: Boolean = true) {
+    changedListeners.add(listener)
+    if (isNeedNowData) {
+      listener.addAll(data)
+    }
+  }
+
+  fun removeDataChangedListener(listener: DataChangedListener) {
+    changedListeners.remove(listener)
   }
 
   /**
@@ -64,12 +71,14 @@ open class CourseDataProvider {
   open fun onChangedClickDate(date: Date) {
   }
 
-  open fun initProvider(coroutineScope: CoroutineScope) {
+  open fun onComposeInit(coroutineScope: CoroutineScope) {
     this.coroutineScope = coroutineScope
   }
+}
 
-  companion object {
-    // 每天的时间起点
-    val TimelineDelayMinuteTime = MinuteTime(4, 0)
-  }
+interface DataChangedListener {
+  fun add(item: ICourseItem?)
+  fun addAll(items: Collection<ICourseItem>?)
+  fun remove(item: ICourseItem?)
+  fun removeAll(items: Collection<ICourseItem>?)
 }

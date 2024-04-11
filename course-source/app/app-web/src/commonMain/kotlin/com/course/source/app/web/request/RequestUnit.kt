@@ -4,11 +4,16 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.course.components.utils.preferences.createSettings
+import com.course.components.utils.preferences.stringState
 import com.course.components.utils.provider.Provider
+import com.course.source.app.web.request.RequestContent.Companion.RequestMap
 import com.course.source.app.web.source.service.IDataSourceService
+import com.russhwolf.settings.Settings
+import com.russhwolf.settings.long
+import com.russhwolf.settings.nullableString
 import kotlinx.serialization.Serializable
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
+import kotlinx.serialization.Transient
 
 /**
  * .
@@ -19,14 +24,25 @@ import kotlin.time.Duration.Companion.seconds
 @Stable
 @Serializable
 data class RequestUnit(
-  var title: String,
-  val serviceKey: String,
+  val contentKey: String,
   val id: Int,
-  var sourceData: String? = null,
-  var error: String? = null,
-  var response: String? = null,
-  var duration: Duration = (-1).seconds,
+  val serviceKey: String,
 ) {
+
+  private val requestContent by lazy { RequestMap[contentKey]!! }
+
+  @Transient
+  private val settings = getSettings(contentKey, id)
+
+  var title: String by settings.stringState("title", "${contentKey}${id}-${serviceKey}")
+
+  var sourceData: String? by settings.nullableString("sourceData")
+
+  var error: String? by settings.nullableString("error")
+
+  var response: String? by settings.nullableString("response")
+
+  var duration: Long by settings.long("duration", -1)
 
   var requestUnitStatus by mutableStateOf(
     when {
@@ -36,12 +52,40 @@ data class RequestUnit(
     }
   )
 
+  // 发生修改的次数
+  var changedCount: Int by mutableStateOf(0)
+
   suspend fun request(
     parameters: Map<String, String>,
   ): String {
     val service = Provider.implOrNull(IDataSourceService::class, serviceKey)
       ?: throw RuntimeException("未找到服务 $serviceKey")
     return service.request(sourceData, parameters)
+  }
+
+  fun delete() {
+    requestContent.requestUnits.remove(this)
+    settings.clear()
+  }
+
+  companion object {
+    private fun getSettings(contentKey: String, id: Int): Settings {
+      return createSettings("RequestContent-$contentKey-$id")
+    }
+
+    fun create(
+      contentKey: String,
+      id: Int,
+      serviceKey: String,
+    ): RequestUnit {
+      val settings = getSettings(contentKey, id)
+      settings.clear()
+      return RequestUnit(
+        contentKey = contentKey,
+        id = id,
+        serviceKey = serviceKey,
+      )
+    }
   }
 
   enum class RequestUnitStatus {
