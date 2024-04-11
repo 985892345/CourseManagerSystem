@@ -14,7 +14,7 @@ import kotlin.jvm.JvmInline
 @Serializable
 value class MinuteTimeDate(val value: Int) : Comparable<MinuteTimeDate> {
 
-  constructor(date: Date, time: MinuteTime) : this((date.value shl 10) or time.value)
+  constructor(date: Date, time: MinuteTime) : this((date.value shl 11) or time.value)
 
   constructor(date: Date, hour: Int, minute: Int) : this(date, MinuteTime(hour, minute))
 
@@ -27,10 +27,10 @@ value class MinuteTimeDate(val value: Int) : Comparable<MinuteTimeDate> {
   )
 
   val date: Date
-    get() = Date(value ushr 10) // 最多能保存到公元 8191 年，应该够了
+    get() = Date(value ushr 11) // 最多能保存到公元 4095 年，应该够了
 
   val time: MinuteTime
-    get() = MinuteTime(value and 0x3FF)
+    get() = MinuteTime(value and 0x7FF) // 最多占 11 位
 
   fun minutesUntil(other: MinuteTimeDate): Int {
     return date.daysUntil(other.date) * 24 * 60 + time.minutesUntil(other.time)
@@ -84,6 +84,10 @@ value class MinuteTimeDate(val value: Int) : Comparable<MinuteTimeDate> {
 
   override fun compareTo(other: MinuteTimeDate): Int {
     return value.compareTo(other.value)
+  }
+
+  override fun toString(): String {
+    return "$date $time"
   }
 }
 

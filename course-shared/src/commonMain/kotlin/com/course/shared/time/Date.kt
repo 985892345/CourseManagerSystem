@@ -37,16 +37,16 @@ value class Date(
   ) : this(getTime(year, month, dayOfMonth, noOverflow))
 
   val year: Int
-    get() = value shr 9
+    get() = value ushr 9
 
   val month: Month
     get() = Month(monthNumber)
 
   val monthNumber: Int
-    get() = value shr 5 and 0xF
+    get() = value ushr 5 and 0xF // 最多占 4 位，2^4 - 1
 
   val dayOfMonth: Int
-    get() = value and 0x1F
+    get() = value and 0x1F // 最多占 5 位，2^5 - 1
 
   val dayOfWeek: DayOfWeek
     get() = DayOfWeek(((toEpochDays() + 3) % 7).let { if (it < 0) it + 7 else it } + 1)

@@ -18,10 +18,10 @@ value class MinuteTime(val value: Int) : Comparable<MinuteTime> {
   )
 
   val hour: Int
-    get() = value ushr 6
+    get() = value ushr 6 // 最多占 5 位，2^5 - 1
 
   val minute: Int
-    get() = value and 0x3F
+    get() = value and 0x3F // 最多占 6 位，2^6 - 1
 
   fun minutesUntil(time: MinuteTime, cyclic: Boolean = false): Int {
     if (this > time && cyclic) {
