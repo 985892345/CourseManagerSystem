@@ -49,7 +49,7 @@ class RequestUnitCodeScreen(
 ) : BaseScreen() {
 
   @Transient
-  private val requestContent = RequestContent.RequestMap.getValue(requestContentName)
+  private val requestContent = RequestContent.find(requestContentName)!!
 
   @Transient
   private val dataSourceService = Provider.impl(IDataSourceService::class, requestUnit.serviceKey)

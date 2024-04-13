@@ -29,6 +29,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import com.course.components.utils.compose.clickableCardIndicator
+import com.course.components.utils.compose.clickableNoIndicator
 import com.course.components.utils.compose.derivedStateOfStructure
 import com.course.components.utils.time.Today
 import com.course.components.view.calendar.CalendarCompose
@@ -134,24 +136,22 @@ private fun CourseHeaderCompose(
   ConstraintLayout(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
     val (week, back, term, notification) = createRefs()
     Text(
-//      text = SchoolCalendar.getWeekStr(calendarState.clickDate) ?: "未知周数",
       text = detail.title,
       modifier = Modifier.constrainAs(week) {
         top.linkTo(parent.top)
         bottom.linkTo(parent.bottom)
         start.linkTo(parent.start, 16.dp)
-      },
+      }.clickableNoIndicator { detail.onClickTitle() },
       color = Color.Black,
       fontWeight = FontWeight.Bold,
       fontSize = 22.sp
     )
     Text(
-//      text = screen.term(calendarState.clickDate),
       text = detail.subtitle,
       modifier = Modifier.constrainAs(term) {
         start.linkTo(week.end, 8.dp)
         baseline.linkTo(week.baseline)
-      },
+      }.clickableNoIndicator { detail.onClickSubtitle() },
       fontSize = 12.sp,
       color = Color.Black,
     )

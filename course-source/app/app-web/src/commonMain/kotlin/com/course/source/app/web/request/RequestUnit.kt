@@ -7,7 +7,6 @@ import androidx.compose.runtime.setValue
 import com.course.components.utils.preferences.createSettings
 import com.course.components.utils.preferences.stringState
 import com.course.components.utils.provider.Provider
-import com.course.source.app.web.request.RequestContent.Companion.RequestMap
 import com.course.source.app.web.source.service.IDataSourceService
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.long
@@ -29,12 +28,12 @@ data class RequestUnit(
   val serviceKey: String,
 ) {
 
-  private val requestContent by lazy { RequestMap[contentKey]!! }
+  private val requestContent by lazy { RequestContent.find(contentKey)!! }
 
   @Transient
   private val settings = getSettings(contentKey, id)
 
-  var title: String by settings.stringState("title", "${contentKey}${id}-${serviceKey}")
+  var title = settings.stringState("title", "${contentKey}${id}-${serviceKey}")
 
   var sourceData: String? by settings.nullableString("sourceData")
 

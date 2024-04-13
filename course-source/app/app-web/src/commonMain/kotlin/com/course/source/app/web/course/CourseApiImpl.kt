@@ -1,5 +1,8 @@
 package com.course.source.app.web.course
 
+import com.course.pages.course.api.IMainCourseDataProvider
+import com.course.pages.course.api.data.CourseDataProvider
+import com.course.source.app.account.AccountBean
 import com.course.source.app.course.CourseApi
 import com.course.source.app.course.CourseBean
 import com.course.source.app.response.ResponseWrapper
@@ -14,10 +17,11 @@ import com.g985892345.provider.api.annotation.ImplProvider
  */
 @ImplProvider(clazz = CourseApi::class)
 @ImplProvider(clazz = SourceRequest::class, name = "CourseApiImpl")
-object CourseApiImpl : SourceRequest(), CourseApi {
+object CourseApiImpl : SourceRequest(), CourseApi, IMainCourseDataProvider {
 
   private val courseBeanRequest by requestContent<CourseBean>(
-    "课程",
+    key = "course",
+    name = "课程",
     linkedMapOf(
       "stuNum" to "学号",
       "term" to "学期，大一上为0，负数表示当前学期"
@@ -50,6 +54,20 @@ object CourseApiImpl : SourceRequest(), CourseApi {
     """.trimIndent()
   )
 
+  private val courseRequestGroup by requestGroup<CourseBean>(
+    key = "course-custom",
+    name = "自定义课表",
+    linkedMapOf("stuNum" to "学号"),
+    """
+      // 返回以下 json 格式，如果无数据，则返回 null
+      [
+        {
+          
+        }
+      ]
+    """.trimIndent()
+  )
+
   override suspend fun getCourseBean(
     stuNum: String,
     termIndex: Int,
@@ -59,5 +77,9 @@ object CourseApiImpl : SourceRequest(), CourseApi {
       -1,
       "数据源无数据"
     )
+  }
+
+  override fun createCourseDataProviders(account: AccountBean?): List<CourseDataProvider> {
+    return emptyList()
   }
 }

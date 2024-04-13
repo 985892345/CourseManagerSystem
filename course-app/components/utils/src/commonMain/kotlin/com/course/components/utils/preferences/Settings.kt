@@ -1,12 +1,14 @@
 package com.course.components.utils.preferences
 
+import androidx.compose.runtime.MutableFloatState
+import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.MutableLongState
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import com.russhwolf.settings.Settings
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
 
 /**
  * .
@@ -19,72 +21,107 @@ val Settings = createSettings("defaultSettings")
 
 expect fun createSettings(name: String): Settings
 
-fun Settings.stringState(key: String, defaultValue: String): ReadWriteProperty<Any?, String> {
+fun Settings.stringState(key: String, defaultValue: String): MutableState<String> {
   val state = mutableStateOf(getString(key, defaultValue))
-  return object : ReadWriteProperty<Any?, String> {
-    override fun getValue(thisRef: Any?, property: KProperty<*>): String {
-      return state.value
+  return object : MutableState<String> {
+    private val setter: (String) -> Unit = { value = it }
+    override var value: String
+      get() = state.value
+      set(value) {
+        putString(key, value)
+        state.value = value
+      }
+
+    override fun component1(): String {
+      return value
     }
 
-    override fun setValue(thisRef: Any?, property: KProperty<*>, value: String) {
-      putString(key, value)
-      state.value = value
+    override fun component2(): (String) -> Unit {
+      return setter
     }
   }
 }
 
-fun Settings.intState(key: String, defaultValue: Int): ReadWriteProperty<Any?, Int> {
+fun Settings.intState(key: String, defaultValue: Int): MutableIntState {
   val state = mutableIntStateOf(getInt(key, defaultValue))
-  return object : ReadWriteProperty<Any?, Int> {
-    override fun getValue(thisRef: Any?, property: KProperty<*>): Int {
-      return state.intValue
+  return object : MutableIntState {
+    private val setter: (Int) -> Unit = { intValue = it }
+    override var intValue: Int
+      get() = state.intValue
+      set(value) {
+        putInt(key, value)
+        state.intValue = value
+      }
+
+    override fun component1(): Int {
+      return intValue
     }
 
-    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {
-      putInt(key, value)
-      state.intValue = value
+    override fun component2(): (Int) -> Unit {
+      return setter
     }
   }
 }
 
-fun Settings.booleanState(key: String, defaultValue: Boolean): ReadWriteProperty<Any?, Boolean> {
+fun Settings.booleanState(key: String, defaultValue: Boolean): MutableState<Boolean> {
   val state = mutableStateOf(getBoolean(key, defaultValue))
-  return object : ReadWriteProperty<Any?, Boolean> {
-    override fun getValue(thisRef: Any?, property: KProperty<*>): Boolean {
-      return state.value
+  return object : MutableState<Boolean> {
+    private val setter: (Boolean) -> Unit = { value = it }
+    override var value: Boolean
+      get() = state.value
+      set(value) {
+        putBoolean(key, value)
+        state.value = value
+      }
+
+    override fun component1(): Boolean {
+      return value
     }
 
-    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Boolean) {
-      putBoolean(key, value)
-      state.value = value
+    override fun component2(): (Boolean) -> Unit {
+      return setter
     }
   }
 }
 
-fun Settings.longState(key: String, defaultValue: Long): ReadWriteProperty<Any?, Long> {
+fun Settings.longState(key: String, defaultValue: Long): MutableLongState {
   val state = mutableLongStateOf(getLong(key, defaultValue))
-  return object : ReadWriteProperty<Any?, Long> {
-    override fun getValue(thisRef: Any?, property: KProperty<*>): Long {
-      return state.longValue
+  return object : MutableLongState {
+    private val setter: (Long) -> Unit = { longValue = it }
+    override var longValue: Long
+      get() = state.longValue
+      set(value) {
+        putLong(key, value)
+        state.longValue = value
+      }
+
+    override fun component1(): Long {
+      return longValue
     }
 
-    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Long) {
-      putLong(key, value)
-      state.longValue = value
+    override fun component2(): (Long) -> Unit {
+      return setter
     }
   }
 }
 
-fun Settings.floatState(key: String, defaultValue: Float): ReadWriteProperty<Any?, Float> {
+fun Settings.floatState(key: String, defaultValue: Float): MutableFloatState {
   val state = mutableFloatStateOf(getFloat(key, defaultValue))
-  return object : ReadWriteProperty<Any?, Float> {
-    override fun getValue(thisRef: Any?, property: KProperty<*>): Float {
-      return state.floatValue
+  return object : MutableFloatState {
+    private val setter: (Float) -> Unit = { floatValue = it }
+    override var floatValue: Float
+      get() = state.floatValue
+      set(value) {
+        putFloat(key, value)
+        state.floatValue = value
+      }
+
+    override fun component1(): Float {
+      return floatValue
     }
 
-    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Float) {
-      putFloat(key, value)
-      state.floatValue = value
+    override fun component2(): (Float) -> Unit {
+      return setter
     }
   }
 }

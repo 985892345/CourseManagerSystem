@@ -22,7 +22,8 @@ import com.g985892345.provider.api.annotation.ImplProvider
 object AccountApiImpl : SourceRequest(), AccountApi {
 
   private val accountBeanRequest by requestContent<AccountBean>(
-    "用户信息",
+    key = "Account",
+    name = "用户信息",
     linkedMapOf(),
     """
       // 返回以下 json 格式，如果无数据，则返回 null

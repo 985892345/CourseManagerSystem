@@ -1,7 +1,6 @@
 package com.course.pages.course.api.data
 
 import androidx.compose.runtime.Stable
-import com.course.components.utils.time.Today
 import com.course.shared.time.Date
 import kotlinx.coroutines.CoroutineScope
 
@@ -34,17 +33,12 @@ abstract class CourseDetail(
     dataProviders.forEach { it.onComposeInit(coroutineScope) }
   }
 
+  open fun onClickTitle() {}
+  open fun onClickSubtitle() {}
+
   init {
     dataProviders.forEach {
       it.addDataChangedListener(this)
     }
   }
-}
-
-object EmptyCourseDetail : CourseDetail() {
-  override val startDate: Date = Today.firstDate
-  override val title: String
-    get() = "无数据"
-  override val subtitle: String
-    get() = ""
 }

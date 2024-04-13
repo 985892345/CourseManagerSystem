@@ -71,7 +71,7 @@ class RequestUnitScreen(
 ) : BaseScreen() {
 
   @Transient
-  private val requestContent = RequestContent.RequestMap.getValue(requestContentName)
+  private val requestContent = RequestContent.find(requestContentName)!!
 
   @Transient
   private val requestUnit = requestUnitIdOrServiceKey.toIntOrNull()?.let { id ->
@@ -134,11 +134,8 @@ class RequestUnitScreen(
   @Composable
   private fun ToolbarCompose() {
     Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
-      val text = remember {
-        mutableStateOf(requestUnit.title)
-      }
       EditTextCompose(
-        text = text,
+        text = requestUnit.title,
         modifier = Modifier.align(Alignment.Center),
         isShowIndicatorLine = false,
         textStyle = TextStyle(
@@ -147,10 +144,7 @@ class RequestUnitScreen(
           fontWeight = FontWeight.Bold,
           textAlign = TextAlign.Center,
         ),
-      ) {
-        text.value = it
-        requestUnit.title = it
-      }
+      )
       val navigator = LocalNavigator.current
       Box(
         modifier = Modifier.align(Alignment.CenterStart)

@@ -13,6 +13,7 @@ kotlin {
       implementation(projects.courseApp.components.utils)
       implementation(projects.courseApp.components.view)
       implementation(projects.courseApp.pages.main.api)
+      implementation(projects.courseApp.pages.course.api)
     }
     desktopMain.dependencies {
       implementation("org.htmlunit:htmlunit:3.11.0")

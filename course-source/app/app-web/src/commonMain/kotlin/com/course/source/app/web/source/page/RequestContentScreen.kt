@@ -103,7 +103,7 @@ class RequestContentScreen(
 ) : Screen {
 
   @Transient
-  private val requestContent = RequestContent.RequestMap.getValue(requestContentKey)
+  private val requestContent = RequestContent.find(requestContentKey)!!
 
   @Transient
   private val floatBtnAnimFraction = mutableFloatStateOf(0F)
@@ -203,13 +203,27 @@ class RequestContentScreen(
 @Composable
 private fun ToolbarCompose(requestContent: RequestContent<*>) {
   Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
-    Text(
-      modifier = Modifier.align(Alignment.Center),
-      text = requestContent.key,
-      fontSize = 21.sp,
-      fontWeight = FontWeight.Bold,
-      color = LocalAppColors.current.tvLv2
-    )
+    if (requestContent.editable) {
+      EditTextCompose(
+        modifier = Modifier.align(Alignment.Center),
+        text = requestContent.title,
+        textStyle = TextStyle(
+          fontSize = 21.sp,
+          fontWeight = FontWeight.Bold,
+          color = LocalAppColors.current.tvLv2,
+          textAlign = TextAlign.Center,
+        ),
+        isShowIndicatorLine = false,
+      )
+    } else {
+      Text(
+        modifier = Modifier.align(Alignment.Center),
+        text = requestContent.name,
+        fontSize = 21.sp,
+        fontWeight = FontWeight.Bold,
+        color = LocalAppColors.current.tvLv2
+      )
+    }
     val navigator = LocalNavigator.current
     Box(
       modifier = Modifier.align(Alignment.CenterStart)
@@ -318,11 +332,14 @@ private fun DragItemState<RequestUnit>.ListItemCompose(
       }
     }) {
       Column(modifier = Modifier.padding(start = 14.dp, top = 14.dp)) {
-        Text(
+        EditTextCompose(
           text = requestUnit.title,
-          fontSize = 18.sp,
-          color = LocalAppColors.current.tvLv1,
-          fontWeight = FontWeight.Bold
+          textStyle = TextStyle(
+            fontSize = 18.sp,
+            color = LocalAppColors.current.tvLv1,
+            fontWeight = FontWeight.Bold
+          ),
+          isShowIndicatorLine = false,
         )
         Text(
           modifier = Modifier.padding(top = 8.dp, bottom = 14.dp),

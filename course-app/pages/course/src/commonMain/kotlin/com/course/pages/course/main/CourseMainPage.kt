@@ -8,11 +8,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.course.components.base.account.Account
+import com.course.components.base.ui.toast.toast
 import com.course.components.utils.provider.Provider
 import com.course.pages.course.api.ICourseService
+import com.course.pages.course.api.IMainCourseDataProvider
+import com.course.pages.course.api.data.CourseDataProvider
 import com.course.pages.course.api.data.CourseDetail
-import com.course.pages.course.api.data.EmptyCourseDetail
 import com.course.pages.main.api.IMainPage
+import com.course.shared.time.Date
 import com.course.source.app.account.AccountBean
 import com.course.source.app.account.AccountType
 import com.g985892345.provider.api.annotation.ImplProvider
@@ -49,14 +52,30 @@ class CourseMainPage : IMainPage {
   }
 
   private fun ICourseService.getCourseDetail(account: AccountBean?): CourseDetail {
-    if (oldAccount == account) {
-      return oldCourseDetail ?: EmptyCourseDetail
+    val oldCourseDetail = oldCourseDetail
+    if (oldAccount == account && oldCourseDetail != null) {
+      return oldCourseDetail
     }
-    oldCourseDetail = when (account?.type) {
-      AccountType.Student -> stuCourseDetail(account.num)
-      AccountType.Teacher -> teaCourseDetail(account.num)
-      null -> EmptyCourseDetail
-    }
-    return oldCourseDetail ?: EmptyCourseDetail
+    oldAccount = account
+    val dataProvider = Provider.getAllImpl(IMainCourseDataProvider::class)
+      .map { it.value.get().createCourseDataProviders(account) }
+      .flatten()
+    return when (account?.type) {
+      AccountType.Student -> stuCourseDetail(account.num, *dataProvider.toTypedArray())
+      AccountType.Teacher -> teaCourseDetail(account.num, *dataProvider.toTypedArray())
+      null -> EmptyAccountCourseDetail(*dataProvider.toTypedArray())
+    }.also { this@CourseMainPage.oldCourseDetail = it }
+  }
+}
+
+private class EmptyAccountCourseDetail(
+  vararg dataProviders: CourseDataProvider
+) : CourseDetail(*dataProviders) {
+  override val startDate: Date = Date(1901, 1, 1)
+  override val title: String = "未登陆"
+  override val subtitle: String = ""
+
+  override fun onClickTitle() {
+    toast("请在数据源中设置用户信息")
   }
 }

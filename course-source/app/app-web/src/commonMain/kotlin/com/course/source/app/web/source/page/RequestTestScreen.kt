@@ -52,7 +52,6 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -72,7 +71,7 @@ class RequestTestScreen(
 ) : Screen {
 
   @Transient
-  private val requestContent = RequestContent.RequestMap.getValue(requestContentName)
+  private val requestContent = RequestContent.find(requestContentName)!!
 
   @Composable
   override fun Content() {

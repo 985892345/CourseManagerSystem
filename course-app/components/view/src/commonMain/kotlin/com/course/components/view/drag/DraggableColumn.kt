@@ -61,7 +61,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.jvm.JvmInline
 import kotlin.math.roundToInt
 
 /**
@@ -245,17 +244,17 @@ interface DragItemState<T> {
   val offset: Int // 距离顶部的偏移量
   val size: Int // item 大小
 
-  fun drag(event: DragEvent)
-
   // 在子组件上使用
   @Composable
-  fun Modifier.draggableItem(isLongPress: Boolean): Modifier
-}
+  fun Modifier.draggableItem(
+    isLongPress: Boolean,
+  ): Modifier
 
-sealed interface DragEvent {
-  @JvmInline
-  value class Dragging(val pointerId: PointerId) : DragEvent
-  data object End : DragEvent
+  @Composable
+  fun Modifier.draggableItem(
+    isLongPress: Boolean,
+    dragRange: (List<DragItemState<T>>) -> IntRange
+  ): Modifier
 }
 
 sealed interface DragState {
@@ -309,43 +308,79 @@ private class DragItemStateImpl<T>(
     )
   }
 
-  override fun drag(event: DragEvent) {
-    when (event) {
-      is DragEvent.Dragging -> dragHelper.onDragging(event.pointerId)
-      is DragEvent.End -> dragHelper.onDragEnd()
-    }
-  }
+  @Composable
+  override fun Modifier.draggableItem(
+    isLongPress: Boolean,
+  ): Modifier = draggableItem(isLongPress) { it.indices }
 
   @Composable
   override fun Modifier.draggableItem(
-    isLongPress: Boolean
+    isLongPress: Boolean,
+    dragRange: (List<DragItemState<T>>) -> IntRange
   ): Modifier = this then pointerInput(isLongPress) {
     var oldPointerId: PointerId? = null
+    var draggable = true
     if (isLongPress) {
       detectDragGesturesAfterLongPress2(
-        onDragStart = {
-          oldPointerId = it.id
-          drag(DragEvent.Dragging(it.id))
-        },
-        onDrag = { pointer, _ ->
-          if (pointer.id != oldPointerId) {
+        onDragStart = { pointer ->
+          draggable = dragHelper.onDragStart(
+            pointer.id,
+            dragRange.invoke(dragHelper.items.map { dragHelper.dragItemStateMap.getValue(it) })
+          )
+          if (draggable) {
             oldPointerId = pointer.id
-            drag(DragEvent.Dragging(pointer.id))
           }
         },
-        onDragEnd = { drag(DragEvent.End) },
-        onDragCancel = { drag(DragEvent.End) }
+        onDrag = { pointer, _ ->
+          if (draggable && pointer.id != oldPointerId) {
+            oldPointerId = pointer.id
+            dragHelper.onDragging(pointer.id)
+          }
+        },
+        onDragEnd = {
+          if (draggable) {
+            dragHelper.onDragEnd()
+          }
+        },
+        onDragCancel = {
+          if (draggable) {
+            dragHelper.onDragEnd()
+          }
+        }
       )
     } else {
+      var isDragStart = false
       detectDragGestures(
+        onDragStart = { _ ->
+          isDragStart = true // 官方在 onDragStart 未返回 pointer，并且函数内部还使用了 internal，所以这里只能用个变量去判断
+        },
         onDrag = { pointer, _ ->
-          if (pointer.id != oldPointerId) {
-            oldPointerId = pointer.id
-            drag(DragEvent.Dragging(pointer.id))
+          if (isDragStart) {
+            isDragStart = false
+            draggable = dragHelper.onDragStart(
+              pointer.id,
+              dragRange.invoke(dragHelper.items.map { dragHelper.dragItemStateMap.getValue(it) })
+            )
+            if (draggable) {
+              oldPointerId = pointer.id
+            }
+          } else {
+            if (draggable && pointer.id != oldPointerId) {
+              oldPointerId = pointer.id
+              dragHelper.onDragging(pointer.id)
+            }
           }
         },
-        onDragEnd = { drag(DragEvent.End) },
-        onDragCancel = { drag(DragEvent.End) }
+        onDragEnd = {
+          if (draggable) {
+            dragHelper.onDragEnd()
+          }
+        },
+        onDragCancel = {
+          if (draggable) {
+            dragHelper.onDragEnd()
+          }
+        }
       )
     }
   }
@@ -436,6 +471,8 @@ private class DragHelper<T>(
 
   private var listenerScrollJob: Job? = null
 
+  private var dragRange: IntRange = IntRange(0, Int.MAX_VALUE)
+
   fun update(
     items: SnapshotStateList<T>,
     dragItemStateMap: Map<T, DragItemStateImpl<T>>,
@@ -456,8 +493,40 @@ private class DragHelper<T>(
     }
   }
 
+  fun onDragStart(pointerId: PointerId, dragRange: IntRange): Boolean {
+    if (dragState != DragState.Idle) return false
+    if (dragState == DragState.Animate) {
+      dragEndAnimateJob?.cancel()
+    }
+    draggedInitialPosition =
+      currentEventState.value!!.changes.first { it.id == pointerId }.position
+    draggedInitialItemOffset = itemState.offset
+    draggedInitialScrollValue = scrollState.value
+    lastDraggedIndex = itemState.index
+
+    val startEndOffset = calculateStartEndOffset()
+    // 距离顶部的距离
+    val startDistance = startEndOffset.x - scrollState.value
+    // 距离底部的距离
+    val endDistance = scrollState.viewportSize + scrollState.value - startEndOffset.y
+    scrollDownEnable = startDistance > 10
+    scrollUpEnable = endDistance < scrollState.viewportSize - 10
+
+    // 监听滚轴的移动
+    listenerScrollJob = scope.launch {
+      snapshotFlow { scrollState.value }.collect {
+        resetItemStateOffset()
+        onDragging(draggedPointerId!!)
+      }
+    }
+
+    this.dragRange = dragRange
+
+    dragState = DragState.Dragging
+    return true
+  }
+
   fun onDragging(pointerId: PointerId) {
-    tryInitDrag(pointerId)
     draggedPointerId = pointerId
   }
 
@@ -472,7 +541,8 @@ private class DragHelper<T>(
   fun onLayout() {
     if (dragState == DragState.Dragging) {
       // 外部的 layout 会跟随 currentEventState 的改变而自动改变
-      draggedPosition = currentEventState.value!!.changes.first { it.id == draggedPointerId }.position
+      draggedPosition =
+        currentEventState.value!!.changes.first { it.id == draggedPointerId }.position
       Snapshot.withoutReadObservation {
         resetItemStateOffset()
         trySwapItem()
@@ -499,37 +569,6 @@ private class DragHelper<T>(
     }
   }
 
-  private fun tryInitDrag(pointerId: PointerId) {
-    if (dragState == DragState.Animate) {
-      dragEndAnimateJob?.cancel()
-    }
-    if (dragState != DragState.Dragging) {
-      draggedInitialPosition =
-        currentEventState.value!!.changes.first { it.id == pointerId }.position
-      draggedInitialItemOffset = itemState.offset
-      draggedInitialScrollValue = scrollState.value
-      lastDraggedIndex = itemState.index
-
-      val startEndOffset = calculateStartEndOffset()
-      // 距离顶部的距离
-      val startDistance = startEndOffset.x - scrollState.value
-      // 距离底部的距离
-      val endDistance = scrollState.viewportSize + scrollState.value - startEndOffset.y
-      scrollDownEnable = startDistance > 10
-      scrollUpEnable = endDistance < scrollState.viewportSize - 10
-
-      // 监听滚轴的移动
-      listenerScrollJob = scope.launch {
-        snapshotFlow { scrollState.value }.collect {
-          resetItemStateOffset()
-          onDragging(draggedPointerId!!)
-        }
-      }
-
-      dragState = DragState.Dragging
-    }
-  }
-
   private fun resetItemStateOffset() {
     val offset = calculateOffset()
     itemState.dragOffsetX = offset.x.roundToInt()
@@ -539,12 +578,20 @@ private class DragHelper<T>(
   private fun trySwapItem() {
     val startEndOffset = calculateStartEndOffset()
     val middleOffset = startEndOffset.x + (startEndOffset.y - startEndOffset.x) / 2F
-    val targetItem = firstTargetItemState(middleOffset)
-    if (targetItem != null && targetItem.index != lastDraggedIndex && targetItem !== itemState) {
-      items.add(targetItem.index, items.removeAt(lastDraggedIndex))
-      targetItem.triggerSwap() // target 触发交换，需要强制触发重布局
-      lastDraggedIndex = targetItem.index
+    var targetItem = firstTargetItemState(middleOffset) ?: return
+    if (targetItem.index == lastDraggedIndex || targetItem === itemState) return
+    if (targetItem.index !in dragRange) {
+      targetItem = if (lastDraggedIndex > dragRange.first) {
+        dragItemStateMap.getValue(items[dragRange.first])
+      } else if (lastDraggedIndex < dragRange.last) {
+        dragItemStateMap.getValue(items[dragRange.last])
+      } else {
+        return
+      }
     }
+    items.add(targetItem.index, items.removeAt(lastDraggedIndex))
+    targetItem.triggerSwap() // target 触发交换，需要强制触发重布局
+    lastDraggedIndex = targetItem.index
   }
 
   private fun tryScroll() {
