@@ -26,7 +26,7 @@ class TextDataSourceServiceImpl : IDataSourceService {
 
   override fun config(sourceData: String?): IDataSourceService.Config {
     return IDataSourceService.Config(
-      codeHint = "直接返回输入文本",
+      codeHint = "直接返回输入的文本",
       codeContent = sourceData,
       editTitleHintContent = persistentMapOf(),
     )

@@ -17,4 +17,8 @@ android {
   defaultConfig {
     minSdk = libsVersion("android-minSdk").requiredVersion.toInt()
   }
+  compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+  }
 }

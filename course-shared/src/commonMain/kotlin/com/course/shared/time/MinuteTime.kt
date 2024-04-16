@@ -1,7 +1,12 @@
 package com.course.shared.time
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlin.jvm.JvmInline
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
 /**
  * .
@@ -10,7 +15,7 @@ import kotlin.jvm.JvmInline
  * 2024/3/9 15:30
  */
 @JvmInline
-@Serializable
+@Serializable(MinuteTimeSerializer::class)
 value class MinuteTime(val value: Int) : Comparable<MinuteTime> {
 
   constructor(hour: Int, minute: Int) : this(
@@ -72,4 +77,17 @@ value class MinuteTime(val value: Int) : Comparable<MinuteTime> {
       throw IllegalArgumentException("minute must in 0..59")
     }
   }
+}
+
+object MinuteTimeSerializer : KSerializer<MinuteTime> {
+  override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("MinuteTime", PrimitiveKind.STRING)
+
+  override fun deserialize(decoder: Decoder): MinuteTime = deserialize(decoder.decodeString())
+
+  override fun serialize(encoder: Encoder, value: MinuteTime) = encoder.encodeString(value.toString())
+
+  fun deserialize(value: String): MinuteTime = value.split(":")
+    .let { MinuteTime(it[0].toInt(), it[1].toInt()) }
+
+  fun serialize(time: MinuteTime): String = time.toString()
 }

@@ -1,7 +1,13 @@
 package com.course.shared.time
 
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlin.jvm.JvmInline
 
 /**
@@ -11,7 +17,7 @@ import kotlin.jvm.JvmInline
  * 2024/3/9 15:37
  */
 @JvmInline
-@Serializable
+@Serializable(MinuteTimeDateSerializer::class)
 value class MinuteTimeDate(val value: Int) : Comparable<MinuteTimeDate> {
 
   constructor(date: Date, time: MinuteTime) : this((date.value shl 11) or time.value)
@@ -99,4 +105,18 @@ fun LocalDateTime.toMinuteTimeDate(): MinuteTimeDate {
     hour = this.hour,
     minute = this.minute,
   )
+}
+
+object MinuteTimeDateSerializer : KSerializer<MinuteTimeDate> {
+  override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("MinuteTimeDate", PrimitiveKind.STRING)
+
+  override fun deserialize(decoder: Decoder): MinuteTimeDate = deserialize(decoder.decodeString())
+
+  override fun serialize(encoder: Encoder, value: MinuteTimeDate) = encoder.encodeString(serialize(value))
+
+  fun deserialize(value: String): MinuteTimeDate = value.split(" ").let {
+    MinuteTimeDate(DateSerializer.deserialize(it[0]), MinuteTimeSerializer.deserialize(it[1]))
+  }
+
+  fun serialize(date: MinuteTimeDate): String = date.toString()
 }

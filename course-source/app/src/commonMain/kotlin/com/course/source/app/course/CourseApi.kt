@@ -34,12 +34,12 @@ data class CourseBean(
 data class LessonBean(
   val course: String, // 课程名
   val classroom: String, // 教室
+  val classroomSimplify: String, // 教室简写，用于 item 显示
   val teacher: String, // 老师名字
   val courseNum: String, // 课程号
-  val rawWeek: String, // 周期，比如：1-8周
-  val type: String, // 选修或者必修
   val weeks: List<Int>, // 在哪几周上课
   val dayOfWeek: DayOfWeek, // 星期数
   val beginLesson: Int, // 开始节数，如：1、2 节课以 1 开始
   val length: Int, // 课的长度
+  val showOptions: List<Pair<String, String>>, // 点击后课程详细的展示选项
 )

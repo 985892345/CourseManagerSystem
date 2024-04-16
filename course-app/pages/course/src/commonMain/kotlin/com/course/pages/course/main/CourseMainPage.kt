@@ -1,12 +1,20 @@
 package com.course.pages.course.main
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import com.course.components.base.account.Account
 import com.course.components.base.ui.toast.toast
 import com.course.components.utils.provider.Provider
@@ -14,6 +22,8 @@ import com.course.pages.course.api.ICourseService
 import com.course.pages.course.api.IMainCourseDataProvider
 import com.course.pages.course.api.data.CourseDataProvider
 import com.course.pages.course.api.data.CourseDetail
+import com.course.pages.course.api.item.CourseBottomSheetItemClickShow
+import com.course.pages.course.api.item.CourseBottomSheetState
 import com.course.pages.main.api.IMainPage
 import com.course.shared.time.Date
 import com.course.source.app.account.AccountBean
@@ -32,23 +42,46 @@ class CourseMainPage : IMainPage {
   override val priority: Int
     get() = 0
 
+  override var appBarVisibility: Boolean by mutableStateOf(true)
+
   private var oldAccount: AccountBean? = null
 
   private var oldCourseDetail: CourseDetail? = null
 
+  private val courseBottomSheetState = MainPageCourseBottomSheetState()
+
+  private val forceRefreshCourse = mutableIntStateOf(0)
+
   @Composable
-  override fun Content() {
-    Provider.impl(ICourseService::class).apply {
-      val account by Account.observeAccount().collectAsState()
-      Content(getCourseDetail(account))
+  override fun Content(appBarHeight: Dp) {
+    CourseBottomSheetItemClickShow(courseBottomSheetState) {
+      Box(modifier = Modifier.padding(bottom = appBarHeight)) {
+        Provider.impl(ICourseService::class).apply {
+          key(forceRefreshCourse.intValue) {
+            val account by Account.observeAccount().collectAsState()
+            Content(getCourseDetail(account), it)
+          }
+        }
+      }
     }
   }
 
+  @OptIn(ExperimentalFoundationApi::class)
   @Composable
   override fun BoxScope.BottomAppBarItem(selectedToPosition: () -> Unit) {
-    Text(text = "课表", modifier = Modifier.clickable {
-      selectedToPosition.invoke()
-    })
+    Text(text = "课表", modifier = Modifier.combinedClickable(
+      onClick = { selectedToPosition() },
+      onLongClick = {
+        oldAccount = null
+        oldCourseDetail = null
+        forceRefreshCourse.value++
+      }
+    ))
+  }
+
+  override fun onUnselected() {
+    super.onUnselected()
+    courseBottomSheetState.cancelShow()
   }
 
   private fun ICourseService.getCourseDetail(account: AccountBean?): CourseDetail {
@@ -65,6 +98,18 @@ class CourseMainPage : IMainPage {
       AccountType.Teacher -> teaCourseDetail(account.num, *dataProvider.toTypedArray())
       null -> EmptyAccountCourseDetail(*dataProvider.toTypedArray())
     }.also { this@CourseMainPage.oldCourseDetail = it }
+  }
+
+  private inner class MainPageCourseBottomSheetState : CourseBottomSheetState() {
+    override fun startShow() {
+      super.startShow()
+      appBarVisibility = false
+    }
+
+    override fun cancelShow() {
+      super.cancelShow()
+      appBarVisibility = true
+    }
   }
 }
 

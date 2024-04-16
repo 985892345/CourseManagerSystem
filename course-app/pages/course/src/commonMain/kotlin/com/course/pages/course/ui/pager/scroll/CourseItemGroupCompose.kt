@@ -30,7 +30,7 @@ fun CoursePagerState.CourseItemGroupCompose(
   ) {
     // 使用 toList 避免并发修改
     weekItems.toList().fastForEach {
-      key(it) {
+      key(it.itemKey) {
         CourseItemCompose(
           date = WeekItemsProvider.getItemWhichDate(it, timeline),
           item = it,
@@ -42,7 +42,7 @@ fun CoursePagerState.CourseItemGroupCompose(
 }
 
 @Composable
-private fun CourseItemCompose(
+private fun CoursePagerState.CourseItemCompose(
   date: Date,
   item: ICourseItem,
   timeline: CourseTimeline,
@@ -98,7 +98,7 @@ private fun CourseItemCompose(
       )
     }
   }) {
-    item.Content()
+    item.Content(courseComposeState.itemClickShow)
   }
 }
 

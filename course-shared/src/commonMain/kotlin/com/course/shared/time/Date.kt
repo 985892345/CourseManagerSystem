@@ -12,7 +12,6 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlin.jvm.JvmInline
-import kotlin.math.abs
 
 /**
  * 使用 value class 压缩存储日期，可以用来代替 LocalDate
@@ -161,28 +160,9 @@ value class Date(
   }
 
   override fun toString(): String {
-    val yearValue = year
-    val monthValue = monthNumber
-    val dayValue = dayOfMonth
-    val absYear = abs(yearValue)
-    val buf = StringBuilder(10)
-    if (absYear < 1000) {
-      if (yearValue < 0) {
-        buf.append(yearValue - 10000).deleteAt(1)
-      } else {
-        buf.append(yearValue + 10000).deleteAt(0)
-      }
-    } else {
-      if (yearValue > 9999) {
-        buf.append('+')
-      }
-      buf.append(yearValue)
-    }
-    return buf.append(if (monthValue < 10) "-0" else "-")
-      .append(monthValue)
-      .append(if (dayValue < 10) "-0" else "-")
-      .append(dayValue)
-      .toString()
+    return "${year}-" +
+        "${monthNumber.toString().padStart(2, '0')}-" +
+        dayOfMonth.toString().padStart(2, '0')
   }
 
   companion object {
@@ -284,15 +264,15 @@ fun LocalDate.toDate(): Date {
   return Date(year, monthNumber, dayOfMonth)
 }
 
-class DateSerializer : KSerializer<Date> {
+object DateSerializer : KSerializer<Date> {
   override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Date", PrimitiveKind.STRING)
 
-  override fun deserialize(decoder: Decoder): Date {
-    val split = decoder.decodeString().split("-")
-    return Date(split[0].toInt(), split[1].toInt(), split[2].toInt())
-  }
+  override fun deserialize(decoder: Decoder): Date = deserialize(decoder.decodeString())
 
-  override fun serialize(encoder: Encoder, value: Date) {
-    encoder.encodeString("${value.year}-${value.monthNumber}-${value.dayOfMonth}")
-  }
+  override fun serialize(encoder: Encoder, value: Date) = encoder.encodeString(serialize(value))
+
+  fun deserialize(value: String): Date = value.split("-")
+    .let { Date(it[0].toInt(), it[1].toInt(), it[2].toInt()) }
+
+  fun serialize(date: Date): String = date.toString()
 }

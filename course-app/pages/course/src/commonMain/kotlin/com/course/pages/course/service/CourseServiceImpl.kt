@@ -4,6 +4,9 @@ import androidx.compose.runtime.Composable
 import com.course.pages.course.api.ICourseService
 import com.course.pages.course.api.data.CourseDataProvider
 import com.course.pages.course.api.data.CourseDetail
+import com.course.pages.course.api.item.CourseBottomSheetItemClickShow
+import com.course.pages.course.api.item.CourseBottomSheetState
+import com.course.pages.course.api.item.CourseItemClickShow
 import com.course.pages.course.model.StuCourseDetailDataProvider
 import com.course.pages.course.model.TeaCourseDetailDataProvider
 import com.course.pages.course.ui.CourseContentCompose
@@ -20,7 +23,21 @@ object CourseServiceImpl : ICourseService {
 
   @Composable
   override fun Content(detail: CourseDetail) {
-    CourseContentCompose(detail)
+    CourseBottomSheetItemClickShow {
+      CourseContentCompose(detail, it)
+    }
+  }
+
+  @Composable
+  override fun Content(detail: CourseDetail, state: CourseBottomSheetState) {
+    CourseBottomSheetItemClickShow(state) {
+      CourseContentCompose(detail, it)
+    }
+  }
+
+  @Composable
+  override fun Content(detail: CourseDetail, itemClickShow: CourseItemClickShow) {
+    CourseContentCompose(detail, itemClickShow)
   }
 
   override fun stuCourseDetail(
@@ -36,5 +53,7 @@ object CourseServiceImpl : ICourseService {
   ): CourseDetail {
     return TeaCourseDetailDataProvider(teaNum, *dataProviders)
   }
+
+
 }
 

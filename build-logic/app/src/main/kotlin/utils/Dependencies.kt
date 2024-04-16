@@ -18,8 +18,12 @@ fun DependencyHandlerScope.kspMultiplatform(
   }
   add("kspAndroid", dependencyNotation)
   add("kspDesktop", dependencyNotation)
-  add("kspIosX64", dependencyNotation)
-  add("kspIosArm64", dependencyNotation)
-  add("kspIosSimulatorArm64", dependencyNotation)
+
+  // 暂时注释，导入 iOS 后会导致 commonMain 源集无法使用 kotlin-stdlib 依赖
+//  add("kspIosX64", dependencyNotation)
+//  add("kspIosArm64", dependencyNotation)
+//  add("kspIosSimulatorArm64", dependencyNotation)
+
+  // wasm 等待第三方依赖完善
 //  add("kspWasmJs", dependencyNotation)
 }

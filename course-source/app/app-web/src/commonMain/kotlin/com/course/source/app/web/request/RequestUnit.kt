@@ -1,5 +1,6 @@
 package com.course.source.app.web.request
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -11,6 +12,7 @@ import com.course.source.app.web.source.service.IDataSourceService
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.long
 import com.russhwolf.settings.nullableString
+import com.russhwolf.settings.string
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
@@ -28,25 +30,28 @@ data class RequestUnit(
   val serviceKey: String,
 ) {
 
+  // 需要 by lazy，防止与 RequestContent 初始化构成冲突
   private val requestContent by lazy { RequestContent.find(contentKey)!! }
 
   @Transient
   private val settings = getSettings(contentKey, id)
 
-  var title = settings.stringState("title", "${contentKey}${id}-${serviceKey}")
+  val title: MutableState<String> by lazy { settings.stringState("title", "${requestContent.name}${id}-${serviceKey}") }
 
   var sourceData: String? by settings.nullableString("sourceData")
 
   var error: String? by settings.nullableString("error")
 
-  var response: String? by settings.nullableString("response")
+  // response 分解为 2 个解决字符长度超长问题
+  var response1: String? by settings.nullableString("response1")
+  var response2: String by settings.string("response2", "")
 
   var duration: Long by settings.long("duration", -1)
 
   var requestUnitStatus by mutableStateOf(
     when {
       error != null -> RequestUnitStatus.Failure
-      response != null -> RequestUnitStatus.Success
+      response1 != null -> RequestUnitStatus.Success
       else -> RequestUnitStatus.None
     }
   )

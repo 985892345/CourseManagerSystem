@@ -43,7 +43,7 @@ class DesktopWebViewUnit {
     webClient.options.timeout = 3000 // 设置超时时间
     webClient.setAjaxController(NicelyResynchronizingAjaxController()) // 设置Ajax异步
     webClient.use {
-      val htmlPage: HtmlPage = webClient.getPage(url ?: "https://www.baidu.com/")
+      val htmlPage: HtmlPage = webClient.getPage(url ?: "about:blank")
       delay(200)
       if (js == null) return htmlPage.body.textContent
       return executeJs(htmlPage, js)

@@ -17,8 +17,8 @@ import kotlinx.coroutines.launch
 private var LogJob: Job? = null
 
 @OptIn(DelicateCoroutinesApi::class)
-actual fun logg(msg: String) {
-  android.util.Log.d("ggg", "(${Exception().stackTrace[1].run { "$fileName:$lineNumber" }}) -> " +
+actual fun log(msg: String) {
+  android.util.Log.d("ggg", "(${Exception().stackTrace[2].run { "$fileName:$lineNumber" }}) -> " +
       msg)
   LogJob?.cancel()
   LogJob = GlobalScope.launch(Dispatchers.Main.immediate) {

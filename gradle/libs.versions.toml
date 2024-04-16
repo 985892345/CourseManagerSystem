@@ -4,11 +4,11 @@ android-compileSdk = "34"
 android-minSdk = "26"
 android-targetSdk = "34"
 androidx-activityCompose = "1.8.2"
-compose = "1.6.3"
-compose-compiler = "1.5.10"
+compose = "1.6.4"
+compose-compiler = "1.5.11"
 
 # https://github.com/JetBrains/compose-multiplatform/releases
-compose-plugin = "1.6.1"
+compose-plugin = "1.6.2"
 
 kotlin = "1.9.23"
 
@@ -19,13 +19,13 @@ kotlinx-coroutines = "1.8.0"
 kotlinx-serialization = "1.6.3"
 
 # https://github.com/google/ksp/releases
-ksp = "1.9.23-1.0.19" # ksp 版本与 kotlin 版本强绑定，升级 kotlin 记得去更 ksp
+ksp = "1.9.23-1.0.20" # ksp 版本与 kotlin 版本强绑定，升级 kotlin 记得去更 ksp
 
 # https://github.com/Kotlin/kotlinx-datetime
 kotlinxDatetime = "0.6.0-RC.2"
 
 # https://github.com/ktorio/ktor
-ktor = "2.3.9"
+ktor = "2.3.10"
 
 # https://github.com/985892345/AndroidWheel
 androidWheel = "0.0.1-alpha16-SNAPSHOT" # 985892345 的 Android 轮子库
@@ -40,7 +40,7 @@ ktProvider = "1.3.3-alpha14-SNAPSHOT" # 985892345 的 kt 多平台跨模块服�
 multiplatformSettings = "1.1.1"
 
 # https://github.com/adrielcafe/voyager
-voyager = "1.1.0-alpha03"
+voyager = "1.1.0-alpha04"
 
 # https://github.com/Lavmee/constraintlayout-compose-multiplatform
 constraintLayout = "0.3.1"
@@ -71,7 +71,7 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
-kotlinx-coroutinesAndroid = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutinesAndroid = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 
 kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 kotlinx-serialization-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }

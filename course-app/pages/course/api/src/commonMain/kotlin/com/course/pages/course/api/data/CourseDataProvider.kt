@@ -32,6 +32,7 @@ open class CourseDataProvider : DataChangedListener {
 
   override fun addAll(items: Collection<ICourseItem>?) {
     items ?: return
+    if (items.isEmpty()) return
     data.addAll(items)
     changedListeners.forEach {
       it.addAll(items)
@@ -48,6 +49,7 @@ open class CourseDataProvider : DataChangedListener {
 
   override fun removeAll(items: Collection<ICourseItem>?) {
     items ?: return
+    if (items.isEmpty()) return
     data.removeAll(items)
     changedListeners.forEach {
       it.removeAll(items)
@@ -66,11 +68,20 @@ open class CourseDataProvider : DataChangedListener {
   }
 
   /**
-   * 选中日期发送改变时回调
+   * 选中日期发生改变时回调
    */
   open fun onChangedClickDate(date: Date) {
   }
 
+  /**
+   * 开始日期发生改变时回调
+   */
+  open fun onChangedStartDate(startDate: Date) {
+  }
+
+  /**
+   * 在课表组件加载时回调
+   */
   open fun onComposeInit(coroutineScope: CoroutineScope) {
     this.coroutineScope = coroutineScope
   }

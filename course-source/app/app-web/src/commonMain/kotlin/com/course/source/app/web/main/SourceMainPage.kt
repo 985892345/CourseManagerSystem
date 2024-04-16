@@ -1,10 +1,13 @@
 package com.course.source.app.web.main
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import com.course.pages.main.api.IMainPage
 import com.course.source.app.web.source.page.SourceScreen
 import com.g985892345.provider.api.annotation.ImplProvider
@@ -22,8 +25,10 @@ class SourceMainPage : IMainPage {
     get() = 10
 
   @Composable
-  override fun Content() {
-    SourceScreen().Content()
+  override fun Content(appBarHeight: Dp) {
+    Box(modifier = Modifier.padding(bottom = appBarHeight)) {
+      SourceScreen().Content()
+    }
   }
 
   @Composable

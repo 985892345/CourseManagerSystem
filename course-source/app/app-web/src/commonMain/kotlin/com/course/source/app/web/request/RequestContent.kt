@@ -12,9 +12,12 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -35,6 +38,7 @@ import com.course.components.base.theme.LocalAppColors
 import com.course.components.utils.coroutine.AppComposeCoroutineScope
 import com.course.components.utils.preferences.createSettings
 import com.course.components.utils.preferences.longState
+import com.course.components.utils.preferences.stringState
 import com.course.components.view.edit.EditTextCompose
 import com.course.source.app.web.request.RequestContentStatus.Empty
 import com.course.source.app.web.request.RequestContentStatus.Failure
@@ -45,7 +49,9 @@ import com.course.source.app.web.request.RequestContentStatus.Requesting
 import com.course.source.app.web.request.RequestContentStatus.Success
 import com.course.source.app.web.source.page.RequestContentScreen
 import com.russhwolf.settings.long
+import com.russhwolf.settings.nullableString
 import com.russhwolf.settings.string
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -84,25 +90,35 @@ data class RequestContent<T : Any>(
         }
       }
     }
+
+    val Json = Json {
+      ignoreUnknownKeys = true
+      isLenient = true
+      coerceInputValues = true
+    }
   }
 
   private val settings = createSettings("RequestContent-$key")
 
   val requestUnits: SnapshotStateList<RequestUnit> = settings.getStringOrNull("requestUnits")
-    ?.let { Json.decodeFromString<List<RequestUnit>>(it).toMutableStateList() }
-    ?: SnapshotStateList()
+    ?.let {
+      runCatching { Json.decodeFromString<List<RequestUnit>>(it) }.onFailure {
+        settings.remove("requestUnits")
+      }.getOrNull()?.toMutableStateList()
+    } ?: SnapshotStateList()
 
-  val title = mutableStateOf(name)
+  val title: MutableState<String> by lazy { settings.stringState("title", name) }
 
   var requestTimestamp: Long by settings.longState("requestTimestamp", 0L)
     private set
 
   private var responseTimestamp: Long by settings.longState("responseTimestamp", 0L)
-    private set
 
   var cacheExpiration: Long by settings.long("cacheExpiration", 12.hours.inWholeMilliseconds)
 
   private var prevRequestValues: String by settings.string("prevRequestValues", "[]")
+  private var prevRequestResponse1: String? by settings.nullableString("prevRequestResponse1")
+  private var prevRequestResponse2: String by settings.string("prevRequestResponse2", "")
 
   var requestContentStatus: RequestContentStatus by mutableStateOf(
     when {
@@ -114,29 +130,28 @@ data class RequestContent<T : Any>(
   )
     private set
 
-  suspend fun request(isForce: Boolean, vararg values: String): T? {
+  suspend fun request(isForce: Boolean, cacheable: Boolean, vararg values: String): T? {
     if (values.size != parameterWithHint.size)
       throw IllegalArgumentException("参数数量不匹配，应有 ${parameterWithHint.size}, 实有: ${values.size}")
     if (requestUnits.isEmpty()) throw IllegalStateException("未设置请求")
     val nowTime = Clock.System.now().toEpochMilliseconds()
     val newValues = Json.encodeToString(values)
     val isCacheValid = nowTime - responseTimestamp < cacheExpiration &&
-        newValues == prevRequestValues
+        newValues == prevRequestValues && cacheable && prevRequestResponse1 != null
     prevRequestValues = newValues
     requestContentStatus = Requesting
     requestTimestamp = nowTime
     if (!isForce && isCacheValid) {
-      for (unit in requestUnits.toList()) {
-        if (unit.requestUnitStatus == RequestUnit.RequestUnitStatus.Success) {
-          try {
-            return Json.decodeFromString(resultSerializer, unit.response!!).apply {
-              requestContentStatus = HitCache
-            }
-          } catch (e: Exception) {
-            unit.error = e.stackTraceToString()
-            unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Failure
-          }
+      try {
+        return Json.decodeFromString(
+          resultSerializer,
+          prevRequestResponse1 + prevRequestResponse2
+        ).apply {
+          requestContentStatus = HitCache
         }
+      } catch (e: Exception) {
+        prevRequestResponse1 = null
+        prevRequestResponse2 = ""
       }
     }
     var index = 0
@@ -150,14 +165,34 @@ data class RequestContent<T : Any>(
             unit.request(parameters)
           }
         }.inWholeMilliseconds
-        unit.response = response
         unit.error = null
-        val result = Json.decodeFromString(resultSerializer, response)
         // 如果 result 反序列化异常，则认为请求失败
+        val result = Json.decodeFromString(resultSerializer, response)
+        if (response.length <= 8 * 1024) {
+          unit.response1 = response
+          unit.response2 = ""
+          if (cacheable) {
+            prevRequestResponse1 = response
+            prevRequestResponse2 = ""
+          }
+        } else {
+          // 最多存到 16k 的字符串
+          unit.response1 = response.substring(0, 8 * 1024)
+          unit.response2 = response.substring(8 * 1024)
+          if (cacheable) {
+            prevRequestResponse1 = unit.response1
+            prevRequestResponse2 = unit.response2
+          }
+        }
         responseTimestamp = Clock.System.now().toEpochMilliseconds()
         requestContentStatus = Success
         unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Success
         return result
+      } catch (e: CancellationException) {
+        unit.error = e.stackTraceToString()
+        unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Failure
+        requestContentStatus = Failure
+        throw e
       } catch (e: Exception) {
         // nothing
         unit.error = e.stackTraceToString()
@@ -165,17 +200,16 @@ data class RequestContent<T : Any>(
       }
     }
     if (isCacheValid) {
-      for (unit in requestUnits.toList()) {
-        if (unit.requestUnitStatus == RequestUnit.RequestUnitStatus.Success) {
-          try {
-            return Json.decodeFromString(resultSerializer, unit.response!!).apply {
-              requestContentStatus = FailureButHitCache
-            }
-          } catch (e: Exception) {
-            unit.error = e.stackTraceToString()
-            unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Failure
-          }
+      try {
+        return Json.decodeFromString(
+          resultSerializer,
+          prevRequestResponse1 + prevRequestResponse2
+        ).apply {
+          requestContentStatus = FailureButHitCache
         }
+      } catch (e: Exception) {
+        prevRequestResponse1 = null
+        prevRequestResponse2 = ""
       }
     }
     requestContentStatus = Failure
@@ -207,10 +241,14 @@ private fun CardContent(requestContent: RequestContent<*>) {
     modifier = Modifier.fillMaxWidth().wrapContentHeight(),
     elevation = 2.dp,
   ) {
+    val title = remember { mutableStateOf(requestContent.title.value) }
     val navigator = LocalNavigator.current
     Box(
       modifier = Modifier.fillMaxWidth()
         .clickable {
+          if (requestContent.editable) {
+            requestContent.title.value = title.value
+          }
           navigator?.push(RequestContentScreen(requestContent.key))
         }
     ) {
@@ -218,8 +256,11 @@ private fun CardContent(requestContent: RequestContent<*>) {
         modifier = Modifier.padding(start = 14.dp, top = 14.dp, bottom = 18.dp)
       ) {
         if (requestContent.editable) {
+          DisposableEffect(Unit) {
+            onDispose { requestContent.title.value = title.value }
+          }
           EditTextCompose(
-            text = requestContent.title,
+            text = title,
             textStyle = TextStyle(
               fontSize = 18.sp,
               fontWeight = FontWeight.Bold,

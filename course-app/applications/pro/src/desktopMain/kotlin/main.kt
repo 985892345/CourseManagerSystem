@@ -30,7 +30,7 @@ fun main() = runApp {
       onCloseRequest = ::exitApplication,
       title = "课表管理系统",
       state = WindowState(width = 390.dp, height = 800.dp),
-      resizable = false,
+//      resizable = false,
     ) {
       ProApp.Content()
 //      val list = remember {

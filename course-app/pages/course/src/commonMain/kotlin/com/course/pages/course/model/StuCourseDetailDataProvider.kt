@@ -15,7 +15,6 @@ import com.course.shared.time.Date
 import com.course.source.app.course.CourseBean
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -41,6 +40,9 @@ class StuCourseDetailDataProvider(
   }
 
   private var clickDate by mutableStateOf(Today)
+
+  override val initialClickDate: Date
+    get() = clickDate
 
   override val title: String by derivedStateOfStructure {
     val start = getClickCourseBean()?.beginDate
@@ -82,17 +84,6 @@ class StuCourseDetailDataProvider(
           }
         }
       }
-    } else {
-      if (firstCourseBeanJob == null) {
-        // 不存在数据时点击日期就尝试刷新
-        firstCourseBeanJob = StuLessonRepository.getCourseBean(stuNum)
-          .flowOn(Dispatchers.IO)
-          .onEach { bean ->
-            setCourse(bean)
-          }.onCompletion {
-            firstCourseBeanJob = null
-          }.launchIn(coroutineScope)
-      }
     }
   }
 
@@ -103,8 +94,6 @@ class StuCourseDetailDataProvider(
         .flowOn(Dispatchers.IO)
         .onEach { bean ->
           setCourse(bean)
-        }.onCompletion {
-          firstCourseBeanJob = null
         }.launchIn(coroutineScope)
     }
   }

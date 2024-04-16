@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
@@ -268,18 +269,20 @@ private fun TextCompose(
         }
       )
     } else {
-      BasicText(
-        text = text.value.ifEmpty { hint },
-        color = { if (text.value.isEmpty()) Color.Gray else style.value.color },
-        style = style.value,
-        onTextLayout = { result ->
-          if (text.value.isNotEmpty()) {
-            textLinesBottom.value = List(result.lineCount) { result.getLineBottom(it) }
-          } else {
-            hintLinesBottom.value = List(result.lineCount) { result.getLineBottom(it) }
+      SelectionContainer {
+        BasicText(
+          text = text.value.ifEmpty { hint },
+          color = { if (text.value.isEmpty()) Color.Gray else style.value.color },
+          style = style.value,
+          onTextLayout = { result ->
+            if (text.value.isNotEmpty()) {
+              textLinesBottom.value = List(result.lineCount) { result.getLineBottom(it) }
+            } else {
+              hintLinesBottom.value = List(result.lineCount) { result.getLineBottom(it) }
+            }
           }
-        }
-      )
+        )
+      }
     }
   }
 }

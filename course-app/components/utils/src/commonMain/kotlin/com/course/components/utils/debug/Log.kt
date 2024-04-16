@@ -7,4 +7,8 @@ package com.course.components.utils.debug
  * @date 2024/1/23 10:22
  */
 
-expect fun logg(msg: String)
+expect fun log(msg: String)
+
+fun logg(msg: Any) {
+  log(msg.toString())
+}

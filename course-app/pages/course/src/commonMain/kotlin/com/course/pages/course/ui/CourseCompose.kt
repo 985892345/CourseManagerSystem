@@ -23,6 +23,7 @@ import com.course.components.utils.compose.Wrapper
 import com.course.components.utils.compose.reflexScrollableForMouse
 import com.course.components.utils.time.Today
 import com.course.pages.course.api.data.CourseDataProvider
+import com.course.pages.course.api.item.CourseItemClickShow
 import com.course.pages.course.ui.pager.CoursePagerCompose
 import com.course.pages.course.ui.pager.WeekItemsProvider
 import com.course.pages.course.ui.pager.rememberCoursePagerState
@@ -66,6 +67,7 @@ fun CourseCompose(
     pageContent = { page ->
       val weekBeginDate = state.beginDate.plusWeeks(page)
       val coursePagerState = rememberCoursePagerState(
+        courseComposeState = state,
         weekBeginDate = weekBeginDate,
         timeline = timeline,
         weekItems = weekItemsProvider.getWeekItems(
@@ -109,31 +111,12 @@ class CourseComposeState(
   val startDateState: State<Date>,
   val endDateState: State<Date>,
   val data: ImmutableList<CourseDataProvider>,
+  val itemClickShow: CourseItemClickShow
 ) {
-
   val beginDate: Date
     get() = startDateState.value.minusDays(startDateState.value.dayOfWeekOrdinal)
   val finalDate: Date
     get() = endDateState.value.plusDays(6 - endDateState.value.dayOfWeekOrdinal)
-
-  /**
-   * 当前学期的周数
-   *
-   * @return 返回 0，则表示开学前一周（因为第一周开学）; 返回 null 则说明无数据
-   *
-   * # 注意：存在返回负数的情况！！！
-   * ```
-   *     -1      0      1      2       3        4             返回值
-   *  ----------------------------------------------------------->
-   * -14     -7      0      7      14       21       28       天数差
-   * ```
-   */
-//  val nowWeek by derivedStateOf(structuralEqualityPolicy()) {
-//    semesterVpData.terms.lastOrNull()?.let {
-//      val dayOfTerm = it.firstDate.daysUntil(Today)
-//      if (dayOfTerm >= 0) dayOfTerm / 7 + 1 else dayOfTerm / 7
-//    }
-//  }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -142,6 +125,7 @@ fun rememberCourseComposeState(
   startDate: Date = Date(1901, 1, 1),
   endDate: Date = Date(2099, 12, 31),
   data: ImmutableList<CourseDataProvider> = remember { persistentListOf(CourseDataProvider()) },
+  itemClickShow: CourseItemClickShow,
 ): CourseComposeState {
   val coroutineScope = rememberCoroutineScope()
   val startDateState = rememberUpdatedState(startDate)
@@ -160,6 +144,7 @@ fun rememberCourseComposeState(
       startDateState = startDateState,
       endDateState = endDateState,
       data = data,
+      itemClickShow = itemClickShow,
     )
   }
 }

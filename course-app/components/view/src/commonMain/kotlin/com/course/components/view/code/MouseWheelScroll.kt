@@ -152,7 +152,7 @@ internal class MouseWheelScrollNode(
   }
 
   private inline val PointerEvent.isConsumed: Boolean get() = changes.fastAny { it.isConsumed }
-  private inline fun PointerEvent.consume() = changes.fastForEach { it.consume() }
+  private fun PointerEvent.consume() = changes.fastForEach { it.consume() }
 }
 
 private abstract class ScrollPhysics {

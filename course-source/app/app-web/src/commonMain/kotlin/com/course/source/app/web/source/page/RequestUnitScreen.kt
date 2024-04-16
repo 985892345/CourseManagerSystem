@@ -133,9 +133,10 @@ class RequestUnitScreen(
 
   @Composable
   private fun ToolbarCompose() {
+    val title = remember { mutableStateOf(requestUnit.title.value) }
     Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
       EditTextCompose(
-        text = requestUnit.title,
+        text = title,
         modifier = Modifier.align(Alignment.Center),
         isShowIndicatorLine = false,
         textStyle = TextStyle(
@@ -151,6 +152,7 @@ class RequestUnitScreen(
           .padding(start = 12.dp)
           .size(32.dp)
           .clickableCardIndicator {
+            requestUnit.title.value = title.value
             navigator?.pop()
           },
         contentAlignment = Alignment.Center,

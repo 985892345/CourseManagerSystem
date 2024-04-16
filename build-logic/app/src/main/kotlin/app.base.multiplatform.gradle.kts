@@ -1,5 +1,4 @@
 import extensions.libsLibrary
-import utils.Config
 
 plugins {
   id("kotlin-multiplatform")
@@ -8,16 +7,18 @@ plugins {
 kotlin {
   jvm("desktop")
   jvmToolchain(17)
-  listOf(
-    iosX64(),
-    iosArm64(),
-    iosSimulatorArm64()
-  ).forEach { iosTarget ->
-    iosTarget.binaries.framework {
-      baseName = Config.getBaseName(project)
-      isStatic = true
-    }
-  }
+
+  // 暂时注释，导入 iOS 后会导致 commonMain 源集无法使用 kotlin-stdlib 依赖
+//  listOf(
+//    iosX64(),
+//    iosArm64(),
+//    iosSimulatorArm64()
+//  ).forEach { iosTarget ->
+//    iosTarget.binaries.framework {
+//      baseName = Config.getBaseName(project)
+//      isStatic = true
+//    }
+//  }
   androidTarget {
     compilations.all {
       kotlinOptions {

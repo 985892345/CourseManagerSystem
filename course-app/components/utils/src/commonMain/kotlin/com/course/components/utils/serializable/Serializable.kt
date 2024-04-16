@@ -46,6 +46,8 @@ class TextUnitSerializable : KSerializer<TextUnit> {
   }
 }
 
+// 此 ColorSerializable 用于保存原始的 Color，因为其内部包含不同的颜色模式，所以解析出来的值并不可读，
+// 但大部分情况下使用 aRGB 模式。可以使用 ColorArgbSerializable 来进行序列化
 class ColorSerializable : KSerializer<Color> {
   override val descriptor: SerialDescriptor =
     PrimitiveSerialDescriptor("androidx.compose.ui.graphics.Color", PrimitiveKind.LONG)
@@ -56,6 +58,19 @@ class ColorSerializable : KSerializer<Color> {
 
   override fun serialize(encoder: Encoder, value: Color) {
     encoder.encodeLong(value.value.toLong())
+  }
+}
+
+class ColorArgbSerializable : KSerializer<Color> {
+  override val descriptor: SerialDescriptor =
+    PrimitiveSerialDescriptor("androidx.compose.ui.graphics.ColorArgb", PrimitiveKind.STRING)
+
+  override fun deserialize(decoder: Decoder): Color {
+    return Color(decoder.decodeString().toLong(16))
+  }
+
+  override fun serialize(encoder: Encoder, value: Color) {
+    encoder.encodeString((value.value.toLong() ushr 32).toString(16))
   }
 }
 

@@ -37,7 +37,7 @@ object AccountApiImpl : SourceRequest(), AccountApi {
   )
 
   override suspend fun getAccount(): ResponseWrapper<AccountBean> {
-    val data = accountBeanRequest.request(true)
+    val data = accountBeanRequest.request(isForce = true, cacheable = false)
     return if (data != null) {
       ResponseWrapper.success(data)
     } else {
@@ -51,6 +51,7 @@ object AccountApiImpl : SourceRequest(), AccountApi {
     @Composable
     override fun onComposeInit() {
       LaunchedEffect(Unit) {
+        accountBeanRequest // 第一次类初始化调用不能在 snapshotFlow 中触发
         snapshotFlow {
           accountBeanRequest.requestUnits.toList().also { list ->
             list.forEach {

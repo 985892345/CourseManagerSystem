@@ -1,6 +1,7 @@
 package com.course.pages.course.api.data
 
 import androidx.compose.runtime.Stable
+import com.course.components.utils.time.Today
 import com.course.shared.time.Date
 import kotlinx.coroutines.CoroutineScope
 
@@ -23,9 +24,17 @@ abstract class CourseDetail(
 
   abstract val subtitle: String
 
+  open val initialClickDate: Date
+    get() = Today
+
   override fun onChangedClickDate(date: Date) {
     super.onChangedClickDate(date)
     dataProviders.forEach { it.onChangedClickDate(date) }
+  }
+
+  override fun onChangedStartDate(startDate: Date) {
+    super.onChangedStartDate(startDate)
+    dataProviders.forEach { it.onChangedStartDate(startDate) }
   }
 
   override fun onComposeInit(coroutineScope: CoroutineScope) {

@@ -29,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import com.course.components.utils.compose.clickableCardIndicator
 import com.course.components.utils.compose.clickableNoIndicator
 import com.course.components.utils.compose.derivedStateOfStructure
 import com.course.components.utils.time.Today
@@ -38,6 +37,7 @@ import com.course.components.view.calendar.layout.CalendarContentOffsetMeasurePo
 import com.course.components.view.calendar.state.CalendarState
 import com.course.components.view.calendar.state.rememberCalendarState
 import com.course.pages.course.api.data.CourseDetail
+import com.course.pages.course.api.item.CourseItemClickShow
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -52,8 +52,12 @@ import kotlin.math.abs
  */
 
 @Composable
-fun CourseContentCompose(detail: CourseDetail) {
+fun CourseContentCompose(
+  detail: CourseDetail,
+  itemClickShow: CourseItemClickShow,
+) {
   val calendarState = rememberCalendarState(
+    initialClickDate = detail.initialClickDate,
     startDate = detail.startDate,
     endDate = detail.endDate,
   )
@@ -61,6 +65,7 @@ fun CourseContentCompose(detail: CourseDetail) {
     startDate = detail.startDate,
     endDate = detail.endDate,
     data = persistentListOf(detail, *detail.dataProviders),
+    itemClickShow = itemClickShow,
   )
   Column(modifier = Modifier.systemBarsPadding()) {
     CourseHeaderCompose(detail, calendarState, courseComposeState)
@@ -77,12 +82,23 @@ fun CourseContentCompose(detail: CourseDetail) {
     }
   }
   configCalendarCoursePager(calendarState, courseComposeState)
+  callbackToDetail(detail, calendarState)
+}
+
+@Composable
+private fun callbackToDetail(detail: CourseDetail, calendarState: CalendarState) {
+  val coroutineScope = rememberCoroutineScope()
   LaunchedEffect(Unit) {
-    detail.onComposeInit(this)
+    detail.onComposeInit(coroutineScope)
   }
   LaunchedEffect(detail, calendarState) {
     snapshotFlow { calendarState.clickDate }.collect {
       detail.onChangedClickDate(it)
+    }
+  }
+  LaunchedEffect(detail) {
+    snapshotFlow { detail.startDate }.collect {
+      detail.onChangedStartDate(it)
     }
   }
 }

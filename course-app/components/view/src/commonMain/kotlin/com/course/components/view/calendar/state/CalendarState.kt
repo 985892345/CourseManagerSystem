@@ -13,6 +13,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.snapshots.Snapshot
 import com.course.components.utils.compose.derivedStateOfStructure
 import com.course.shared.time.Date
 import com.course.components.utils.time.Today
@@ -35,6 +36,7 @@ import kotlin.math.roundToInt
 @Stable
 class CalendarState(
   internal val coroutineScope: CoroutineScope,
+  val initialClickDate: Date,
   val startDateState: State<Date>,
   val endDateState: State<Date>,
   internal var onClick: ((Date) -> Unit)? = null,
@@ -58,7 +60,7 @@ class CalendarState(
   internal var tempClickDate: Date? = null
 
   internal val clickDateState = mutableStateOf(
-    Today.coerceIn(startDateState.value, endDateState.value)
+    initialClickDate.coerceIn(startDateState.value, endDateState.value)
   ).apply {
     snapshotFlow { Today }
       .onEach { if (value.plusDays(1) == it) updateClickDate(it) }
@@ -189,6 +191,7 @@ class CalendarState(
 
 @Composable
 fun rememberCalendarState(
+  initialClickDate: Date = Snapshot.withoutReadObservation { Today },
   startDate: Date = Date(1901, 1, 1),
   endDate: Date = Date(2099, 12, 31),
   onClick: ((Date) -> Unit)? = null,
@@ -199,6 +202,7 @@ fun rememberCalendarState(
   return remember {
     CalendarState(
       coroutineScope = coroutineScope,
+      initialClickDate = initialClickDate,
       startDateState = startDateState,
       endDateState = endDateState,
       onClick = onClick,

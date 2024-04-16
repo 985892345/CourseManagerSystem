@@ -1,7 +1,21 @@
 package com.course.pages.course.api.item
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.course.shared.time.MinuteTimeDate
 import com.course.shared.time.toMinuteTimeDate
 import kotlinx.datetime.Clock
@@ -9,7 +23,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 /**
- * .
+ * 使用 [CardContent] [TopBottomText] 统一样式
  *
  * @author 985892345
  * @date 2024/1/25 13:03
@@ -33,12 +47,12 @@ interface ICourseItem : Comparable<ICourseItem> {
   val rank: Int
 
   /**
-   * item 唯一的 key 值，可用于定位 item 是否发生移动
+   * item 唯一的 key 值，可用于定位 item 在当前周内是否发生移动
    */
-  val itemKey: Any
+  val itemKey: String
 
   @Composable
-  fun Content()
+  fun Content(itemClickShow: CourseItemClickShow)
 
   /**
    * 返回 1 显示在上面
@@ -78,5 +92,59 @@ interface ICourseItem : Comparable<ICourseItem> {
     inline fun compareDiff(diff: Int, block: () -> Int): Int {
       return if (diff != 0) diff else block.invoke()
     }
+  }
+}
+
+/**
+ * 添加统一样式的圆角和边距
+ */
+@Composable
+inline fun ICourseItem.CardContent(
+  backgroundColor: Color,
+  crossinline content: @Composable () -> Unit
+) {
+  Card(
+    modifier = Modifier.padding(1.6.dp),
+    shape = RoundedCornerShape(8.dp),
+    elevation = 0.5.dp,
+    backgroundColor = backgroundColor
+  ) {
+    content.invoke()
+  }
+}
+
+/**
+ * 添加统一样式的顶部和底部文字
+ */
+@Composable
+fun ICourseItem.TopBottomText(
+  top: String,
+  topColor: Color,
+  bottom: String,
+  bottomColor: Color,
+) {
+  Box(
+    modifier = Modifier.fillMaxSize()
+      .padding(horizontal = 7.dp, vertical = 7.dp)
+  ) {
+    Text(
+      text = top,
+      textAlign = TextAlign.Center,
+      color = topColor,
+      maxLines = 3,
+      overflow = TextOverflow.Ellipsis,
+      fontSize = 11.sp,
+      modifier = Modifier.fillMaxWidth()
+    )
+    Text(
+      text = bottom,
+      textAlign = TextAlign.Center,
+      color = bottomColor,
+      maxLines = 2,
+      overflow = TextOverflow.Ellipsis,
+      fontSize = 11.sp,
+      modifier = Modifier.fillMaxWidth()
+        .align(Alignment.BottomCenter)
+    )
   }
 }

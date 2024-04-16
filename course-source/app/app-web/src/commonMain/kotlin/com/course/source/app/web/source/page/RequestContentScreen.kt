@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -203,10 +204,14 @@ class RequestContentScreen(
 @Composable
 private fun ToolbarCompose(requestContent: RequestContent<*>) {
   Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
+    val title = remember { mutableStateOf(requestContent.title.value) }
     if (requestContent.editable) {
+      DisposableEffect(Unit) {
+        onDispose { requestContent.title.value = title.value }
+      }
       EditTextCompose(
         modifier = Modifier.align(Alignment.Center),
-        text = requestContent.title,
+        text = title,
         textStyle = TextStyle(
           fontSize = 21.sp,
           fontWeight = FontWeight.Bold,
@@ -230,6 +235,9 @@ private fun ToolbarCompose(requestContent: RequestContent<*>) {
         .padding(start = 12.dp)
         .size(32.dp)
         .clickableCardIndicator {
+          if (requestContent.editable) {
+            requestContent.title.value = title.value
+          }
           navigator?.pop()
         },
       contentAlignment = Alignment.Center,
@@ -332,8 +340,14 @@ private fun DragItemState<RequestUnit>.ListItemCompose(
       }
     }) {
       Column(modifier = Modifier.padding(start = 14.dp, top = 14.dp)) {
+        val title = remember { mutableStateOf(requestUnit.title.value) }
+        DisposableEffect(Unit) {
+          onDispose {
+            requestUnit.title.value = title.value
+          }
+        }
         EditTextCompose(
-          text = requestUnit.title,
+          text = title,
           textStyle = TextStyle(
             fontSize = 18.sp,
             color = LocalAppColors.current.tvLv1,
@@ -370,7 +384,7 @@ private fun DragItemState<RequestUnit>.ListItemCompose(
   }
 }
 
-private val PrettyPrintJson = Json {
+private val PrettyPrintJson = Json(RequestContent.Json) {
   prettyPrint = true
 }
 
@@ -391,9 +405,12 @@ private fun BoxScope.RequestResultImageCompose(requestContent: RequestContent<*>
                   None, Requesting -> ""
                   Success -> PrettyPrintJson.encodeToString(
                     requestContent.resultSerializer as KSerializer<Any>,
-                    Json.decodeFromString(requestContent.resultSerializer, requestUnit.response!!)
+                    PrettyPrintJson.decodeFromString(
+                      requestContent.resultSerializer,
+                      (requestUnit.response1 ?: "") + requestUnit.response2
+                    )
                   )
-                  Failure -> "请求失败\n返回值: ${requestUnit.response}\n\n异常信息: ${requestUnit.error}"
+                  Failure -> "请求失败\n返回值: ${requestUnit.response1}\n\n异常信息: ${requestUnit.error}"
                 }
               )
             },

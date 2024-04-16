@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
@@ -28,11 +29,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.navigator.LocalNavigator
 import com.course.components.base.theme.LocalAppColors
+import com.course.components.utils.coroutine.AppComposeCoroutineScope
+import com.course.components.utils.debug.logg
 import com.course.components.utils.preferences.createSettings
 import com.course.components.utils.preferences.longState
+import com.course.source.app.web.request.RequestContentStatus.FailureButHitCache
+import com.course.source.app.web.request.RequestContentStatus.HitCache
 import com.course.source.app.web.source.page.RequestGroupScreen
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.datetime.Clock
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -65,23 +75,25 @@ class RequestGroup<T : Any>(
   val requestContents: SnapshotStateList<RequestContent<T>> =
     settings.getStringOrNull("requestContents")
       ?.let { value ->
-        Json.decodeFromString<Map<String, String>>(value).map {
+        runCatching { Json.decodeFromString<List<String>>(value) }.onFailure {
+          settings.remove("requestContents")
+        }.getOrNull()?.map {
           RequestContent(
-            key = it.key,
-            name = it.value,
+            key = it,
+            name = "点击重命名", // 名字由内部 title 保存
             parameterWithHint = parameterWithHint,
             resultSerializer = resultSerializer,
             format = format,
             editable = true,
           )
-        }.toMutableStateList()
+        }?.toMutableStateList()
       } ?: SnapshotStateList()
 
   fun addRequestContent() {
     requestContents.add(
       RequestContent(
         key = "$key-${Clock.System.now().toEpochMilliseconds()}",
-        name = "点击重命名",
+        name = "点击重命名", // 名字由内部 title 保存
         parameterWithHint = parameterWithHint,
         resultSerializer = resultSerializer,
         format = format,
@@ -90,18 +102,35 @@ class RequestGroup<T : Any>(
     )
   }
 
-  suspend fun request(isForce: Boolean, vararg values: String): List<T> {
+  suspend fun request(isForce: Boolean, cacheable: Boolean, vararg values: String): Map<RequestContent<T>, T> {
     if (values.size != parameterWithHint.size)
       throw IllegalArgumentException("参数数量不匹配，应有 ${parameterWithHint.size}, 实有: ${values.size}")
     if (requestContents.isEmpty()) throw IllegalStateException("未设置请求")
-    return requestContents.toList().mapNotNull {
-      it.request(isForce, *values)
+    return supervisorScope {
+      requestContents.toList().map {
+        it to async {
+          it.request(isForce, cacheable, *values)
+        }
+      }.mapNotNull { pair ->
+        val result = runCatching { pair.second.await() }.onFailure {
+          logg("WTF: ${it.stackTraceToString()}")
+        }.getOrNull() ?: return@mapNotNull null
+        pair.first to result
+      }.toMap()
     }
   }
 
   @Composable
   override fun CardContent() {
     CardContent(this)
+  }
+
+  init {
+    AppComposeCoroutineScope.launch {
+      snapshotFlow { requestContents.toList() }.drop(1).collect { list ->
+        settings.putString("requestContents", Json.encodeToString(list.map { it.key }))
+      }
+    }
   }
 }
 
@@ -177,7 +206,9 @@ private fun buildStateString(requestGroup: RequestGroup<*>): AnnotatedString {
       append(AnnotatedString("未触发请求", SpanStyle(Color(0xFF0099CC))))
     } else {
       val success = list.sumOf {
-        if (it.requestContentStatus == RequestContentStatus.Success) 1L else 0
+        if (it.requestContentStatus == RequestContentStatus.Success ||
+          it.requestContentStatus == HitCache || it.requestContentStatus == FailureButHitCache
+        ) 1L else 0
       }
       val failure = list.sumOf {
         if (it.requestContentStatus == RequestContentStatus.Failure) 1L else 0

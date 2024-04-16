@@ -1,24 +1,28 @@
 package com.course.pages.course.api.item.lesson
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.course.components.base.ui.toast.toast
+import androidx.compose.ui.util.fastForEach
+import com.course.components.base.theme.LocalAppColors
+import com.course.pages.course.api.item.CardContent
+import com.course.pages.course.api.item.CourseItemClickShow
 import com.course.pages.course.api.item.ICourseItem
+import com.course.pages.course.api.item.TopBottomText
 import com.course.shared.time.MinuteTimeDate
 
 /**
@@ -29,16 +33,12 @@ import com.course.shared.time.MinuteTimeDate
  */
 abstract class LessonItem : ICourseItem {
 
-  @Stable
   abstract val bean: LessonItemData
 
-  @Stable
   abstract val backgroundColor: Color
 
-  @Stable
   abstract val lessonNameColor: Color
 
-  @Stable
   abstract val classroomColor: Color
 
   override val startTime: MinuteTimeDate
@@ -50,42 +50,85 @@ abstract class LessonItem : ICourseItem {
   override val rank: Int
     get() = 100
 
-  override val itemKey: Any
+  override val itemKey: String
     get() = bean.lesson.courseNum + bean.lesson.classroom + bean.lesson.teacher + bean.startTime
 
   @Composable
-  override fun Content() {
-    Card(
-      modifier = Modifier.padding(1.6.dp),
-      shape = RoundedCornerShape(8.dp),
-      elevation = 0.5.dp,
-      backgroundColor = backgroundColor
-    ) {
+  override fun Content(itemClickShow: CourseItemClickShow) {
+    CardContent(backgroundColor) {
+      Box(modifier = Modifier.clickable {
+        clickItem(itemClickShow)
+      }) {
+        TopBottomText(
+          bean.lesson.course,
+          lessonNameColor,
+          bean.lesson.classroomSimplify,
+          classroomColor
+        )
+      }
+    }
+  }
+
+  @OptIn(ExperimentalFoundationApi::class)
+  private fun clickItem(itemClickShow: CourseItemClickShow) {
+    itemClickShow.showItemDetail(this) {
       Box(
-        modifier = Modifier
-          .fillMaxSize()
-          .clickable { toast("还未实现") }
-          .padding(7.dp, 8.dp)
+        modifier = Modifier.fillMaxWidth()
+          .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 24.dp)
       ) {
-        Text(
-          text = bean.lesson.course,
-          textAlign = TextAlign.Center,
-          color = lessonNameColor,
-          maxLines = 3,
-          overflow = TextOverflow.Ellipsis,
-          fontSize = 11.sp,
-          modifier = Modifier.fillMaxWidth()
-        )
-        Text(
-          text = bean.lesson.classroom,
-          textAlign = TextAlign.Center,
-          color = classroomColor,
-          maxLines = 3,
-          overflow = TextOverflow.Ellipsis,
-          fontSize = 11.sp,
-          modifier = Modifier.fillMaxWidth()
-            .align(Alignment.BottomCenter)
-        )
+        Column {
+          Text(
+            modifier = Modifier.basicMarquee(),
+            text = bean.lesson.course,
+            fontSize = 22.sp,
+            color = LocalAppColors.current.tvLv2,
+            fontWeight = FontWeight.Bold,
+          )
+          Layout(
+            content = {
+              Text(
+                modifier = Modifier.basicMarquee(),
+                text = bean.lesson.classroom,
+                fontSize = 13.sp,
+                color = LocalAppColors.current.tvLv2,
+              )
+              Text(
+                modifier = Modifier,
+                text = "⎜${bean.lesson.teacher}",
+                fontSize = 13.sp,
+                color = LocalAppColors.current.tvLv2,
+              )
+            },
+            measurePolicy = { measurables, constraints ->
+              val teacherPlaceable = measurables[1].measure(constraints)
+              val classroomPlaceable = measurables[0].measure(Constraints(
+                minWidth = 0,
+                maxWidth = constraints.maxWidth - teacherPlaceable.width,
+              ))
+              layout(constraints.maxWidth, teacherPlaceable.height) {
+                classroomPlaceable.placeRelative(0, (teacherPlaceable.height - classroomPlaceable.height) / 2)
+                teacherPlaceable.placeRelative(classroomPlaceable.width, 0)
+              }
+            }
+          )
+          bean.lesson.showOptions.fastForEach {
+            Box(modifier = Modifier.fillMaxWidth().padding(top = 24.dp)) {
+              Text(
+                modifier = Modifier.align(Alignment.TopStart),
+                text = it.first,
+                fontSize = 15.sp,
+                color = LocalAppColors.current.tvLv2,
+              )
+              Text(
+                modifier = Modifier.align(Alignment.TopEnd),
+                text = it.second,
+                fontSize = 15.sp,
+                color = LocalAppColors.current.tvLv2,
+                fontWeight = FontWeight.Bold,
+              )
+            }
+          }
+        }
       }
     }
   }
