@@ -1,5 +1,8 @@
 package com.course.shared.time
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -76,6 +79,12 @@ value class MinuteTime(val value: Int) : Comparable<MinuteTime> {
       if (minute in 0..59) return minute
       throw IllegalArgumentException("minute must in 0..59")
     }
+
+    fun now(): MinuteTime {
+      val time = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).time
+      return MinuteTime(time.hour, time.minute)
+    }
+
   }
 }
 
