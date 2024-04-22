@@ -49,6 +49,9 @@ object WebViewSourceService : IDataSourceService {
           dataBridge.success('...'); 
           // 调用 error() 返回异常，只允许调用一次
           dataBridge.error('...');
+          // 调用 load() 异步加载新页面 (不会关闭当前页面), onLoad 回调 (注意：htmlText 不包含 \n)
+          dataBridge.load(url);
+          dataBridge.onLoad = function (htmlText) {}
           
         端上传递请求参数规则:
           端上可以传递参数到 url 和 js 上

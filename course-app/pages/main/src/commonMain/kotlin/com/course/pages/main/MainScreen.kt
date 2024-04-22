@@ -56,10 +56,10 @@ private val mainPages = Provider.getAllImpl(IMainPage::class)
 private fun ProMainScreenContent() {
   val sortedPageKeys by remember {
     derivedStateOfStructure {
-      mainPages.keys.sortedBy { mainPages.getValue(it).priority }
+      mainPages.filter { it.value.visibility }.keys.sortedBy { mainPages.getValue(it).priority }
     }
   }
-  val pagerState = rememberPagerState { mainPages.size }
+  val pagerState = rememberPagerState { sortedPageKeys.size }
   var appBarHeight by mutableStateOf(56.dp)
   Box(modifier = Modifier.fillMaxSize()) {
     HorizontalPager(

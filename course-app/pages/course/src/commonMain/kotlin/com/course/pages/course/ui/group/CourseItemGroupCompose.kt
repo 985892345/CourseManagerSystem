@@ -1,4 +1,4 @@
-package com.course.pages.course.ui.pager.scroll
+package com.course.pages.course.ui.group
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,7 +10,7 @@ import androidx.compose.ui.util.fastForEach
 import com.course.pages.course.api.item.ICourseItem
 import com.course.pages.course.ui.pager.CoursePagerState
 import com.course.pages.course.ui.pager.WeekItemsProvider
-import com.course.pages.course.ui.pager.scroll.timeline.CourseTimeline
+import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.shared.time.Date
 import com.course.shared.time.MinuteTimeDate
 import kotlin.math.roundToInt
@@ -23,10 +23,10 @@ import kotlin.math.roundToInt
  */
 @Composable
 fun CoursePagerState.CourseItemGroupCompose(
-  modifier: Modifier = Modifier,
+  modifier: Modifier = Modifier.fillMaxSize(),
 ) {
   Box(
-    modifier = Modifier.fillMaxSize().then(modifier)
+    modifier = Modifier.then(modifier)
   ) {
     // 使用 toList 避免并发修改
     weekItems.toList().fastForEach {
@@ -98,7 +98,12 @@ private fun CoursePagerState.CourseItemCompose(
       )
     }
   }) {
-    item.Content(courseComposeState.itemClickShow)
+    item.Content(
+      date,
+      timeline,
+      scrollState,
+      itemClickShow,
+    )
   }
 }
 

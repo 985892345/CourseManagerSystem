@@ -1,6 +1,7 @@
 package com.course.pages.course.api.item.lesson
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -23,6 +24,8 @@ import com.course.pages.course.api.item.CardContent
 import com.course.pages.course.api.item.CourseItemClickShow
 import com.course.pages.course.api.item.ICourseItem
 import com.course.pages.course.api.item.TopBottomText
+import com.course.pages.course.api.timeline.CourseTimeline
+import com.course.shared.time.Date
 import com.course.shared.time.MinuteTimeDate
 
 /**
@@ -54,7 +57,12 @@ abstract class LessonItem : ICourseItem {
     get() = bean.lesson.courseNum + bean.lesson.classroom + bean.lesson.teacher + bean.startTime
 
   @Composable
-  override fun Content(itemClickShow: CourseItemClickShow) {
+  override fun Content(
+    data: Date,
+    timeline: CourseTimeline,
+    scrollState: ScrollState,
+    itemClickShow: CourseItemClickShow
+  ) {
     CardContent(backgroundColor) {
       Box(modifier = Modifier.clickable {
         clickItem(itemClickShow)

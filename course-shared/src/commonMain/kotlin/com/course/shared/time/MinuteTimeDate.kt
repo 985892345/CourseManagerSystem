@@ -1,6 +1,9 @@
 package com.course.shared.time
 
+import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -94,6 +97,13 @@ value class MinuteTimeDate(val value: Int) : Comparable<MinuteTimeDate> {
 
   override fun toString(): String {
     return "$date $time"
+  }
+
+  companion object {
+    fun now(): MinuteTimeDate {
+      val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+      return MinuteTimeDate(now.year, now.monthNumber, now.dayOfMonth, MinuteTime(now.hour, now.minute))
+    }
   }
 }
 

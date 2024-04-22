@@ -407,10 +407,10 @@ private fun BoxScope.RequestResultImageCompose(requestContent: RequestContent<*>
                     requestContent.resultSerializer as KSerializer<Any>,
                     PrettyPrintJson.decodeFromString(
                       requestContent.resultSerializer,
-                      (requestUnit.response1 ?: "") + requestUnit.response2
+                      requestUnit.response!!
                     )
                   )
-                  Failure -> "请求失败\n返回值: ${requestUnit.response1}\n\n异常信息: ${requestUnit.error}"
+                  Failure -> "请求失败\n返回值: ${requestUnit.response}\n\n异常信息: ${requestUnit.error}"
                 }
               )
             },

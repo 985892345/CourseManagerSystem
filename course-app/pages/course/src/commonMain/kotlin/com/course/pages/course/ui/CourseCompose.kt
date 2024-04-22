@@ -25,9 +25,10 @@ import com.course.components.utils.time.Today
 import com.course.pages.course.api.data.CourseDataProvider
 import com.course.pages.course.api.item.CourseItemClickShow
 import com.course.pages.course.ui.pager.CoursePagerCompose
+import com.course.pages.course.ui.pager.CoursePagerState
 import com.course.pages.course.ui.pager.WeekItemsProvider
 import com.course.pages.course.ui.pager.rememberCoursePagerState
-import com.course.pages.course.ui.pager.scroll.timeline.CourseTimeline
+import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.shared.time.Date
 import com.course.shared.time.MinuteTimeDate
 import kotlinx.collections.immutable.ImmutableList
@@ -58,6 +59,11 @@ fun CourseCompose(
   state: CourseComposeState,
   modifier: Modifier = Modifier,
   timeline: CourseTimeline = remember { CourseTimeline() },
+  content: @Composable (CoursePagerState) -> Unit = {
+    CoursePagerCompose(
+      state = it
+    )
+  }
 ) {
   val weekItemsProvider = getWeekItemsProvider(timeline, state.data)
   HorizontalPager(
@@ -67,9 +73,9 @@ fun CourseCompose(
     pageContent = { page ->
       val weekBeginDate = state.beginDate.plusWeeks(page)
       val coursePagerState = rememberCoursePagerState(
-        courseComposeState = state,
         weekBeginDate = weekBeginDate,
         timeline = timeline,
+        itemClickShow = state.itemClickShow,
         weekItems = weekItemsProvider.getWeekItems(
           MinuteTimeDate(
             weekBeginDate,
@@ -77,9 +83,7 @@ fun CourseCompose(
           )
         )
       )
-      CoursePagerCompose(
-        state = coursePagerState
-      )
+      content(coursePagerState)
     }
   )
 }

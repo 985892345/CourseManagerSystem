@@ -1,6 +1,7 @@
 package com.course.source.app.local.course
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import com.course.components.base.theme.LocalAppColors
+import com.course.components.utils.preferences.createSettings
 import com.course.components.utils.result.tryThrowCancellationException
 import com.course.components.utils.serializable.ColorArgbSerializable
 import com.course.pages.course.api.IMainCourseDataProvider
@@ -26,6 +28,7 @@ import com.course.pages.course.api.item.CardContent
 import com.course.pages.course.api.item.CourseItemClickShow
 import com.course.pages.course.api.item.ICourseItem
 import com.course.pages.course.api.item.TopBottomText
+import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.shared.time.Date
 import com.course.shared.time.MinuteTimeDate
 import com.course.source.app.account.AccountBean
@@ -34,7 +37,7 @@ import com.course.source.app.course.CourseBean
 import com.course.source.app.response.ResponseWrapper
 import com.course.source.app.local.request.SourceRequest
 import com.g985892345.provider.api.annotation.ImplProvider
-import kotlinx.coroutines.Dispatchers
+import com.russhwolf.settings.get
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -56,18 +59,17 @@ object CourseApiImpl : SourceRequest(), CourseApi, IMainCourseDataProvider {
     name = "课程",
     linkedMapOf(
       "stuNum" to "学号",
-      "term" to "学期，大一上为0，负数表示当前学期"
     ),
     """
+      // 只加载当前学期课程
       // 返回以下 json 格式，如果无数据，则返回 null
       {
         {
-          beginDate: String // 开始日期
           term: String // 学期
-          termIndex: Int // 学期索引，大一上为0
+          termIndex: Int // 学期索引，大一上为0，不能返回负数
+          beginDate: String // 学期开始日期, 格式为: 2024-04-01
           lessons: [
             {
-              id: Int, // 课程唯一 id，即使课程号相同，但上课时间不同，应返回不同的 id
               course: String, // 课程名
               classroom: String, // 教室
               classroomSimplify: String, // 教室简写，用于 item 显示
@@ -96,9 +98,10 @@ object CourseApiImpl : SourceRequest(), CourseApi, IMainCourseDataProvider {
     name = "自定义课表",
     linkedMapOf(
       "stuNum" to "学号，若无学号则为空串",
-      "startDate" to "开始日期，格式为 2024-04-01",
+      "beginDate" to "当前学期的开始日期，格式为 2024-04-01",
     ),
     """
+      // 只加载当前学期
       // 返回以下 json 格式，如果无数据，则返回 null
       [
         {
@@ -124,15 +127,28 @@ object CourseApiImpl : SourceRequest(), CourseApi, IMainCourseDataProvider {
     """.trimIndent()
   )
 
+  private val settings = createSettings("SourceRequest-course")
+
   override suspend fun getCourseBean(
     stuNum: String,
     termIndex: Int,
   ): ResponseWrapper<CourseBean> {
+    if (termIndex >= 0) {
+      // 只加载当前学期的课程，对大于 0 的进行判断是否为当前学期
+      val nowTermIndex = settings.getInt(stuNum, -1)
+      if (termIndex != nowTermIndex) {
+        return ResponseWrapper.failure(-2, "数据源只被允许加载当前学期数据")
+      }
+    }
     if (courseBeanRequest.requestUnits.isEmpty()) {
       // 如果未设置请求体，则挂起直到设置后才返回
       snapshotFlow { courseBeanRequest.requestUnits.toList() }.first { it.isNotEmpty() }
     }
-    val data = courseBeanRequest.request(false, termIndex == -1, stuNum, termIndex.toString())
+    val data = courseBeanRequest.request(false, true, stuNum)
+    if (data != null && termIndex < 0) {
+      // 更新当前学期数
+      settings.putInt(stuNum, data.termIndex)
+    }
     return if (data != null) ResponseWrapper.success(data) else ResponseWrapper.failure(
       -1,
       "数据源无数据"
@@ -150,27 +166,27 @@ object CourseApiImpl : SourceRequest(), CourseApi, IMainCourseDataProvider {
     private var oldItems = emptyList<SourceCardCourseItem>()
     private var requestJob: Job? = null
 
-    private var isFirstCallbackChangedStartDate = true
-
-    override fun onChangedStartDate(startDate: Date) {
-      super.onChangedStartDate(startDate)
-      if (isFirstCallbackChangedStartDate) {
-        // 第一次加载课表数据时 startDate 不为学期开始日期，所以不进行请求
-        isFirstCallbackChangedStartDate = false
-        return
-      }
-      requestJob?.cancel()
-      requestJob = coroutineScope.launch(Dispatchers.IO) {
-        runCatching {
-          courseRequestGroup.request(false, true, account?.num ?: "", startDate.toString())
-        }.tryThrowCancellationException().onSuccess { map ->
-          removeAll(oldItems)
-          oldItems = map.map { entry ->
-            entry.value.map {
-              it.copy(itemKey = "${entry.key.key}-${it.itemKey}")
+    override fun onChangedTermIndex(termIndex: Int, startDate: Date) {
+      super.onChangedTermIndex(termIndex, startDate)
+      if (termIndex < 0 && requestJob == null) {
+        // 只请求当前学期的数据
+        requestJob = coroutineScope.launch {
+          runCatching {
+            courseRequestGroup.request(
+              false,
+              true,
+              account?.num ?: "",
+              startDate.toString(),
+            )
+          }.tryThrowCancellationException().onSuccess { map ->
+            removeAll(oldItems)
+            oldItems = map.flatMap { entry ->
+              entry.value.map {
+                it.copy(itemKey = "${entry.key.key}-${it.itemKey}")
+              }
             }
-          }.flatten()
-          addAll(oldItems)
+            addAll(oldItems)
+          }
         }
       }
     }
@@ -196,7 +212,12 @@ object CourseApiImpl : SourceRequest(), CourseApi, IMainCourseDataProvider {
   ) : ICourseItem {
 
     @Composable
-    override fun Content(itemClickShow: CourseItemClickShow) {
+    override fun Content(
+      data: Date,
+      timeline: CourseTimeline,
+      scrollState: ScrollState,
+      itemClickShow: CourseItemClickShow
+    ) {
       CardContent(backgroundColor) {
         Box(modifier = Modifier.clickable {
           clickItem(itemClickShow)

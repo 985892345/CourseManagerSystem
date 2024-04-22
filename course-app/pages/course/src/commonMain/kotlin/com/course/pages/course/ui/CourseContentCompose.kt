@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animate
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -38,6 +40,7 @@ import com.course.components.view.calendar.state.CalendarState
 import com.course.components.view.calendar.state.rememberCalendarState
 import com.course.pages.course.api.data.CourseDetail
 import com.course.pages.course.api.item.CourseItemClickShow
+import com.course.pages.course.ui.pager.CoursePagerState
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -55,6 +58,11 @@ import kotlin.math.abs
 fun CourseContentCompose(
   detail: CourseDetail,
   itemClickShow: CourseItemClickShow,
+  course: @Composable (CourseComposeState) -> Unit = {
+    CourseCompose(
+      state = it
+    )
+  }
 ) {
   val calendarState = rememberCalendarState(
     initialClickDate = detail.initialClickDate,
@@ -73,12 +81,14 @@ fun CourseContentCompose(
       modifier = Modifier.padding(start = 2.dp, end = 4.dp, top = 4.dp),
       state = calendarState
     ) {
-      CourseCompose(
+      Box(
         modifier = Modifier.layout(remember(calendarState) {
           CalendarContentOffsetMeasurePolicy(calendarState)
         }),
-        state = courseComposeState
-      )
+        propagateMinConstraints = true,
+      ) {
+        course(courseComposeState)
+      }
     }
   }
   configCalendarCoursePager(calendarState, courseComposeState)
@@ -88,24 +98,25 @@ fun CourseContentCompose(
 @Composable
 private fun callbackToDetail(detail: CourseDetail, calendarState: CalendarState) {
   val coroutineScope = rememberCoroutineScope()
-  LaunchedEffect(Unit) {
+  DisposableEffect(Unit) {
     detail.onComposeInit(coroutineScope)
+    onDispose {
+      detail.onComposeDispose()
+    }
   }
   LaunchedEffect(detail, calendarState) {
     snapshotFlow { calendarState.clickDate }.collect {
       detail.onChangedClickDate(it)
     }
   }
-  LaunchedEffect(detail) {
-    snapshotFlow { detail.startDate }.collect {
-      detail.onChangedStartDate(it)
-    }
-  }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun configCalendarCoursePager(calendarState: CalendarState, courseComposeState: CourseComposeState) {
+private fun configCalendarCoursePager(
+  calendarState: CalendarState,
+  courseComposeState: CourseComposeState
+) {
   LaunchedEffect(calendarState, courseComposeState) {
     var isAnimateScrollCourse = false
     launch {
@@ -199,8 +210,9 @@ private fun BackTodayCompose(
       if (animateFraction != 1F) {
         animateFraction
       } else if (Today.dayOfWeek == calendarState.clickDate.dayOfWeek) {
-        val fraction = courseComposeState.pagerState.run { currentPage + currentPageOffsetFraction } -
-            courseComposeState.beginDate.daysUntil(Today) / 7
+        val fraction =
+          courseComposeState.pagerState.run { currentPage + currentPageOffsetFraction } -
+              courseComposeState.beginDate.daysUntil(Today) / 7
         // 1 -> 0 -> 1
         minOf(abs(fraction), 1F)
       } else 1F

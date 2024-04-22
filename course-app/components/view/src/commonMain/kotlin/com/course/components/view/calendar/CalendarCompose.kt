@@ -189,7 +189,7 @@ fun CalendarState.CalendarDateCompose(
       clickEventFlowInternal.tryEmit(CalendarState.ClickEventData(clickDate, date))
     }.background(
       color = when {
-        date == Today && show == CalendarDateShowValue.Clicked -> Color.Blue
+        date == Today && show == CalendarDateShowValue.Clicked -> Color(0xFF166AFF)
         show == CalendarDateShowValue.Clicked -> Color.LightGray
         date == Today -> Color.White
         else -> Color.Transparent
@@ -260,7 +260,7 @@ private fun CalendarDateLunarCompose(
     },
     color = when {
       date == Today && show == CalendarDateShowValue.Clicked -> Color.White
-      specialDay != null -> Color.Blue
+      specialDay != null -> Color(0xFF166AFF)
       else -> Color.Gray
     },
     fontSize = 9.sp,

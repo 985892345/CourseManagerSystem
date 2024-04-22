@@ -21,9 +21,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastFlatMap
 import cafe.adriel.voyager.core.screen.Screen
 import com.course.components.base.theme.LocalAppColors
 import com.course.components.utils.serializable.ObjectSerializable
+import com.course.source.app.local.request.RequestContent
 import com.course.source.app.local.request.SourceRequest
 import kotlinx.serialization.Serializable
 
@@ -35,7 +37,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 @ObjectSerializable
-class SourceScreen: Screen {
+class SourceScreen : Screen {
 
   @Composable
   override fun Content() {
@@ -67,7 +69,8 @@ class SourceScreen: Screen {
   @Composable
   private fun ListCompose() {
     val requestContents = remember {
-      SourceRequest.AllImpl.map { it.requestSource.values }.flatten()
+      listOf(RequestContent.testRequestContent) +
+          SourceRequest.AllImpl.fastFlatMap { it.requestSource.values }
     }
     LazyColumn(
       modifier = Modifier.fillMaxSize(),

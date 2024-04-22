@@ -1,6 +1,7 @@
 plugins {
   id("app.base.library")
   id("app.function.compose")
+  id("app.function.serialization")
 }
 
 kotlin {

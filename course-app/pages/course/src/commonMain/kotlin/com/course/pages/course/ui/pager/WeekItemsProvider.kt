@@ -4,7 +4,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.course.pages.course.api.data.CourseDataProvider
 import com.course.pages.course.api.data.DataChangedListener
 import com.course.pages.course.api.item.ICourseItem
-import com.course.pages.course.ui.pager.scroll.timeline.CourseTimeline
+import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.shared.time.Date
 import com.course.shared.time.MinuteTimeDate
 

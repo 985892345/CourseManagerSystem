@@ -30,6 +30,7 @@ import androidx.compose.ui.util.fastFirst
  */
 interface CourseItemClickShow {
   fun showItemDetail(item: ICourseItem, content: @Composable () -> Unit)
+  fun cancelShow()
 }
 
 /**
@@ -99,7 +100,7 @@ open class CourseBottomSheetState : CourseItemClickShow {
     this.visibility.value = true
   }
 
-  open fun cancelShow() {
+  override fun cancelShow() {
     visibility.value = false
   }
 

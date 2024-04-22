@@ -1,4 +1,4 @@
-package com.course.pages.course.ui.pager.scroll.timeline
+package com.course.pages.course.api.timeline
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable

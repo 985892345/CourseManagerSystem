@@ -1,11 +1,10 @@
-package com.course.pages.course.ui.pager.scroll
+package com.course.pages.course.ui.scroll
 
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,8 +15,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMapIndexed
 import com.course.components.utils.compose.reflexScrollableForMouse
+import com.course.pages.course.ui.group.CourseItemGroupCompose
 import com.course.pages.course.ui.pager.CoursePagerState
-import com.course.pages.course.ui.pager.scroll.timeline.MutableTimelineData
+import com.course.pages.course.ui.timeline.CourseTimelineCompose
+import com.course.pages.course.api.timeline.MutableTimelineData
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.math.roundToInt
 
@@ -31,7 +32,7 @@ import kotlin.math.roundToInt
 fun CoursePagerState.CourseScrollCompose(
   modifier: Modifier = Modifier.fillMaxSize(),
   content: @Composable () -> Unit = {
-    CourseTimelineCompose(modifier = Modifier.width(36.dp))
+    CourseTimelineCompose()
     CourseItemGroupCompose()
   }
 ) {

@@ -166,7 +166,7 @@ private fun ToolbarCompose() {
   }
 }
 
-private val PrettyPrintJson = Json {
+private val PrettyPrintJson = Json(RequestContent.Json) {
   prettyPrint = true
 }
 
@@ -221,7 +221,7 @@ private fun tryRequest(
         waitJob.cancel()
       }
       try {
-        val any = Json.decodeFromString(requestContent.resultSerializer, result)
+        val any = PrettyPrintJson.decodeFromString(requestContent.resultSerializer, result)
         @Suppress("UNCHECKED_CAST")
         resultState.value = PrettyPrintJson.encodeToString(
           requestContent.resultSerializer as KSerializer<Any?>,

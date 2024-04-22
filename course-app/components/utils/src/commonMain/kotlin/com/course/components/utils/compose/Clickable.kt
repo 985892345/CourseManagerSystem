@@ -1,8 +1,10 @@
 package com.course.components.utils.compose
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.IndicationInstance
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -61,6 +63,29 @@ fun Modifier.clickableCardIndicator(
   onClick = onClick
 )
 
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun Modifier.combineClickableCardIndicator(
+  radius: Dp = 8.dp,
+  enabled: Boolean = true,
+  onClickLabel: String? = null,
+  role: Role? = null,
+  onLongClickLabel: String? = null,
+  onLongClick: (() -> Unit)? = null,
+  onDoubleClick: (() -> Unit)? = null,
+  onClick: () -> Unit
+) = combinedClickable(
+  interactionSource = remember { MutableInteractionSource() },
+  indication = CardIndicationMap.getOrPut(radius) { CardIndication(radius) },
+  enabled = enabled,
+  onClickLabel = onClickLabel,
+  role = role,
+  onLongClickLabel = onLongClickLabel,
+  onLongClick = onLongClick,
+  onDoubleClick = onDoubleClick,
+  onClick = onClick,
+)
+
 private val CardIndicationMap = hashMapOf<Dp, CardIndication>()
 
 private class CardIndication(val radius: Dp) : Indication {
@@ -74,9 +99,17 @@ private class CardIndication(val radius: Dp) : Indication {
     override fun ContentDrawScope.drawIndication() {
       drawContent()
       if (isPressed.value) {
-        drawRoundRect(color = Color.Black.copy(alpha = 0.3f), size = size, cornerRadius = cornerRadius)
+        drawRoundRect(
+          color = Color.Black.copy(alpha = 0.3f),
+          size = size,
+          cornerRadius = cornerRadius
+        )
       } else if (isHovered.value || isFocused.value) {
-        drawRoundRect(color = Color.Black.copy(alpha = 0.1f), size = size, cornerRadius = cornerRadius)
+        drawRoundRect(
+          color = Color.Black.copy(alpha = 0.1f),
+          size = size,
+          cornerRadius = cornerRadius
+        )
       }
     }
   }

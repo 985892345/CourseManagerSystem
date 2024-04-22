@@ -1,5 +1,6 @@
 package com.course.pages.course.api.item
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +17,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.course.pages.course.api.timeline.CourseTimeline
+import com.course.shared.time.Date
 import com.course.shared.time.MinuteTimeDate
 import com.course.shared.time.toMinuteTimeDate
 import kotlinx.datetime.Clock
@@ -51,8 +54,18 @@ interface ICourseItem : Comparable<ICourseItem> {
    */
   val itemKey: String
 
+  /**
+   * @param data 当前显示在那天的日期上
+   * @param scrollState 滚动状态
+   * @param itemClickShow 点击 item 的回调
+   */
   @Composable
-  fun Content(itemClickShow: CourseItemClickShow)
+  fun Content(
+    data: Date,
+    timeline: CourseTimeline,
+    scrollState: ScrollState,
+    itemClickShow: CourseItemClickShow,
+  )
 
   /**
    * 返回 1 显示在上面

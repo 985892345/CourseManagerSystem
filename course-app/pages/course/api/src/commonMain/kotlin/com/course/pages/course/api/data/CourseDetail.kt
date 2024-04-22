@@ -27,14 +27,17 @@ abstract class CourseDetail(
   open val initialClickDate: Date
     get() = Today
 
+  // 获取当前用户的学期与开学日期
+  abstract fun getTerms(): List<Pair<Int, Date>>
+
   override fun onChangedClickDate(date: Date) {
     super.onChangedClickDate(date)
     dataProviders.forEach { it.onChangedClickDate(date) }
   }
 
-  override fun onChangedStartDate(startDate: Date) {
-    super.onChangedStartDate(startDate)
-    dataProviders.forEach { it.onChangedStartDate(startDate) }
+  override fun onRequestTerm(termIndex: Int) {
+    super.onRequestTerm(termIndex)
+    dataProviders.forEach { it.onRequestTerm(termIndex) }
   }
 
   override fun onComposeInit(coroutineScope: CoroutineScope) {

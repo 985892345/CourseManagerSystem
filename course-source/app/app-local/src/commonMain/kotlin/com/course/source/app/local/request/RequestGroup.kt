@@ -12,7 +12,10 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -37,6 +40,7 @@ import com.course.source.app.local.request.RequestContentStatus.FailureButHitCac
 import com.course.source.app.local.request.RequestContentStatus.HitCache
 import com.course.source.app.local.source.page.RequestGroupScreen
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -44,6 +48,10 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * .
@@ -102,7 +110,11 @@ class RequestGroup<T : Any>(
     )
   }
 
-  suspend fun request(isForce: Boolean, cacheable: Boolean, vararg values: String): Map<RequestContent<T>, T> {
+  suspend fun request(
+    isForce: Boolean,
+    cacheable: Boolean,
+    vararg values: String
+  ): Map<RequestContent<T>, T> {
     if (values.size != parameterWithHint.size)
       throw IllegalArgumentException("参数数量不匹配，应有 ${parameterWithHint.size}, 实有: ${values.size}")
     if (requestContents.isEmpty()) throw IllegalStateException("未设置请求")
@@ -163,22 +175,9 @@ private fun CardContent(requestGroup: RequestGroup<*>) {
         )
         Text(
           modifier = Modifier.padding(top = 10.dp, start = 2.dp),
-          text = if (requestGroup.requestTimestamp == 0L) "未请求过" else {
-            val now = Clock.System.now().toEpochMilliseconds()
-            val diff = now - requestGroup.requestTimestamp
-            if (diff < 60 * 1000) {
-              "刚刚已请求"
-            } else {
-              val minute = diff / 1000 / 60
-              when {
-                minute < 60 -> "$minute 分钟"
-                minute < 24 * 60 -> "${minute / 60} 小时 ${minute % 60} 分钟"
-                else -> "${minute / 60 / 24} 天"
-              } + "前请求"
-            }
-          },
+          text = getTimeStr(requestGroup),
           fontSize = 14.sp,
-          color = Color.Gray
+          color = Color.Gray,
         )
       }
       Image(
@@ -186,6 +185,31 @@ private fun CardContent(requestGroup: RequestGroup<*>) {
         painter = rememberVectorPainter(Icons.AutoMirrored.Default.ArrowForwardIos),
         contentDescription = null,
       )
+    }
+  }
+}
+
+@Composable
+private fun getTimeStr(requestGroup: RequestGroup<*>): String {
+  return if (requestGroup.requestTimestamp == 0L) {
+    "未请求过"
+  } else {
+    var now by remember { mutableLongStateOf(Clock.System.now().toEpochMilliseconds()) }
+    LaunchedEffect(Unit) {
+      while (true) {
+        delay(1.minutes)
+        now += 1.minutes.inWholeMilliseconds
+      }
+    }
+    val diff = (now - requestGroup.requestTimestamp).milliseconds
+    if (diff < 1.minutes) {
+      "刚刚已请求"
+    } else {
+      when {
+        diff < 1.hours -> "${diff.inWholeMinutes} 分钟"
+        diff < 1.days -> "${diff.inWholeHours} 小时 ${diff.inWholeMinutes % 60} 分钟"
+        else -> "${diff.inWholeDays} 天"
+      } + "前请求"
     }
   }
 }

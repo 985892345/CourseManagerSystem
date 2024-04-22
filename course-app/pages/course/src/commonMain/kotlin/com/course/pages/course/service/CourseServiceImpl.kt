@@ -53,7 +53,5 @@ object CourseServiceImpl : ICourseService {
   ): CourseDetail {
     return TeaCourseDetailDataProvider(teaNum, *dataProviders)
   }
-
-
 }
 

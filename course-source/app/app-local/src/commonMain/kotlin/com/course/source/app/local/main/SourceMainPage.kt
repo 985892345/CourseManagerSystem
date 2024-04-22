@@ -1,13 +1,17 @@
 package com.course.source.app.local.main
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.course.components.utils.compose.clickableCardIndicator
 import com.course.pages.main.api.IMainPage
 import com.course.source.app.local.source.page.SourceScreen
 import com.g985892345.provider.api.annotation.ImplProvider
@@ -33,8 +37,15 @@ class SourceMainPage : IMainPage {
 
   @Composable
   override fun BoxScope.BottomAppBarItem(selectedToPosition: () -> Unit) {
-    Text(text = "数据源", modifier = Modifier.clickable {
-      selectedToPosition.invoke()
-    })
+    Box(
+      modifier = Modifier.size(32.dp).clickableCardIndicator { selectedToPosition() },
+      contentAlignment = Alignment.Center,
+    ) {
+      Icon(
+        modifier = Modifier.size(18.dp),
+        painter = painterResource("drawable/ic_source_bottom_bar.xml"),
+        contentDescription = null,
+      )
+    }
   }
 }

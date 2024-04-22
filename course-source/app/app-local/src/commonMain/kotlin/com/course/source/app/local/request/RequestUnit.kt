@@ -43,10 +43,22 @@ data class RequestUnit(
   var error: String? by settings.nullableString("error")
 
   // response 分解为 2 个解决字符长度超长问题
-  var response1: String? by settings.nullableString("response1")
-  var response2: String by settings.string("response2", "")
-
-  var duration: Long by settings.long("duration", -1)
+  private var response1: String? by settings.nullableString("response1")
+  private var response2: String by settings.string("response2", "")
+  var response: String?
+    get() = response1?.let { it + response2 }
+    set(value) {
+      if (value == null) {
+        response1 = null
+        response2 = ""
+      } else if (value.length <= 8 * 1024) {
+        response1 = value
+        response2 = ""
+      } else {
+        response1 = value.substring(0, 8 * 1024)
+        response2 = value.substring(8 * 1024)
+      }
+    }
 
   var requestUnitStatus by mutableStateOf(
     when {

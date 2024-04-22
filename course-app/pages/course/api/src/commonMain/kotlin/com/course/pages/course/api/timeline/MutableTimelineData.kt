@@ -1,4 +1,4 @@
-package com.course.pages.course.ui.pager.scroll.timeline
+package com.course.pages.course.api.timeline
 
 import androidx.compose.animation.core.animate
 import androidx.compose.foundation.layout.Box
@@ -28,8 +28,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import kotlin.math.roundToInt
+import kotlinx.serialization.Serializable
 
 /**
  * .

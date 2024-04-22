@@ -1,6 +1,7 @@
-package com.course.pages.course.ui.pager.scroll
+package com.course.pages.course.ui.timeline
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -11,8 +12,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
+import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.pages.course.ui.pager.CoursePagerState
-import com.course.pages.course.ui.pager.scroll.timeline.CourseTimeline
 import com.course.shared.time.MinuteTime
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.minutes
@@ -26,7 +27,7 @@ import kotlin.time.Duration.Companion.minutes
 
 @Composable
 fun CoursePagerState.CourseTimelineCompose(
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier.width(36.dp),
 ) {
   Column(
     modifier = Modifier.then(modifier).drawNowTimeLine(timeline)

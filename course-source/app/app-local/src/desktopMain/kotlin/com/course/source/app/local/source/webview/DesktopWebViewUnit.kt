@@ -1,6 +1,9 @@
 package com.course.source.app.local.source.webview
 
+import com.course.components.utils.coroutine.AppCoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.htmlunit.BrowserVersion
 import org.htmlunit.NicelyResynchronizingAjaxController
@@ -56,7 +59,11 @@ class DesktopWebViewUnit {
   ): String = suspendCancellableCoroutine {
     val key = it.toString()
     continuationMap[key] = it
-    it.invokeOnCancellation { continuationMap.remove(key) }
+    htmlPageMap[key] = htmlPage
+    it.invokeOnCancellation {
+      continuationMap.remove(key)
+      htmlPageMap.remove(key)
+    }
     val scope = htmlPage.enclosingWindow.getScriptableObject<Scriptable>()
     ScriptableObject.defineClass(scope, Desktop2JsBridge::class.java)
     htmlPage.executeJavaScript("window.dataBridge = new Desktop2JsBridge(\"$key\");")
@@ -65,6 +72,7 @@ class DesktopWebViewUnit {
 
   companion object {
     private val continuationMap = HashMap<String, Continuation<String>>()
+    private val htmlPageMap = HashMap<String, HtmlPage>()
   }
 
   class Desktop2JsBridge : ScriptableObject {
@@ -84,12 +92,27 @@ class DesktopWebViewUnit {
 
     @JSFunction
     fun success(result: Any?) {
+      htmlPageMap.remove(key)
       continuationMap.remove(key)?.resume(result.toString())
     }
 
     @JSFunction
     fun error(result: Any?) {
+      htmlPageMap.remove(key)
       continuationMap.remove(key)?.resumeWithException(RuntimeException(result.toString()))
+    }
+
+    @JSFunction
+    fun println(result: Any?) {
+      kotlin.io.println(result)
+    }
+
+    @JSFunction
+    fun load(url: String) {
+      AppCoroutineScope.launch(Dispatchers.IO) {
+        val html = requestByWebView(url, null)
+        htmlPageMap[key]?.executeJavaScript("window.dataBridge.onLoad(\'${html.replace("\n", "")}\');")
+      }
     }
 
     companion object {

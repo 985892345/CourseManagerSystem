@@ -14,6 +14,9 @@ interface IMainPage {
 
   val priority: Int
 
+  val visibility: Boolean
+    get() = true
+
   val appBarVisibility: Boolean
     get() = true
 

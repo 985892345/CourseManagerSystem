@@ -24,9 +24,9 @@ interface CourseApi {
 
 @Serializable
 data class CourseBean(
-  val beginDate: Date, // 开始时间
   val term: String, // 学期
   val termIndex: Int, // 学期索引，大一上为0
+  val beginDate: Date, // 开始时间
   val lessons: List<LessonBean>, // 课程
 )
 

@@ -4,23 +4,29 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.Card
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,10 +37,13 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.navigator.LocalNavigator
 import com.course.components.base.theme.LocalAppColors
+import com.course.components.base.ui.dialog.showChooseDialog
+import com.course.components.utils.compose.clickableCardIndicator
 import com.course.components.utils.coroutine.AppComposeCoroutineScope
 import com.course.components.utils.preferences.createSettings
 import com.course.components.utils.preferences.longState
@@ -49,9 +58,8 @@ import com.course.source.app.local.request.RequestContentStatus.Requesting
 import com.course.source.app.local.request.RequestContentStatus.Success
 import com.course.source.app.local.source.page.RequestContentScreen
 import com.russhwolf.settings.long
-import com.russhwolf.settings.nullableString
-import com.russhwolf.settings.string
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -59,9 +67,13 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.measureTime
 
 /**
  * .
@@ -77,10 +89,21 @@ data class RequestContent<T : Any>(
   val resultSerializer: KSerializer<T?>,
   val format: String,
   val editable: Boolean = false,
+  val initialCacheExpiration: Duration = 12.hours,
 ) : IRequestSource {
 
   companion object {
+
+    val testRequestContent = RequestContent(
+      key = "test",
+      name = "测试",
+      parameterWithHint = linkedMapOf(),
+      resultSerializer = kotlinx.serialization.json.Json.serializersModule.serializer<String?>(),
+      format = "",
+    )
+
     fun find(key: String): RequestContent<*>? {
+      if (key == "test") return testRequestContent
       return SourceRequest.AllImpl.firstNotNullOfOrNull { source ->
         source.requestSource.firstNotNullOfOrNull { entry ->
           when (val request = entry.value) {
@@ -114,11 +137,17 @@ data class RequestContent<T : Any>(
 
   private var responseTimestamp: Long by settings.longState("responseTimestamp", 0L)
 
-  var cacheExpiration: Long by settings.long("cacheExpiration", 12.hours.inWholeMilliseconds)
+  var cacheExpiration: Long by settings.long(
+    "cacheExpiration",
+    initialCacheExpiration.inWholeMilliseconds
+  )
 
-  private var prevRequestValues: String by settings.string("prevRequestValues", "[]")
-  private var prevRequestResponse1: String? by settings.nullableString("prevRequestResponse1")
-  private var prevRequestResponse2: String by settings.string("prevRequestResponse2", "")
+  private val cacheMap: MutableMap<String, RequestCache> = settings.getStringOrNull("cacheMap")
+    ?.let {
+      runCatching { Json.decodeFromString<Map<String, RequestCache>>(it) }.onFailure {
+        settings.remove("cacheMap")
+      }.getOrNull()?.toMutableMap()
+    } ?: SnapshotStateMap()
 
   var requestContentStatus: RequestContentStatus by mutableStateOf(
     when {
@@ -134,86 +163,85 @@ data class RequestContent<T : Any>(
     if (values.size != parameterWithHint.size)
       throw IllegalArgumentException("参数数量不匹配，应有 ${parameterWithHint.size}, 实有: ${values.size}")
     if (requestUnits.isEmpty()) throw IllegalStateException("未设置请求")
-    val nowTime = Clock.System.now().toEpochMilliseconds()
-    val newValues = Json.encodeToString(values)
-    val isCacheValid = nowTime - responseTimestamp < cacheExpiration &&
-        newValues == prevRequestValues && cacheable && prevRequestResponse1 != null
-    prevRequestValues = newValues
     requestContentStatus = Requesting
-    requestTimestamp = nowTime
-    if (!isForce && isCacheValid) {
-      try {
-        return Json.decodeFromString(
-          resultSerializer,
-          prevRequestResponse1 + prevRequestResponse2
-        ).apply {
+    val nowTime = Clock.System.now().toEpochMilliseconds()
+    val cacheKey = Json.encodeToString(values)
+    // 如果不强制请求则尝试从缓存中获取数据
+    if (!isForce) {
+      val cache = cacheMap[cacheKey]
+      if (cache != null && nowTime - cache.responseTimestamp < cacheExpiration) {
+        val response = cache.response ?: return null
+        runCatching {
+          Json.decodeFromString(resultSerializer, response)
+        }.onSuccess {
           requestContentStatus = HitCache
+          return it
+        }.onFailure {
+          cache.clear()
         }
-      } catch (e: Exception) {
-        prevRequestResponse1 = null
-        prevRequestResponse2 = ""
       }
     }
+    // 请求开始
+    requestTimestamp = nowTime
     var index = 0
     val parameters = parameterWithHint.mapValues { values[index++] }
     for (unit in requestUnits.toList()) {
       try {
-        unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Requesting
-        val response: String
-        unit.duration = measureTime {
-          response = withTimeout(10.seconds) {
-            unit.request(parameters)
-          }
-        }.inWholeMilliseconds
-        unit.error = null
-        // 如果 result 反序列化异常，则认为请求失败
-        val result = Json.decodeFromString(resultSerializer, response)
-        if (response.length <= 8 * 1024) {
-          unit.response1 = response
-          unit.response2 = ""
-          if (cacheable) {
-            prevRequestResponse1 = response
-            prevRequestResponse2 = ""
-          }
-        } else {
-          // 最多存到 16k 的字符串
-          unit.response1 = response.substring(0, 8 * 1024)
-          unit.response2 = response.substring(8 * 1024)
-          if (cacheable) {
-            prevRequestResponse1 = unit.response1
-            prevRequestResponse2 = unit.response2
-          }
-        }
-        responseTimestamp = Clock.System.now().toEpochMilliseconds()
-        requestContentStatus = Success
-        unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Success
-        return result
+        return requestUnit(unit, parameters, cacheable, cacheKey)
       } catch (e: CancellationException) {
         unit.error = e.stackTraceToString()
         unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Failure
         requestContentStatus = Failure
         throw e
       } catch (e: Exception) {
-        // nothing
         unit.error = e.stackTraceToString()
         unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Failure
       }
     }
-    if (isCacheValid) {
-      try {
-        return Json.decodeFromString(
-          resultSerializer,
-          prevRequestResponse1 + prevRequestResponse2
-        ).apply {
-          requestContentStatus = FailureButHitCache
-        }
-      } catch (e: Exception) {
-        prevRequestResponse1 = null
-        prevRequestResponse2 = ""
+    // 请求失败则尝试从缓存中拿数据
+    val cache = cacheMap[cacheKey]
+    if (cache != null && nowTime - cache.responseTimestamp < cacheExpiration) {
+      val response = cache.response ?: return null
+      runCatching {
+        Json.decodeFromString(resultSerializer, response)
+      }.onSuccess {
+        requestContentStatus = FailureButHitCache
+        return it
+      }.onFailure {
+        cache.clear()
       }
     }
     requestContentStatus = Failure
     throw IllegalStateException("请求全部失败")
+  }
+
+  private suspend fun requestUnit(
+    unit: RequestUnit,
+    parameters: Map<String, String>,
+    cacheable: Boolean,
+    cacheKey: String,
+  ): T? {
+    unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Requesting
+    val response: String = withTimeout(10.seconds) {
+      unit.request(parameters)
+    }
+    unit.error = null
+    // 如果 result 反序列化异常，则认为请求失败
+    val result = Json.decodeFromString(resultSerializer, response)
+    if (result != null) {
+      // requestUnit 不记录 null 值
+      unit.response = response
+    }
+    responseTimestamp = Clock.System.now().toEpochMilliseconds()
+    requestContentStatus = Success
+    unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Success
+    if (cacheable) {
+      // 保存缓存
+      val cache = cacheMap.getOrPut(cacheKey) { RequestCache(key, cacheKey) }
+      cache.response = response
+      cache.responseTimestamp = responseTimestamp
+    }
+    return result
   }
 
   init {
@@ -225,6 +253,11 @@ data class RequestContent<T : Any>(
         } else if (requestUnits.isEmpty()) {
           requestContentStatus = Empty
         }
+      }
+    }
+    AppComposeCoroutineScope.launch {
+      snapshotFlow { cacheMap.toMap() }.drop(1).collect {
+        settings.putString("cacheMap", Json.encodeToString(it))
       }
     }
   }
@@ -291,28 +324,61 @@ private fun CardContent(requestContent: RequestContent<*>) {
         )
         Text(
           modifier = Modifier.padding(top = 10.dp, start = 2.dp),
-          text = if (requestContent.requestTimestamp == 0L) "未请求过" else {
-            val now = Clock.System.now().toEpochMilliseconds()
-            val diff = now - requestContent.requestTimestamp
-            if (diff < 60 * 1000) {
-              "刚刚已请求"
-            } else {
-              val minute = diff / 1000 / 60
-              when {
-                minute < 60 -> "$minute 分钟"
-                minute < 24 * 60 -> "${minute / 60} 小时 ${minute % 60} 分钟"
-                else -> "${minute / 60 / 24} 天"
-              } + "前请求"
-            }
-          },
+          text = getTimeStr(requestContent),
           fontSize = 14.sp,
           color = Color.Gray
         )
+      }
+      if (requestContent.editable) {
+        Box(
+          modifier = Modifier.align(Alignment.CenterEnd)
+            .padding(end = 40.dp)
+            .clickableCardIndicator {
+              clickDelete(requestContent)
+            }
+        ) {
+          Icon(
+            modifier = Modifier.padding(4.dp),
+            imageVector = Icons.Default.Delete,
+            contentDescription = null,
+          )
+        }
       }
       Image(
         modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp),
         painter = rememberVectorPainter(Icons.AutoMirrored.Default.ArrowForwardIos),
         contentDescription = null,
+      )
+    }
+  }
+}
+
+@Composable
+private fun getTimeStr(requestContent: RequestContent<*>): AnnotatedString {
+  return if (requestContent.requestTimestamp == 0L) {
+    AnnotatedString("未请求过", SpanStyle(Color.Gray))
+  } else {
+    var now by remember { mutableLongStateOf(Clock.System.now().toEpochMilliseconds()) }
+    LaunchedEffect(Unit) {
+      while (true) {
+        delay(1.minutes)
+        now += 1.minutes.inWholeMilliseconds
+      }
+    }
+    val diff = (now - requestContent.requestTimestamp).milliseconds
+    if (diff < 1.minutes) {
+      AnnotatedString("刚刚已请求", SpanStyle(Color.Gray))
+    } else {
+      AnnotatedString(
+        when {
+          diff < 1.hours -> "${diff.inWholeMinutes} 分钟"
+          diff < 1.days -> "${diff.inWholeHours} 小时 ${diff.inWholeMinutes % 60} 分钟"
+          else -> "${diff.inWholeDays} 天"
+        } + "前请求", SpanStyle(
+          // 如果缓存已经过期了，则显示为红色进行提醒
+          if (now > requestContent.cacheExpiration + requestContent.requestTimestamp) Color.Red
+          else Color.Gray
+        )
       )
     }
   }
@@ -342,4 +408,24 @@ enum class RequestContentStatus {
   Success, // 请求成功
   Failure, // 请求失败
   FailureButHitCache, // 请求失败但缓存可用
+}
+
+private fun clickDelete(
+  requestContent: RequestContent<*>,
+) {
+  showChooseDialog(
+    onClickPositionBtn = {
+      val requestGroupKey = requestContent.key.substringBeforeLast("-")
+      RequestGroup.find(requestGroupKey)?.requestContents?.remove(requestContent)
+      hide()
+    }
+  ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+      Text(
+        text = "确认删除吗？",
+        modifier = Modifier.align(Alignment.Center),
+        textAlign = TextAlign.Center
+      )
+    }
+  }
 }

@@ -1,11 +1,10 @@
-package com.course.pages.course.main
+package com.course.pages.course.service.main
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -13,10 +12,14 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.course.components.base.account.Account
 import com.course.components.base.ui.toast.toast
+import com.course.components.utils.compose.combineClickableCardIndicator
 import com.course.components.utils.provider.Provider
 import com.course.pages.course.api.ICourseService
 import com.course.pages.course.api.IMainCourseDataProvider
@@ -66,17 +69,25 @@ class CourseMainPage : IMainPage {
     }
   }
 
-  @OptIn(ExperimentalFoundationApi::class)
   @Composable
   override fun BoxScope.BottomAppBarItem(selectedToPosition: () -> Unit) {
-    Text(text = "课表", modifier = Modifier.combinedClickable(
-      onClick = { selectedToPosition() },
-      onLongClick = {
-        oldAccount = null
-        oldCourseDetail = null
-        forceRefreshCourse.value++
-      }
-    ))
+    Box(
+      modifier = Modifier.size(32.dp).combineClickableCardIndicator(
+        onClick = { selectedToPosition() },
+        onLongClick = {
+          oldAccount = null
+          oldCourseDetail = null
+          forceRefreshCourse.value++
+        }
+      ),
+      contentAlignment = Alignment.Center,
+    ) {
+      Icon(
+        modifier = Modifier.size(22.dp),
+        painter = painterResource("drawable/ic_course_bottom_bar.xml"),
+        contentDescription = null,
+      )
+    }
   }
 
   override fun onUnselected() {
@@ -110,6 +121,11 @@ class CourseMainPage : IMainPage {
       super.cancelShow()
       appBarVisibility = true
     }
+
+    override fun endShow() {
+      super.endShow()
+      appBarVisibility = true
+    }
   }
 }
 
@@ -119,6 +135,10 @@ private class EmptyAccountCourseDetail(
   override val startDate: Date = Date(1901, 1, 1)
   override val title: String = "未登陆"
   override val subtitle: String = ""
+
+  override fun getTerms(): List<Pair<Int, Date>> {
+    return emptyList()
+  }
 
   override fun onClickTitle() {
     toast("请在数据源中设置用户信息")

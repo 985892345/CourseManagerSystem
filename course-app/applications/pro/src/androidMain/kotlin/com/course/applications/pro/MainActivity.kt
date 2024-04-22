@@ -15,4 +15,4 @@ class MainActivity : BaseComposeActivity() {
 }
 
 
-val color1 = Color(0xFFE4D9F5)
+val color = Color(0xFFE4D9F5)

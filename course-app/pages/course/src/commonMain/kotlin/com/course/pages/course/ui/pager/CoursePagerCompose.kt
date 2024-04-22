@@ -9,10 +9,10 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
+import com.course.pages.course.api.item.CourseItemClickShow
 import com.course.pages.course.api.item.ICourseItem
-import com.course.pages.course.ui.CourseComposeState
-import com.course.pages.course.ui.pager.scroll.CourseScrollCompose
-import com.course.pages.course.ui.pager.scroll.timeline.CourseTimeline
+import com.course.pages.course.ui.scroll.CourseScrollCompose
+import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.shared.time.Date
 
 /**
@@ -37,28 +37,28 @@ fun CoursePagerCompose(
 
 @Stable
 class CoursePagerState(
-  val courseComposeState: CourseComposeState,
   val scrollState: ScrollState,
   val weekBeginDate: Date,
   val weekItems: SnapshotStateList<ICourseItem>,
-  val timeline: CourseTimeline
+  val timeline: CourseTimeline,
+  val itemClickShow: CourseItemClickShow,
 )
 
 @Composable
 fun rememberCoursePagerState(
-  courseComposeState: CourseComposeState,
   weekBeginDate: Date,
   timeline: CourseTimeline,
   weekItems: SnapshotStateList<ICourseItem>,
+  itemClickShow: CourseItemClickShow,
 ): CoursePagerState {
   val scrollState = rememberScrollState()
   return remember {
     CoursePagerState(
-      courseComposeState = courseComposeState,
       scrollState = scrollState,
       weekBeginDate = weekBeginDate,
       weekItems = weekItems,
       timeline = timeline,
+      itemClickShow = itemClickShow,
     )
   }
 }
