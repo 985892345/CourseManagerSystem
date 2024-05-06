@@ -1,6 +1,6 @@
 package com.course.pages.course.api
 
-import com.course.pages.course.api.data.CourseDataProvider
+import com.course.pages.course.api.controller.CourseController
 import com.course.source.app.account.AccountBean
 
 /**
@@ -12,5 +12,5 @@ import com.course.source.app.account.AccountBean
 interface IMainCourseDataProvider {
   fun createCourseDataProviders(
     account: AccountBean?,
-  ): List<CourseDataProvider>
+  ): List<CourseController>
 }

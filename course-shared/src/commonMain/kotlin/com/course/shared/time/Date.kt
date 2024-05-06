@@ -11,7 +11,6 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlin.jvm.JvmInline
 
 /**
  * 使用 value class 压缩存储日期，可以用来代替 LocalDate
@@ -72,6 +71,10 @@ value class Date(
     get() = plusDays(6 - dayOfWeekOrdinal)
 
   fun daysUntil(date: Date): Int {
+    if (this.value == date.value) return 0
+    if (this.year == date.year && this.month == date.month) {
+      return date.dayOfMonth - this.dayOfMonth
+    }
     return date.toEpochDays() - toEpochDays()
   }
 

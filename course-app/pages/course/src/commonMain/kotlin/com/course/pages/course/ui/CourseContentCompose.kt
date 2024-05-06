@@ -22,7 +22,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -38,10 +37,8 @@ import com.course.components.view.calendar.CalendarCompose
 import com.course.components.view.calendar.layout.CalendarContentOffsetMeasurePolicy
 import com.course.components.view.calendar.state.CalendarState
 import com.course.components.view.calendar.state.rememberCalendarState
-import com.course.pages.course.api.data.CourseDetail
-import com.course.pages.course.api.item.CourseItemClickShow
-import com.course.pages.course.ui.pager.CoursePagerState
-import kotlinx.collections.immutable.persistentListOf
+import com.course.pages.course.api.controller.CourseDetail
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -57,7 +54,6 @@ import kotlin.math.abs
 @Composable
 fun CourseContentCompose(
   detail: CourseDetail,
-  itemClickShow: CourseItemClickShow,
   course: @Composable (CourseComposeState) -> Unit = {
     CourseCompose(
       state = it
@@ -72,8 +68,7 @@ fun CourseContentCompose(
   val courseComposeState = rememberCourseComposeState(
     startDate = detail.startDate,
     endDate = detail.endDate,
-    data = persistentListOf(detail, *detail.dataProviders),
-    itemClickShow = itemClickShow,
+    itemGroups = (detail.controllers + detail).toImmutableList(),
   )
   Column(modifier = Modifier.systemBarsPadding()) {
     CourseHeaderCompose(detail, calendarState, courseComposeState)
@@ -161,7 +156,7 @@ private fun CourseHeaderCompose(
   courseComposeState: CourseComposeState,
 ) {
   ConstraintLayout(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-    val (week, back, term, notification) = createRefs()
+    val (week, back, term) = createRefs()
     Text(
       text = detail.title,
       modifier = Modifier.constrainAs(week) {
@@ -225,10 +220,8 @@ private fun BackTodayCompose(
       alpha = backFraction
       translationX = (1 - backFraction) * size.width
     }.clip(CircleShape).background(
-      brush = Brush.linearGradient(
+      brush = Brush.horizontalGradient(
         colors = listOf(Color.Blue, Color(0xFF8686FF)),
-        start = Offset.Zero,
-        end = Offset.Infinite
       )
     ).padding(vertical = 10.dp, horizontal = 16.dp)
       .clickable {

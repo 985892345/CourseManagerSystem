@@ -10,11 +10,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.course.components.base.account.Account
@@ -23,15 +20,18 @@ import com.course.components.utils.compose.combineClickableCardIndicator
 import com.course.components.utils.provider.Provider
 import com.course.pages.course.api.ICourseService
 import com.course.pages.course.api.IMainCourseDataProvider
-import com.course.pages.course.api.data.CourseDataProvider
-import com.course.pages.course.api.data.CourseDetail
-import com.course.pages.course.api.item.CourseBottomSheetItemClickShow
-import com.course.pages.course.api.item.CourseBottomSheetState
+import com.course.pages.course.api.controller.CourseController
+import com.course.pages.course.api.controller.CourseDetail
 import com.course.pages.main.api.IMainPage
 import com.course.shared.time.Date
 import com.course.source.app.account.AccountBean
 import com.course.source.app.account.AccountType
 import com.g985892345.provider.api.annotation.ImplProvider
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
 
 /**
  * .
@@ -45,30 +45,25 @@ class CourseMainPage : IMainPage {
   override val priority: Int
     get() = 0
 
-  override var appBarVisibility: Boolean by mutableStateOf(true)
-
   private var oldAccount: AccountBean? = null
 
   private var oldCourseDetail: CourseDetail? = null
-
-  private val courseBottomSheetState = MainPageCourseBottomSheetState()
 
   private val forceRefreshCourse = mutableIntStateOf(0)
 
   @Composable
   override fun Content(appBarHeight: Dp) {
-    CourseBottomSheetItemClickShow(courseBottomSheetState) {
-      Box(modifier = Modifier.padding(bottom = appBarHeight)) {
-        Provider.impl(ICourseService::class).apply {
-          key(forceRefreshCourse.intValue) {
-            val account by Account.observeAccount().collectAsState()
-            Content(getCourseDetail(account), it)
-          }
+    Box(modifier = Modifier.padding(bottom = appBarHeight)) {
+      Provider.impl(ICourseService::class).apply {
+        key(forceRefreshCourse.intValue) {
+          val account by Account.observeAccount().collectAsState()
+          Content(getCourseDetail(account))
         }
       }
     }
   }
 
+  @OptIn(ExperimentalResourceApi::class)
   @Composable
   override fun BoxScope.BottomAppBarItem(selectedToPosition: () -> Unit) {
     Box(
@@ -84,15 +79,10 @@ class CourseMainPage : IMainPage {
     ) {
       Icon(
         modifier = Modifier.size(22.dp),
-        painter = painterResource("drawable/ic_course_bottom_bar.xml"),
+        painter = painterResource(DrawableResource("drawable/ic_course_bottom_bar.xml")),
         contentDescription = null,
       )
     }
-  }
-
-  override fun onUnselected() {
-    super.onUnselected()
-    courseBottomSheetState.cancelShow()
   }
 
   private fun ICourseService.getCourseDetail(account: AccountBean?): CourseDetail {
@@ -101,37 +91,21 @@ class CourseMainPage : IMainPage {
       return oldCourseDetail
     }
     oldAccount = account
-    val dataProvider = Provider.getAllImpl(IMainCourseDataProvider::class)
+    val controllers = Provider.getAllImpl(IMainCourseDataProvider::class)
       .map { it.value.get().createCourseDataProviders(account) }
       .flatten()
+      .toImmutableList()
     return when (account?.type) {
-      AccountType.Student -> stuCourseDetail(account.num, *dataProvider.toTypedArray())
-      AccountType.Teacher -> teaCourseDetail(account.num, *dataProvider.toTypedArray())
-      null -> EmptyAccountCourseDetail(*dataProvider.toTypedArray())
+      AccountType.Student -> stuCourseDetail(account.num, controllers)
+      AccountType.Teacher -> teaCourseDetail(account.num, controllers)
+      null -> EmptyAccountCourseDetail(controllers)
     }.also { this@CourseMainPage.oldCourseDetail = it }
-  }
-
-  private inner class MainPageCourseBottomSheetState : CourseBottomSheetState() {
-    override fun startShow() {
-      super.startShow()
-      appBarVisibility = false
-    }
-
-    override fun cancelShow() {
-      super.cancelShow()
-      appBarVisibility = true
-    }
-
-    override fun endShow() {
-      super.endShow()
-      appBarVisibility = true
-    }
   }
 }
 
 private class EmptyAccountCourseDetail(
-  vararg dataProviders: CourseDataProvider
-) : CourseDetail(*dataProviders) {
+  controllers: ImmutableList<CourseController>
+) : CourseDetail(controllers) {
   override val startDate: Date = Date(1901, 1, 1)
   override val title: String = "未登陆"
   override val subtitle: String = ""

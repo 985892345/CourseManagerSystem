@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMapIndexed
 import com.course.components.utils.compose.reflexScrollableForMouse
+import com.course.pages.course.api.timeline.MutableTimelineData
 import com.course.pages.course.ui.group.CourseItemGroupCompose
 import com.course.pages.course.ui.pager.CoursePagerState
 import com.course.pages.course.ui.timeline.CourseTimelineCompose
-import com.course.pages.course.api.timeline.MutableTimelineData
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.math.roundToInt
 
@@ -40,7 +40,7 @@ fun CoursePagerState.CourseScrollCompose(
     modifier = modifier
       .reflexScrollableForMouse()
       .verticalScroll(state = scrollState)
-      .padding(vertical = 6.dp),
+      .padding(vertical = 4.dp),
     content = content,
     measurePolicy = remember(timeline) {
       { measurables, constraints ->
@@ -77,7 +77,7 @@ fun CoursePagerState.CourseScrollCompose(
     if (lastTimeline is MutableTimelineData) {
       // 最后一个展开时需要向上滚动
       lastTimeline.clickAnimateState.collectLatest {
-        if (it && scrollState.value == 0) {
+        if (it && scrollState.value == scrollState.maxValue) {
           scrollState.scroll {
             animate(
               0F, 0F,

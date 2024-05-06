@@ -29,7 +29,7 @@ data class LessonTimelineData(
   override val hasTomorrow: Boolean,
 ) : CourseTimelineData {
 
-  override val text: String = lesson.toString()
+  override val optionText: String = "第${lesson}节"
 
   override val startTime: MinuteTime = LessonItemData.getStartMinuteTime(lesson)
 
@@ -56,7 +56,7 @@ data class LessonTimelineData(
       modifier = Modifier.weight(nowWeight).fillMaxWidth(),
       content = {
         Text(
-          text = text,
+          text = lesson.toString(),
           textAlign = TextAlign.Center,
           fontSize = fontSize,
           color = color,

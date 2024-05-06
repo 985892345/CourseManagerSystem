@@ -2,7 +2,6 @@ package com.course.components.view.edit
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ExperimentalMaterialApi
@@ -32,6 +31,9 @@ fun EditTextCompose(
   hint: String = "",
   modifier: Modifier = Modifier,
   isShowIndicatorLine: Boolean = true,
+  singleLine: Boolean = false,
+  maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
+  minLines: Int = 1,
   textStyle: TextStyle = remember { TextStyle() },
   onValueChange: (String) -> Unit = {
     text.value = it
@@ -55,10 +57,13 @@ fun EditTextCompose(
     ),
     interactionSource = interactionSource,
     textStyle = textStyle,
+    singleLine = singleLine,
+    maxLines = maxLines,
+    minLines = minLines,
     decorationBox = {
       if (text.value.isEmpty()) {
         Text(
-          modifier = Modifier.fillMaxWidth(),
+          modifier = Modifier,
           text = hint,
           color = Color.Gray,
           fontSize = textStyle.fontSize,

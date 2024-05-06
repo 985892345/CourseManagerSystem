@@ -56,7 +56,8 @@ private val mainPages = Provider.getAllImpl(IMainPage::class)
 private fun ProMainScreenContent() {
   val sortedPageKeys by remember {
     derivedStateOfStructure {
-      mainPages.filter { it.value.visibility }.keys.sortedBy { mainPages.getValue(it).priority }
+      mainPages.filter { it.value.visibility }.keys
+        .sortedBy { mainPages.getValue(it).priority }
     }
   }
   val pagerState = rememberPagerState { sortedPageKeys.size }
@@ -74,9 +75,9 @@ private fun ProMainScreenContent() {
     }
     AnimatedVisibility(
       modifier = Modifier.align(Alignment.BottomCenter),
-      visible = mainPages.getValue(
-        sortedPageKeys[pagerState.currentPage]
-      ).appBarVisibility,
+      visible = sortedPageKeys.getOrNull(pagerState.currentPage)
+        ?.let { mainPages.getValue(it).appBarVisibility }
+        ?: true,
       enter = slideInVertically { it },
       exit = slideOutVertically { it },
     ) {

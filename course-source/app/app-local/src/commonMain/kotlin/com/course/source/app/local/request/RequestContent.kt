@@ -59,6 +59,7 @@ import com.course.source.app.local.request.RequestContentStatus.Success
 import com.course.source.app.local.source.page.RequestContentScreen
 import com.russhwolf.settings.long
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
@@ -198,9 +199,9 @@ data class RequestContent<T : Any>(
         unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Failure
       }
     }
-    // 请求失败则尝试从缓存中拿数据
+    // 请求失败则尝试从缓存中拿数据，不管缓存是否过期
     val cache = cacheMap[cacheKey]
-    if (cache != null && nowTime - cache.responseTimestamp < cacheExpiration) {
+    if (cache != null) {
       val response = cache.response ?: return null
       runCatching {
         Json.decodeFromString(resultSerializer, response)
@@ -222,10 +223,15 @@ data class RequestContent<T : Any>(
     cacheKey: String,
   ): T? {
     unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Requesting
-    val response: String = withTimeout(10.seconds) {
-      unit.request(parameters)
-    }
+    unit.response = null
     unit.error = null
+    val response: String = try {
+      withTimeout(5.seconds) {
+        unit.request(parameters)
+      }
+    } catch (e: TimeoutCancellationException) {
+      throw RuntimeException("超时", e)
+    }
     // 如果 result 反序列化异常，则认为请求失败
     val result = Json.decodeFromString(resultSerializer, response)
     if (result != null) {

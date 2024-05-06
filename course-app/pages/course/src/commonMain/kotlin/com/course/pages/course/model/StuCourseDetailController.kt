@@ -1,5 +1,7 @@
 package com.course.pages.course.model
 
+import androidx.compose.foundation.ScrollState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -7,13 +9,16 @@ import androidx.compose.runtime.setValue
 import com.course.components.utils.compose.derivedStateOfStructure
 import com.course.components.utils.result.tryThrowCancellationException
 import com.course.components.utils.time.Today
-import com.course.pages.course.api.data.CourseDataProvider
-import com.course.pages.course.api.data.CourseDetail
-import com.course.pages.course.api.item.ICourseItem
-import com.course.pages.course.api.item.lesson.toCourseItem
+import com.course.pages.course.api.controller.CourseController
+import com.course.pages.course.api.controller.CourseDetail
+import com.course.pages.course.api.item.lesson.LessonItemData
+import com.course.pages.course.api.item.lesson.LessonItemGroup
 import com.course.pages.course.api.item.lesson.toLessonItemBean
+import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.shared.time.Date
 import com.course.source.app.course.CourseBean
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -28,13 +33,14 @@ import kotlinx.coroutines.launch
  * @author 985892345
  * 2024/3/17 16:53
  */
-class StuCourseDetailDataProvider(
+class StuCourseDetailController(
   val stuNum: String,
-  vararg dataProviders: CourseDataProvider
-) : CourseDetail(*dataProviders) {
+  controllers: ImmutableList<CourseController> = persistentListOf(),
+) : CourseDetail(controllers) {
 
+  private val itemGroups = LessonItemGroup()
   private val courseBeans = mutableStateMapOf<Int, CourseBean>()
-  private val courseItems = mutableMapOf<Int, List<ICourseItem>>()
+  private val courseItems = mutableMapOf<Int, List<LessonItemData>>()
 
   override val startDate: Date by derivedStateOfStructure {
     courseBeans.minByOrNull { it.key }?.value?.beginDate ?: Today.firstDate
@@ -127,10 +133,14 @@ class StuCourseDetailDataProvider(
 
   private fun setCourse(bean: CourseBean) {
     courseBeans[bean.termIndex] = bean
-    val newItems = bean.toLessonItemBean().toCourseItem()
-    val oldItems = courseItems.put(bean.termIndex, newItems)
-    removeAll(oldItems)
-    addAll(newItems)
+    courseItems[bean.termIndex] = bean.toLessonItemBean()
+    itemGroups.resetData(courseItems.values.flatten())
+  }
+
+  @Composable
+  override fun Content(weekBeginDate: Date, timeline: CourseTimeline, scrollState: ScrollState) {
+    super.Content(weekBeginDate, timeline, scrollState)
+    itemGroups.Content(weekBeginDate, timeline, scrollState)
   }
 
   private fun getWeekStr(start: Date, date: Date): String {

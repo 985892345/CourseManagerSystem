@@ -18,6 +18,7 @@ import cafe.adriel.voyager.transitions.SlideTransition
 import com.course.components.base.theme.AppTheme
 import com.course.components.base.ui.dialog.DialogCompose
 import com.course.components.base.ui.toast.ToastCompose
+import com.course.components.utils.compose.window.AppWindowCompose
 import com.course.components.utils.serializable.ObjectSerializable
 
 /**
@@ -44,6 +45,7 @@ fun MainPageCompose(screen: Screen) {
         }
       }
     }
+    AppWindowCompose()
     DialogCompose()
     ToastCompose()
   }

@@ -5,34 +5,22 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.Snapshot
-import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import com.course.components.utils.compose.Wrapper
 import com.course.components.utils.compose.reflexScrollableForMouse
 import com.course.components.utils.time.Today
-import com.course.pages.course.api.data.CourseDataProvider
-import com.course.pages.course.api.item.CourseItemClickShow
+import com.course.pages.course.api.item.ICourseItemGroup
+import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.pages.course.ui.pager.CoursePagerCompose
 import com.course.pages.course.ui.pager.CoursePagerState
-import com.course.pages.course.ui.pager.WeekItemsProvider
 import com.course.pages.course.ui.pager.rememberCoursePagerState
-import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.shared.time.Date
-import com.course.shared.time.MinuteTimeDate
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -65,7 +53,6 @@ fun CourseCompose(
     )
   }
 ) {
-  val weekItemsProvider = getWeekItemsProvider(timeline, state.data)
   HorizontalPager(
     state = state.pagerState,
     modifier = Modifier.then(modifier).reflexScrollableForMouse(),
@@ -75,35 +62,11 @@ fun CourseCompose(
       val coursePagerState = rememberCoursePagerState(
         weekBeginDate = weekBeginDate,
         timeline = timeline,
-        itemClickShow = state.itemClickShow,
-        weekItems = weekItemsProvider.getWeekItems(
-          MinuteTimeDate(
-            weekBeginDate,
-            timeline.delayMinuteTime
-          )
-        )
+        itemGroups = state.itemGroups,
       )
       content(coursePagerState)
     }
   )
-}
-
-@Composable
-private fun getWeekItemsProvider(
-  timeline: CourseTimeline,
-  data: ImmutableList<CourseDataProvider>
-): WeekItemsProvider {
-  val oldWeekItemsProvider = remember { Wrapper<WeekItemsProvider?>(null) }
-  val weekItemsProvider = remember(timeline) {
-    oldWeekItemsProvider.value?.destroy()
-    WeekItemsProvider(timeline)
-  }.also { it.init(data) }
-  DisposableEffect(Unit) {
-    onDispose {
-      weekItemsProvider.destroy()
-    }
-  }
-  return weekItemsProvider
 }
 
 
@@ -114,8 +77,7 @@ class CourseComposeState(
   val pagerState: PagerState,
   val startDateState: State<Date>,
   val endDateState: State<Date>,
-  val data: ImmutableList<CourseDataProvider>,
-  val itemClickShow: CourseItemClickShow
+  val itemGroups: ImmutableList<ICourseItemGroup>,
 ) {
   val beginDate: Date
     get() = startDateState.value.minusDays(startDateState.value.dayOfWeekOrdinal)
@@ -128,8 +90,7 @@ class CourseComposeState(
 fun rememberCourseComposeState(
   startDate: Date = Date(1901, 1, 1),
   endDate: Date = Date(2099, 12, 31),
-  data: ImmutableList<CourseDataProvider> = remember { persistentListOf(CourseDataProvider()) },
-  itemClickShow: CourseItemClickShow,
+  itemGroups: ImmutableList<ICourseItemGroup>,
 ): CourseComposeState {
   val coroutineScope = rememberCoroutineScope()
   val startDateState = rememberUpdatedState(startDate)
@@ -147,18 +108,8 @@ fun rememberCourseComposeState(
       pagerState = pagerState,
       startDateState = startDateState,
       endDateState = endDateState,
-      data = data,
-      itemClickShow = itemClickShow,
+      itemGroups = itemGroups,
     )
   }
-}
-
-
-val LocalCourseColor = staticCompositionLocalOf { CourseColor() }
-
-@Stable
-class CourseColor {
-  var background by mutableStateOf(Color(0xFFFFFFFF), structuralEqualityPolicy())
-  var sheetTip by mutableStateOf(Color(0xFFE2EDFB), structuralEqualityPolicy())
 }
 

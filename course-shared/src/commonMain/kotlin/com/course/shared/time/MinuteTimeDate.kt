@@ -11,7 +11,6 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlin.jvm.JvmInline
 
 /**
  * .
@@ -40,6 +39,9 @@ value class MinuteTimeDate(val value: Int) : Comparable<MinuteTimeDate> {
 
   val time: MinuteTime
     get() = MinuteTime(value and 0x7FF) // 最多占 11 位
+
+  val minuteOfDay: Int
+    get() = time.minuteOfDay
 
   fun minutesUntil(other: MinuteTimeDate): Int {
     return date.daysUntil(other.date) * 24 * 60 + time.minutesUntil(other.time)

@@ -28,8 +28,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 import kotlinx.serialization.Serializable
+import kotlin.math.roundToInt
 
 /**
  * .
@@ -39,7 +39,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class MutableTimelineData(
-  override val text: String,
+  val text: String,
+  override val optionText: String,
   override val startTime: MinuteTime,
   override val endTime: MinuteTime,
   val maxWeight: Float,

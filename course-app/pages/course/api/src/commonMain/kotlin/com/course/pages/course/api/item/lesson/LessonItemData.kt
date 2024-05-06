@@ -1,6 +1,5 @@
 package com.course.pages.course.api.item.lesson
 
-import com.course.pages.course.api.item.ICourseItem
 import com.course.shared.time.MinuteTime
 import com.course.shared.time.MinuteTimeDate
 import com.course.source.app.course.CourseBean
@@ -57,7 +56,7 @@ data class LessonItemData(
 }
 
 fun CourseBean.toLessonItemBean(): List<LessonItemData> {
-  return lessons.map { lesson ->
+  return lessons.flatMap { lesson ->
     lesson.weeks.map {
       val startTime = LessonItemData.getStartMinuteTime(lesson.beginLesson)
       val endTime = LessonItemData.getEndMinuteTime(lesson.beginLesson + lesson.length - 1)
@@ -66,16 +65,6 @@ fun CourseBean.toLessonItemBean(): List<LessonItemData> {
         minuteDuration = startTime.minutesUntil(endTime),
         lesson = lesson,
       )
-    }
-  }.flatten()
-}
-
-fun List<LessonItemData>.toCourseItem(): List<ICourseItem> {
-  return map { bean ->
-    when {
-      bean.startTime.time < MinuteTime(12, 0) -> AmCourseItem(bean)
-      bean.startTime.time < MinuteTime(18, 0) -> PmCourseItem(bean)
-      else -> NightCourseItem(bean)
     }
   }
 }

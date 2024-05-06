@@ -11,13 +11,11 @@ import com.course.source.app.account.AccountBean
 import com.g985892345.provider.api.annotation.ImplProvider
 import com.russhwolf.settings.set
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlin.math.log
 
 /**
  * .
@@ -28,6 +26,9 @@ import kotlin.math.log
 object Account {
 
   private val stateFlow = MutableStateFlow<AccountBean?>(null)
+
+  val value: AccountBean?
+    get() = stateFlow.value
 
   fun observeAccount(): StateFlow<AccountBean?> {
     return stateFlow

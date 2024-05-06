@@ -3,14 +3,13 @@ package com.course.components.base.ui.toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -49,7 +48,7 @@ internal class Toast(
       AppToastVisible = true
     } else {
       if (AppToastState === this) return
-      AppToastList.add(this)
+      AppToastList.addFirst(this)
     }
   }
 
@@ -58,7 +57,7 @@ internal class Toast(
   }
 }
 
-private val AppToastList = mutableListOf<Toast>()
+private val AppToastList = ArrayDeque<Toast>()
 
 private var AppToastVisible by mutableStateOf(false)
 
@@ -66,29 +65,23 @@ private var AppToastState: Toast by mutableStateOf(Toast.Empty)
 
 @Composable
 internal fun ToastCompose() {
-  AnimatedVisibility(visible = AppToastVisible, enter = fadeIn(), exit = fadeOut()) {
-    Column {
-      Spacer(modifier = Modifier.weight(1F))
-      Box(modifier = Modifier.weight(7F).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
-        Card(
-          modifier = Modifier.wrapContentSize(),
-          shape = RoundedCornerShape(18.dp),
-          backgroundColor = LocalAppColors.current.tvLv4
-        ) {
-          Box(
-            modifier = Modifier.wrapContentSize()
-              .padding(horizontal = 30.dp, vertical = 9.dp),
-            contentAlignment = Alignment.Center
-          ) {
-            Text(
-              text = AppToastState.msg.toString(),
-              color = if (LocalAppDarkTheme.current) Color.Black else Color.White,
-              fontSize = 14.sp,
-              textAlign = TextAlign.Center,
-            )
-          }
-        }
-      }
+  AnimatedVisibility(
+    modifier = Modifier.padding(top = 140.dp),
+    visible = AppToastVisible,
+    enter = fadeIn() + scaleIn(initialScale = 0.5F),
+    exit = fadeOut() + scaleOut(targetScale = 0.5F),
+  ) {
+    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+      Text(
+        modifier = Modifier.background(
+          color = LocalAppColors.current.tvLv4,
+          shape = CircleShape,
+        ).padding(horizontal = 24.dp, vertical = 12.dp),
+        text = AppToastState.msg.toString(),
+        color = if (LocalAppDarkTheme.current) Color.Black else Color.White,
+        fontSize = 14.sp,
+        textAlign = TextAlign.Center,
+      )
     }
     DisposableEffect(Unit) {
       onDispose {

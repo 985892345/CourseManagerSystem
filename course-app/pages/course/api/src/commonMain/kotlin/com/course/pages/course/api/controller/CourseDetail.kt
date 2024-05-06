@@ -1,8 +1,9 @@
-package com.course.pages.course.api.data
+package com.course.pages.course.api.controller
 
 import androidx.compose.runtime.Stable
 import com.course.components.utils.time.Today
 import com.course.shared.time.Date
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -13,8 +14,8 @@ import kotlinx.coroutines.CoroutineScope
  */
 @Stable
 abstract class CourseDetail(
-  vararg val dataProviders: CourseDataProvider
-) : CourseDataProvider() {
+  val controllers: ImmutableList<CourseController>,
+) : CourseController() {
 
   abstract val startDate: Date
 
@@ -32,25 +33,24 @@ abstract class CourseDetail(
 
   override fun onChangedClickDate(date: Date) {
     super.onChangedClickDate(date)
-    dataProviders.forEach { it.onChangedClickDate(date) }
+    controllers.forEach { it.onChangedClickDate(date) }
   }
 
   override fun onRequestTerm(termIndex: Int) {
     super.onRequestTerm(termIndex)
-    dataProviders.forEach { it.onRequestTerm(termIndex) }
+    controllers.forEach { it.onRequestTerm(termIndex) }
   }
 
   override fun onComposeInit(coroutineScope: CoroutineScope) {
     super.onComposeInit(coroutineScope)
-    dataProviders.forEach { it.onComposeInit(coroutineScope) }
+    controllers.forEach { it.onComposeInit(coroutineScope) }
+  }
+
+  override fun onComposeDispose() {
+    super.onComposeDispose()
+    controllers.forEach { it.onComposeDispose() }
   }
 
   open fun onClickTitle() {}
   open fun onClickSubtitle() {}
-
-  init {
-    dataProviders.forEach {
-      it.addDataChangedListener(this)
-    }
-  }
 }

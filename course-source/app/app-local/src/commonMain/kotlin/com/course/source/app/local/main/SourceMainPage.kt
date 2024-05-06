@@ -8,13 +8,15 @@ import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.course.components.utils.compose.clickableCardIndicator
 import com.course.pages.main.api.IMainPage
 import com.course.source.app.local.source.page.SourceScreen
 import com.g985892345.provider.api.annotation.ImplProvider
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
 
 /**
  * .
@@ -35,6 +37,7 @@ class SourceMainPage : IMainPage {
     }
   }
 
+  @OptIn(ExperimentalResourceApi::class)
   @Composable
   override fun BoxScope.BottomAppBarItem(selectedToPosition: () -> Unit) {
     Box(
@@ -43,7 +46,7 @@ class SourceMainPage : IMainPage {
     ) {
       Icon(
         modifier = Modifier.size(18.dp),
-        painter = painterResource("drawable/ic_source_bottom_bar.xml"),
+        painter = painterResource(DrawableResource("drawable/ic_source_bottom_bar.xml")),
         contentDescription = null,
       )
     }

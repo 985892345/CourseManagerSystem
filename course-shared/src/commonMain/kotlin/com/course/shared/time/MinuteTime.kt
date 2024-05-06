@@ -31,9 +31,12 @@ value class MinuteTime(val value: Int) : Comparable<MinuteTime> {
   val minute: Int
     get() = value and 0x3F // 最多占 6 位，2^6 - 1
 
+  val minuteOfDay: Int
+    get() = hour * 60 + minute
+
   fun minutesUntil(time: MinuteTime, cyclic: Boolean = false): Int {
     if (this > time && cyclic) {
-      return (24 - hour) * 60 - minute + time.hour * 60 + time.minute
+      return (24 + time.hour - hour) * 60 + (time.minute - minute)
     }
     return (time.hour - hour) * 60 + (time.minute - minute)
   }
@@ -72,12 +75,12 @@ value class MinuteTime(val value: Int) : Comparable<MinuteTime> {
   companion object {
     fun checkHour(hour: Int): Int {
       if (hour in 0..23) return hour
-      throw IllegalArgumentException("hour must in 0..23")
+      throw IllegalArgumentException("hour=$hour must in 0..23")
     }
 
     fun checkMinute(minute: Int): Int {
       if (minute in 0..59) return minute
-      throw IllegalArgumentException("minute must in 0..59")
+      throw IllegalArgumentException("minute=$minute must in 0..59")
     }
 
     fun now(): MinuteTime {

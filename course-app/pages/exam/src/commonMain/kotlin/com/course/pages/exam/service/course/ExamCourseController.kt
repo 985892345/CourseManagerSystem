@@ -13,27 +13,32 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.zIndex
 import cafe.adriel.voyager.navigator.LocalNavigator
 import com.course.components.base.theme.LocalAppColors
+import com.course.components.utils.compose.showBottomSheetDialog
 import com.course.pages.course.api.IMainCourseDataProvider
-import com.course.pages.course.api.data.CourseDataProvider
+import com.course.pages.course.api.controller.CourseController
 import com.course.pages.course.api.item.CardContent
-import com.course.pages.course.api.item.CourseItemClickShow
-import com.course.pages.course.api.item.ICourseItem
+import com.course.pages.course.api.item.ICourseItemGroup
 import com.course.pages.course.api.item.TopBottomText
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.pages.exam.model.ExamRepository
 import com.course.pages.exam.ui.ExamScreen
 import com.course.shared.time.Date
-import com.course.shared.time.MinuteTimeDate
 import com.course.source.app.account.AccountBean
 import com.course.source.app.account.AccountType
 import com.course.source.app.exam.ExamBean
@@ -50,22 +55,25 @@ import kotlinx.coroutines.launch
  * @author 985892345
  * 2024/4/17 12:26
  */
-@ImplProvider(clazz = IMainCourseDataProvider::class, name = "ExamCourseDataProvider")
+@ImplProvider(clazz = IMainCourseDataProvider::class, name = "ExamMainCourseDataProvider")
 class ExamMainCourseDataProvider : IMainCourseDataProvider {
-  override fun createCourseDataProviders(account: AccountBean?): List<CourseDataProvider> {
+  override fun createCourseDataProviders(account: AccountBean?): List<CourseController> {
     return when (account?.type) {
-      AccountType.Student -> listOf(ExamCourseDataProvider(account))
+      AccountType.Student -> listOf(ExamCourseController(account))
       AccountType.Teacher -> emptyList()
       null -> emptyList()
     }
   }
 }
 
-class ExamCourseDataProvider(
+class ExamCourseController(
   val account: AccountBean
-) : CourseDataProvider() {
+) : CourseController() {
 
-  private var oldItems: List<ICourseItem> = emptyList()
+  private var oldTimeline: CourseTimeline? = null
+  private var oldItems: List<ExamItemData> = emptyList()
+  private val itemMapState: MutableState<Map<Date, List<ExamItemData>>> =
+    mutableStateOf(emptyMap())
 
   override fun onComposeInit(coroutineScope: CoroutineScope) {
     super.onComposeInit(coroutineScope)
@@ -74,39 +82,58 @@ class ExamCourseDataProvider(
         ExamRepository.getExamBean(account.num)
           .flowOn(Dispatchers.IO)
           .collect { termBean ->
-            oldItems = termBean.flatMap { term ->
-              term.exams.map { ExamItem(account, term, it) }
-            }
-            addAll(oldItems)
+            resetData(
+              termBean.flatMap { term ->
+                term.exams.map { ExamItemData(account, term, it) }
+              }
+            )
           }
       }
     }
   }
 
-  private data class ExamItem(
+  private fun resetData(data: List<ExamItemData>) {
+    oldItems = data
+    val timeline = oldTimeline
+    if (timeline != null) {
+      itemMapState.value =
+        data.groupBy { timeline.getItemWhichDate(it.bean.startTime).weekBeginDate }
+    }
+  }
+
+  @Composable
+  override fun Content(weekBeginDate: Date, timeline: CourseTimeline, scrollState: ScrollState) {
+    if (oldTimeline != timeline) {
+      oldTimeline = timeline
+      resetData(oldItems)
+    }
+    itemMapState.value[weekBeginDate]?.fastForEach {
+      with(it) { ExamContent(weekBeginDate, timeline) }
+    }
+  }
+
+  private data class ExamItemData(
     val account: AccountBean,
     val term: ExamTermBean,
     val bean: ExamBean
-  ) : ICourseItem {
-    override val startTime: MinuteTimeDate
-      get() = bean.startTime
-    override val minuteDuration: Int
-      get() = bean.minuteDuration
-    override val rank: Int
-      get() = 999
-    override val itemKey: String
-      get() = "exam-${bean.courseNum}"
-
+  ) {
     @Composable
-    override fun Content(
-      data: Date,
+    fun ICourseItemGroup.ExamContent(
+      weekBeginDate: Date,
       timeline: CourseTimeline,
-      scrollState: ScrollState,
-      itemClickShow: CourseItemClickShow
     ) {
-      CardContent(Color(0xFFE4D9F5)) {
+      CardContent(
+        backgroundColor = Color(0xFFE4D9F5),
+        modifier = Modifier.zIndex(3F) // 考试显示在课程上面
+          .singleDayItem(
+            weekBeginDate = weekBeginDate,
+            timeline = timeline,
+            startTimeDate = bean.startTime,
+            minuteDuration = bean.minuteDuration,
+          ),
+      ) {
         Box(modifier = Modifier.clickable {
-          clickItem(itemClickShow)
+          clickItem()
         }) {
           TopBottomText(
             top = bean.course,
@@ -119,17 +146,20 @@ class ExamCourseDataProvider(
     }
 
     @OptIn(ExperimentalFoundationApi::class)
-    private fun clickItem(itemClickShow: CourseItemClickShow) {
-      itemClickShow.showItemDetail(this) {
-        Box(
-          modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 24.dp)
+    private fun clickItem() {
+      showBottomSheetDialog { dismiss ->
+        Card(
+          modifier = Modifier.fillMaxWidth(),
+          shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp),
         ) {
-          Column {
+          Column(
+            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 24.dp)
+          ) {
             Row {
               val navigator = LocalNavigator.current
               Text(
                 modifier = Modifier.align(Alignment.CenterVertically).clickable {
-                  itemClickShow.cancelShow()
+                  dismiss.invoke()
                   navigator?.push(ExamScreen(account.num, true))
                 },
                 text = "考试",

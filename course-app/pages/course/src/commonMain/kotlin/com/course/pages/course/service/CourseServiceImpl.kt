@@ -2,15 +2,13 @@ package com.course.pages.course.service
 
 import androidx.compose.runtime.Composable
 import com.course.pages.course.api.ICourseService
-import com.course.pages.course.api.data.CourseDataProvider
-import com.course.pages.course.api.data.CourseDetail
-import com.course.pages.course.api.item.CourseBottomSheetItemClickShow
-import com.course.pages.course.api.item.CourseBottomSheetState
-import com.course.pages.course.api.item.CourseItemClickShow
-import com.course.pages.course.model.StuCourseDetailDataProvider
-import com.course.pages.course.model.TeaCourseDetailDataProvider
+import com.course.pages.course.api.controller.CourseController
+import com.course.pages.course.api.controller.CourseDetail
+import com.course.pages.course.model.StuCourseDetailController
+import com.course.pages.course.model.TeaCourseDetailController
 import com.course.pages.course.ui.CourseContentCompose
 import com.g985892345.provider.api.annotation.ImplProvider
+import kotlinx.collections.immutable.ImmutableList
 
 /**
  * .
@@ -23,35 +21,21 @@ object CourseServiceImpl : ICourseService {
 
   @Composable
   override fun Content(detail: CourseDetail) {
-    CourseBottomSheetItemClickShow {
-      CourseContentCompose(detail, it)
-    }
-  }
-
-  @Composable
-  override fun Content(detail: CourseDetail, state: CourseBottomSheetState) {
-    CourseBottomSheetItemClickShow(state) {
-      CourseContentCompose(detail, it)
-    }
-  }
-
-  @Composable
-  override fun Content(detail: CourseDetail, itemClickShow: CourseItemClickShow) {
-    CourseContentCompose(detail, itemClickShow)
+    CourseContentCompose(detail)
   }
 
   override fun stuCourseDetail(
     stuNum: String,
-    vararg dataProviders: CourseDataProvider
+    controllers: ImmutableList<CourseController>
   ): CourseDetail {
-    return StuCourseDetailDataProvider(stuNum, *dataProviders)
+    return StuCourseDetailController(stuNum, controllers)
   }
 
   override fun teaCourseDetail(
     teaNum: String,
-    vararg dataProviders: CourseDataProvider
+    controllers: ImmutableList<CourseController>
   ): CourseDetail {
-    return TeaCourseDetailDataProvider(teaNum, *dataProviders)
+    return TeaCourseDetailController(teaNum, controllers)
   }
 }
 

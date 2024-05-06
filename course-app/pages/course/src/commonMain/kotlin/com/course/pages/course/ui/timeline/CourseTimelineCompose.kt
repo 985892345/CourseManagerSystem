@@ -61,7 +61,7 @@ private fun Modifier.drawNowTimeLine(timeline: CourseTimeline): Modifier {
         (24 + it.startTime.hour) * 60 + it.startTime.minute
       } else it.startTime.hour * 60 + it.startTime.minute
       val end = if (it.endTime <= timeline.delayMinuteTime) {
-        (24 + it.startTime.hour) * 60 + it.startTime.minute
+        (24 + it.endTime.hour) * 60 + it.endTime.minute
       } else it.endTime.hour * 60 + it.endTime.minute
       if (now >= end) {
         nowWeight += it.nowWeight

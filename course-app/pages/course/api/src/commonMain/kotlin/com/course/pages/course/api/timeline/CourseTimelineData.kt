@@ -6,7 +6,12 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import com.course.pages.course.api.item.lesson.LessonItemData
+import com.course.shared.time.Date
 import com.course.shared.time.MinuteTime
+import com.course.shared.time.MinuteTimeDate
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.serialization.Serializable
 
 /**
@@ -18,7 +23,7 @@ import kotlinx.serialization.Serializable
 @Stable
 @Serializable
 sealed interface CourseTimelineData {
-  val text: String
+  val optionText: String
   val fontSize: TextUnit
   val color: Color
   val startTime: MinuteTime
@@ -31,6 +36,21 @@ sealed interface CourseTimelineData {
    */
   val hasTomorrow: Boolean
 
+  // 开始时间的分钟数，如果存在明天的时间段，则值会大于 24 * 60
+  val startTimeInt: Int
+    get() = if (!hasTomorrow || startTime > endTime) {
+      startTime.hour * 60 + startTime.minute
+    } else {
+      startTime.hour * 60 + startTime.minute + 24 * 60
+    }
+
+  val endTimeInt: Int
+    get() = if (!hasTomorrow) {
+      endTime.hour * 60 + endTime.minute
+    } else {
+      endTime.hour * 60 + endTime.minute + 24 * 60
+    }
+
   fun copyData(): CourseTimelineData
 
   @Composable
@@ -41,14 +61,23 @@ sealed interface CourseTimelineData {
 @Serializable
 class CourseTimeline(
   val delayMinuteTime: MinuteTime = TimelineDelayMinuteTime,
-  val data: List<CourseTimelineData> = Timeline
-)
+  val data: ImmutableList<CourseTimelineData> = Timeline,
+) {
+  fun getItemWhichDate(startTimeDate: MinuteTimeDate): Date {
+    return if (startTimeDate.time >= delayMinuteTime) {
+      startTimeDate.date
+    } else {
+      startTimeDate.date.minusDays(1)
+    }
+  }
+}
 
 private val TimelineDelayMinuteTime = MinuteTime(4, 0)
 
-private val Timeline = listOf(
+private val Timeline = persistentListOf(
   MutableTimelineData(
     text = "···",
+    optionText = "凌晨",
     startTime = TimelineDelayMinuteTime,
     endTime = MinuteTime(8, 0),
     maxWeight = 4F,
@@ -57,20 +86,38 @@ private val Timeline = listOf(
     hasTomorrow = false,
   ),
   LessonTimelineData(1, false),
+  FixedTimelineData(
+    text = "",
+    optionText = "课间",
+    startTime = LessonItemData.getEndMinuteTime(1),
+    endTime = LessonItemData.getStartMinuteTime(2),
+    weight = 0.01F,
+    hasTomorrow = false
+  ),
   LessonTimelineData(2, false),
   FixedTimelineData(
     text = "大课间",
+    optionText = "大课间",
     startTime = MinuteTime(9, 40),
     endTime = MinuteTime(10, 15),
     weight = 0.05F,
     fontSize = 8.sp,
     color = Color.DarkGray,
-    false
+    hasTomorrow = false
   ),
   LessonTimelineData(3, false),
+  FixedTimelineData(
+    text = "",
+    optionText = "课间",
+    startTime = LessonItemData.getEndMinuteTime(3),
+    endTime = LessonItemData.getStartMinuteTime(4),
+    weight = 0.01F,
+    hasTomorrow = false
+  ),
   LessonTimelineData(4, false),
   MutableTimelineData(
     text = "中午",
+    optionText = "中午",
     startTime = MinuteTime(11, 55),
     endTime = MinuteTime(14, 0),
     maxWeight = 2F,
@@ -80,9 +127,18 @@ private val Timeline = listOf(
     hasTomorrow = false,
   ),
   LessonTimelineData(5, false),
+  FixedTimelineData(
+    text = "",
+    optionText = "课间",
+    startTime = LessonItemData.getEndMinuteTime(5),
+    endTime = LessonItemData.getStartMinuteTime(6),
+    weight = 0.01F,
+    hasTomorrow = false
+  ),
   LessonTimelineData(6, false),
   FixedTimelineData(
     text = "大课间",
+    optionText = "大课间",
     startTime = MinuteTime(15, 40),
     endTime = MinuteTime(16, 15),
     weight = 0.05F,
@@ -91,9 +147,18 @@ private val Timeline = listOf(
     hasTomorrow = false,
   ),
   LessonTimelineData(7, false),
+  FixedTimelineData(
+    text = "",
+    optionText = "课间",
+    startTime = LessonItemData.getEndMinuteTime(7),
+    endTime = LessonItemData.getStartMinuteTime(8),
+    weight = 0.01F,
+    hasTomorrow = false
+  ),
   LessonTimelineData(8, false),
   MutableTimelineData(
     text = "傍晚",
+    optionText = "傍晚",
     startTime = MinuteTime(17, 55),
     endTime = MinuteTime(19, 0),
     maxWeight = 1F,
@@ -103,15 +168,40 @@ private val Timeline = listOf(
     hasTomorrow = false,
   ),
   LessonTimelineData(9, false),
+  FixedTimelineData(
+    text = "",
+    optionText = "课间",
+    startTime = LessonItemData.getEndMinuteTime(9),
+    endTime = LessonItemData.getStartMinuteTime(10),
+    weight = 0.01F,
+    hasTomorrow = false
+  ),
   LessonTimelineData(10, false),
+  FixedTimelineData(
+    text = "",
+    optionText = "课间",
+    startTime = LessonItemData.getEndMinuteTime(10),
+    endTime = LessonItemData.getStartMinuteTime(11),
+    weight = 0.01F,
+    hasTomorrow = false
+  ),
   LessonTimelineData(11, false),
+  FixedTimelineData(
+    text = "",
+    optionText = "课间",
+    startTime = LessonItemData.getEndMinuteTime(11),
+    endTime = LessonItemData.getStartMinuteTime(12),
+    weight = 0.01F,
+    hasTomorrow = false
+  ),
   LessonTimelineData(12, false),
   MutableTimelineData(
     text = "···",
+    optionText = "深夜",
     startTime = MinuteTime(22, 30),
     endTime = TimelineDelayMinuteTime,
     maxWeight = 5.5F,
-    initialWeight = 0.1F,
+    initialWeight = 0.2F,
     color = Color.DarkGray,
     hasTomorrow = true,
   ),

@@ -1,0 +1,391 @@
+package com.course.pages.schedule.ui
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
+import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstrainedLayoutReference
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.ConstraintSet
+import androidx.constraintlayout.compose.Dimension
+import androidx.constraintlayout.compose.layoutId
+import cafe.adriel.voyager.navigator.LocalNavigator
+import com.course.components.base.theme.LocalAppColors
+import com.course.components.base.ui.toast.toast
+import com.course.components.utils.compose.clickableCardIndicator
+import com.course.components.utils.navigator.BaseScreen
+import com.course.components.utils.serializable.ObjectSerializable
+import com.course.components.view.edit.EditTextCompose
+import kotlinx.serialization.Serializable
+
+/**
+ * 模仿掌上重邮的事务添加界面，但后续发生桌面版不好操控回到上一页，已废弃
+ * 但之后 compose for 掌邮 可能会用到，暂时保留
+ *
+ * @author 985892345
+ * 2024/4/22 22:05
+ */
+@Serializable
+@ObjectSerializable
+class CyxbsAffairScreen : BaseScreen() {
+
+  @Composable
+  override fun Content() {
+    Box(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
+      BackgroundCompose()
+      BackCompose()
+      StateContentCompose()
+    }
+  }
+
+  @Composable
+  private fun BackCompose() {
+    Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
+      val navigator = LocalNavigator.current
+      Box(
+        modifier = Modifier.align(Alignment.CenterStart)
+          .padding(start = 12.dp)
+          .size(32.dp)
+          .clickableCardIndicator {
+            navigator?.pop()
+          },
+        contentAlignment = Alignment.Center,
+      ) {
+        Icon(
+          imageVector = Icons.AutoMirrored.Default.ArrowBack,
+          contentDescription = null,
+        )
+      }
+    }
+  }
+
+  @Composable
+  private fun BackgroundCompose() {
+    Spacer(modifier = Modifier.fillMaxSize().drawBehind {
+      drawCircle(
+        color = Color(0xFFDFE6FF),
+        radius = 128.dp.toPx(),
+        center = Offset(x = size.width, y = 0F)
+      )
+      drawCircle(
+        color = Color(0xFFDFE6FF),
+        radius = 70.dp.toPx(),
+        center = Offset(x = 0F, y = size.height * 0.8F)
+      )
+      drawCircle(
+        color = Color(0xFFDFE6FF),
+        radius = 20.dp.toPx(),
+        center = Offset(x = size.width * 0.84F, y = size.height * 0.54F)
+      )
+      drawCircle(
+        color = Color(0xFFDFE6FF),
+        radius = 8.dp.toPx(),
+        center = Offset(x = size.width * 0.26F, y = size.height * 0.68F)
+      )
+    })
+  }
+
+  private val candidate = arrayOf(
+    "自习", "值班", "考试", "英语", "开会", "作业", "补课", "实验", "复习", "学习"
+  )
+
+  @OptIn(ExperimentalLayoutApi::class)
+  @Composable
+  private fun StateContentCompose() {
+    val edTitle = remember { mutableStateOf("") }
+    val edText = remember { mutableStateOf("") }
+    val title3 = remember { mutableStateOf("一个标题") }
+    var affairPage by remember { mutableStateOf(AffairPage.ADD_TITLE) }
+    Box {
+      Column {
+        Spacer(modifier = Modifier.weight(1F))
+        ConstraintLayout(
+          modifier = Modifier.weight(5F).fillMaxWidth(),
+          constraintSet = affairPage.constraintSet,
+          animateChanges = true,
+        ) {
+          Text(
+            modifier = Modifier.layoutId(AffairChildLayoutId.title1),
+            text = "标题：",
+            fontSize = 15.sp,
+            color = LocalAppColors.current.tvLv2,
+          )
+          EditTextCompose(
+            modifier = Modifier.layoutId(AffairChildLayoutId.edTitle),
+            text = edTitle,
+            textStyle = TextStyle(
+              fontSize = if (affairPage == AffairPage.ADD_TIME) 34.sp else 15.sp,
+              color = LocalAppColors.current.tvLv2,
+            ),
+            isShowIndicatorLine = false,
+          )
+          Text(
+            modifier = Modifier.layoutId(AffairChildLayoutId.title2),
+            text = "为你的行程添加",
+            fontSize = 34.sp,
+            color = LocalAppColors.current.tvLv2,
+          )
+          Text(
+            modifier = Modifier.layoutId(AffairChildLayoutId.title3),
+            text = title3.value,
+            fontSize = 34.sp,
+            color = LocalAppColors.current.tvLv2,
+          )
+          EditTextCompose(
+            modifier = Modifier.layoutId(AffairChildLayoutId.edText)
+              .background(color = Color(0xACE8F0FC), shape = RoundedCornerShape(29.dp))
+              .padding(horizontal = 18.dp, vertical = 12.dp),
+            text = edText,
+            isShowIndicatorLine = false,
+            maxLines = 1,
+            textStyle = TextStyle(
+              fontSize = 21.sp,
+            )
+          )
+          FlowRow(
+            modifier = Modifier.layoutId(AffairChildLayoutId.candidate),
+            horizontalArrangement = Arrangement.SpaceBetween,
+          ) {
+            candidate.forEach {
+              Text(
+                modifier = Modifier
+                  .clip(CircleShape)
+                  .background(color = Color(0xACE8F0FC))
+                  .clickable {
+                    edText.value += it
+                  }
+                  .padding(horizontal = 12.dp, vertical = 8.dp),
+                text = it,
+                fontSize = 12.sp,
+                color = LocalAppColors.current.tvLv2,
+              )
+            }
+          }
+        }
+      }
+      Column {
+        Spacer(modifier = Modifier.weight(3F))
+        Box(modifier = Modifier.weight(2F).fillMaxWidth(), contentAlignment = Alignment.Center) {
+          Box(
+            modifier = Modifier.size(66.dp)
+              .clip(RoundedCornerShape(20.dp))
+              .background(
+                brush = Brush.verticalGradient(
+                  colors = listOf(Color(0xFF5D5DF7), Color(0xFF2921D1)),
+                ),
+              ).clickable {
+                affairPage = affairPage.onClick(
+                  edTitle = edTitle,
+                  edText = edText,
+                  title3 = title3
+                )
+              },
+            contentAlignment = Alignment.Center,
+          ) {
+            Icon(
+              modifier = Modifier.size(40.dp),
+              imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+              contentDescription = null,
+              tint = Color.White,
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
+private class AffairChild<T>(
+  val title1: T,
+  val title2: T,
+  val title3: T,
+  val edTitle: T,
+  val edText: T,
+  val candidate: T,
+)
+
+private val AffairChildLayoutId = AffairChild(
+  title1 = "Title1",
+  title2 = "Title2",
+  title3 = "Title3",
+  edTitle = "EdTitle",
+  edText = "EdText",
+  candidate = "Candidate",
+)
+
+private val AffairChildReference = AffairChild(
+  title1 = ConstrainedLayoutReference(AffairChildLayoutId.title1),
+  title2 = ConstrainedLayoutReference(AffairChildLayoutId.title2),
+  title3 = ConstrainedLayoutReference(AffairChildLayoutId.title3),
+  edTitle = ConstrainedLayoutReference(AffairChildLayoutId.edTitle),
+  edText = ConstrainedLayoutReference(AffairChildLayoutId.edText),
+  candidate = ConstrainedLayoutReference(AffairChildLayoutId.candidate),
+)
+
+private enum class AffairPage(
+  val constraintSet: ConstraintSet
+) {
+  ADD_TITLE(
+    ConstraintSet {
+      constrain(AffairChildReference.title1) {
+        top.linkTo(parent.top)
+        start.linkTo(parent.end)
+      }
+      constrain(AffairChildReference.edTitle) {
+        top.linkTo(AffairChildReference.title1.top)
+        bottom.linkTo(AffairChildReference.title1.bottom)
+        start.linkTo(AffairChildReference.title1.end)
+      }
+      constrain(AffairChildReference.title2) {
+        top.linkTo(AffairChildReference.title1.bottom, 2.dp)
+        start.linkTo(parent.start, 16.dp)
+      }
+      constrain(AffairChildReference.title3) {
+        top.linkTo(AffairChildReference.title2.bottom, 6.dp)
+        start.linkTo(AffairChildReference.title2.start)
+      }
+      constrain(AffairChildReference.edText) {
+        top.linkTo(AffairChildReference.title3.bottom, 14.dp)
+        start.linkTo(parent.start, 16.dp)
+        end.linkTo(parent.end, 16.dp)
+        width = Dimension.fillToConstraints
+      }
+      constrain(AffairChildReference.candidate) {
+        top.linkTo(AffairChildReference.edText.bottom, 8.dp)
+        start.linkTo(parent.start)
+        end.linkTo(parent.end)
+      }
+    }
+  ) {
+    override fun onClick(
+      edTitle: MutableState<String>,
+      edText: MutableState<String>,
+      title3: MutableState<String>
+    ): AffairPage {
+      if (edText.value.isBlank()) {
+        toast("标题不能为空哟！")
+        return this
+      }
+      edTitle.value = edText.value
+      edText.value = ""
+      title3.value = "具体内容"
+      return ADD_CONTENT
+    }
+  },
+  ADD_CONTENT(
+    ConstraintSet {
+      constrain(AffairChildReference.title1) {
+        top.linkTo(parent.top)
+        start.linkTo(parent.start, 16.dp)
+      }
+      constrain(AffairChildReference.edTitle) {
+        top.linkTo(AffairChildReference.title1.top)
+        bottom.linkTo(AffairChildReference.title1.bottom)
+        start.linkTo(AffairChildReference.title1.end)
+      }
+      constrain(AffairChildReference.title2) {
+        top.linkTo(AffairChildReference.title1.bottom, 2.dp)
+        start.linkTo(parent.start, 16.dp)
+      }
+      constrain(AffairChildReference.title3) {
+        top.linkTo(AffairChildReference.title2.bottom, 6.dp)
+        start.linkTo(parent.start, 16.dp)
+      }
+      constrain(AffairChildReference.edText) {
+        top.linkTo(AffairChildReference.title3.bottom, 14.dp)
+        start.linkTo(parent.start, 16.dp)
+        end.linkTo(parent.end, 16.dp)
+        width = Dimension.fillToConstraints
+      }
+      constrain(AffairChildReference.candidate) {
+        top.linkTo(AffairChildReference.edText.bottom, 8.dp)
+        start.linkTo(parent.end)
+      }
+    }
+  ) {
+    override fun onClick(
+      edTitle: MutableState<String>,
+      edText: MutableState<String>,
+      title3: MutableState<String>
+    ): AffairPage {
+      return ADD_TIME
+    }
+  },
+  ADD_TIME(
+    ConstraintSet {
+      constrain(AffairChildReference.title1) {
+        top.linkTo(parent.top)
+        start.linkTo(parent.end)
+      }
+      constrain(AffairChildReference.edTitle) {
+        top.linkTo(AffairChildReference.title1.bottom, 2.dp)
+        start.linkTo(parent.start, 16.dp)
+      }
+      constrain(AffairChildReference.title2) {
+        top.linkTo(AffairChildReference.title1.bottom, 2.dp)
+        start.linkTo(parent.end)
+      }
+      constrain(AffairChildReference.title3) {
+        top.linkTo(AffairChildReference.title2.bottom, 6.dp)
+        start.linkTo(parent.end)
+      }
+      constrain(AffairChildReference.edText) {
+        top.linkTo(AffairChildReference.edTitle.bottom, 14.dp)
+        start.linkTo(parent.start, 16.dp)
+        end.linkTo(parent.end, 16.dp)
+        width = Dimension.fillToConstraints
+      }
+      constrain(AffairChildReference.candidate) {
+        top.linkTo(AffairChildReference.edText.bottom, 8.dp)
+        start.linkTo(parent.end)
+      }
+    }
+  ) {
+    override fun onClick(
+      edTitle: MutableState<String>,
+      edText: MutableState<String>,
+      title3: MutableState<String>
+    ): AffairPage {
+      return this
+    }
+  };
+
+  abstract fun onClick(
+    edTitle: MutableState<String>,
+    edText: MutableState<String>,
+    title3: MutableState<String>,
+  ): AffairPage
+}

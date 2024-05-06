@@ -26,7 +26,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class FixedTimelineData(
-  override val text: String,
+  val text: String,
+  override val optionText: String,
   override val startTime: MinuteTime,
   override val endTime: MinuteTime,
   val weight: Float = 1F,
