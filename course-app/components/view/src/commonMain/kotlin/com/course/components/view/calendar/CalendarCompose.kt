@@ -37,9 +37,7 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.course.components.utils.compose.clickableNoIndicator
-import com.course.components.utils.compose.reflexScrollableForMouse
 import com.course.components.utils.size.px2dp
-import com.course.shared.time.Date
 import com.course.components.utils.time.Festival
 import com.course.components.utils.time.SolarTerms
 import com.course.components.utils.time.Today
@@ -48,6 +46,7 @@ import com.course.components.view.calendar.month.CalendarMonthCompose
 import com.course.components.view.calendar.scroll.CalendarNestedScroll
 import com.course.components.view.calendar.state.CalendarState
 import com.course.components.view.calendar.state.rememberCalendarState
+import com.course.shared.time.Date
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -99,8 +98,7 @@ fun CalendarState.MonthTextCompose(
         endDateState.value.monthNumber - startDateState.value.monthNumber + 1
   }
   VerticalPager(
-    modifier = modifier.reflexScrollableForMouse()
-      .padding(top = 12.dp)
+    modifier = modifier.padding(top = 12.dp)
       .height(lineHeightState.value.px2dp.coerceAtLeast(1.dp)),
     state = pagerState,
     key = { startDateState.value.plusMonths(it).copy(dayOfMonth = 1).value },

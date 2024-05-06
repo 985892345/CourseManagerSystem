@@ -165,8 +165,9 @@ private fun DurationCompose(
             fontSize = 12.sp,
           ),
           onValueChange = {
-            if (it.isNotEmpty()) {
-              val duration = it.toInt() * 60 + minuteDurationText.value.toInt()
+            val hour = it.toIntOrNull()
+            if (hour != null && hour >= 0) {
+              val duration = hour * 60 + minuteDurationText.value.toInt()
               val beginTimeInt = item.startTime.time.minuteOfDay +
                   if (item.startTime.time >= timeline.delayMinuteTime) 0 else 24 * 60
               val finalTimeIneTargetValue = beginTimeInt + duration
@@ -175,7 +176,11 @@ private fun DurationCompose(
               } else {
                 toast("超出范围")
               }
-            } else hourDurationText.value = it
+            } else {
+              if (it.isEmpty()) {
+                hourDurationText.value = it
+              }
+            }
           }
         )
         Text(
@@ -196,8 +201,9 @@ private fun DurationCompose(
             fontSize = 12.sp,
           ),
           onValueChange = {
-            if (it.isNotEmpty()) {
-              val duration = hourDurationText.value.toInt() * 60 + it.toInt()
+            val minute = it.toIntOrNull()
+            if (minute != null && minute >= 0) {
+              val duration = hourDurationText.value.toInt() * 60 + minute
               val beginTimeInt = item.startTime.time.minuteOfDay +
                   if (item.startTime.time >= timeline.delayMinuteTime) 0 else 24 * 60
               val finalTimeIneTargetValue = beginTimeInt + duration
@@ -206,7 +212,11 @@ private fun DurationCompose(
               } else {
                 toast("超出范围")
               }
-            } else minuteDurationText.value = it
+            } else {
+              if (it.isEmpty()) {
+                minuteDurationText.value = it
+              }
+            }
           }
         )
         Text(

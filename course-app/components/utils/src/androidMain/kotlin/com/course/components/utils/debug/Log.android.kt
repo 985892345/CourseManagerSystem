@@ -1,8 +1,7 @@
 package com.course.components.utils.debug
 
+import com.course.components.utils.coroutine.AppCoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -21,7 +20,7 @@ actual fun log(msg: String) {
   android.util.Log.d("ggg", "(${Exception().stackTrace[2].run { "$fileName:$lineNumber" }}) -> " +
       msg)
   LogJob?.cancel()
-  LogJob = GlobalScope.launch(Dispatchers.Main.immediate) {
+  LogJob = AppCoroutineScope.launch {
     delay(500)
     // 打印分割线
     android.util.Log.d("ggg", "(${Exception().stackTrace[0].run { "$fileName:$lineNumber" }}) -> " +

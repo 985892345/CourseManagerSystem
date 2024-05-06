@@ -35,5 +35,9 @@ kotlin {
     androidMain.dependencies {
       implementation(libsLibrary("kotlinx-coroutinesAndroid"))
     }
+    val desktopMain by getting
+    desktopMain.dependencies {
+      implementation(libsLibrary("kotlinx-coroutinesSwing"))
+    }
   }
 }

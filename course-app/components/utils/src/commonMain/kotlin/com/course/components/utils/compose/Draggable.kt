@@ -2,6 +2,7 @@ package com.course.components.utils.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.node.DelegatingNode
 import androidx.compose.ui.node.ModifierNodeElement
@@ -42,9 +43,12 @@ private class ReflexScrollableCanDragElement : ModifierNodeElement<ReflexScrolla
 }
 
 private class ReflexScrollableCanDragNode : DelegatingNode() {
+  @OptIn(ExperimentalComposeUiApi::class)
   override fun onAttach() {
     super.onAttach()
-    reflex()
+    sideEffect {
+      reflex()
+    }
   }
 
   fun reflex() {

@@ -18,12 +18,9 @@ internal actual fun reflexScrollableCanDrag(node: Modifier.Node) {
   while (child !is KeyInputModifierNode) {
     child = childField.get(child) as Modifier.Node
   }
-  val scrollableGesturesNodeField = child::class.java.getDeclaredField("scrollableGesturesNode")
-  scrollableGesturesNodeField.isAccessible = true
-  val scrollableGesturesNode = scrollableGesturesNodeField.get(child) as Modifier.Node
-  val draggableGesturesNodeField = scrollableGesturesNode::class.java.getDeclaredField("draggableGesturesNode")
+  val draggableGesturesNodeField = child::class.java.getDeclaredField("draggableGesturesNode")
   draggableGesturesNodeField.isAccessible = true
-  val draggableGesturesNode = draggableGesturesNodeField.get(scrollableGesturesNode) as Modifier.Node
+  val draggableGesturesNode = draggableGesturesNodeField.get(child) as Modifier.Node
   val canDragField = draggableGesturesNode::class.java.superclass.getDeclaredField("_canDrag")
   canDragField.isAccessible = true
   canDragField.set(draggableGesturesNode, object : Function1<PointerInputChange, Boolean> {

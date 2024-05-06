@@ -135,7 +135,7 @@ internal class ChooseDialog(
         .width(btnWidth)
         .height(btnHeight),
       backgroundColor = Color(0xFF4A44E4),
-      shape = RoundedCornerShape(26.dp),
+      shape = RoundedCornerShape(16.dp),
     ) {
       Box(
         modifier = Modifier.clickable(onClick = { onClickPositionBtn.invoke(this) }),
@@ -153,7 +153,7 @@ internal class ChooseDialog(
         .width(btnWidth)
         .height(btnHeight),
       backgroundColor = Color(0xFFC3D4EE),
-      shape = RoundedCornerShape(26.dp),
+      shape = RoundedCornerShape(16.dp),
     ) {
       Box(
         modifier = Modifier.clickable(onClick = { onClickNegativeBtn.invoke(this) }),

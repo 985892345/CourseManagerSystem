@@ -55,7 +55,7 @@ fun CourseCompose(
 ) {
   HorizontalPager(
     state = state.pagerState,
-    modifier = Modifier.then(modifier).reflexScrollableForMouse(),
+    modifier = Modifier.then(modifier),
     key = { state.beginDate.plusWeeks(it).value },
     pageContent = { page ->
       val weekBeginDate = state.beginDate.plusWeeks(page)

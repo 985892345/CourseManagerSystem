@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import com.course.components.utils.coroutine.AppCoroutineScope
 import com.course.shared.time.Date.Companion.lengthOfMonth
 import com.course.shared.time.toDate
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
@@ -24,7 +23,7 @@ import kotlinx.datetime.todayIn
 val Today by mutableStateOf(
   Clock.System.todayIn(TimeZone.currentSystemDefault()).toDate()
 ).apply {
-  AppCoroutineScope.launch(Dispatchers.Main) {
+  AppCoroutineScope.launch {
     while (true) {
       val now = Clock.System.now()
         .toLocalDateTime(TimeZone.currentSystemDefault())
