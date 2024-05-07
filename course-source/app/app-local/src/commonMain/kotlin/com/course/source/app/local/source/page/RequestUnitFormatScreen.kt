@@ -29,7 +29,7 @@ class RequestUnitFormatScreen(
 ) : BaseScreen() {
 
   @Composable
-  override fun Content() {
+  override fun ScreenContent() {
     Column(modifier = Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, top = 16.dp)) {
       Text(text = "输入: ")
       if (parameterWithHint.isEmpty()) {

@@ -23,7 +23,7 @@ import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,8 +46,8 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import com.course.components.base.theme.LocalAppColors
-import com.course.components.base.ui.dialog.showChooseDialog
 import com.course.components.utils.compose.clickableCardIndicator
+import com.course.components.utils.compose.dialog.showChooseDialog
 import com.course.components.utils.navigator.BaseScreen
 import com.course.components.utils.serializable.IntStateSerializable
 import com.course.components.utils.serializable.ObjectSerializable
@@ -92,7 +92,7 @@ class RequestUnitScreen(
 
   @OptIn(ExperimentalFoundationApi::class)
   @Composable
-  override fun Content() {
+  override fun ScreenContent() {
     Column(modifier = Modifier.fillMaxSize()) {
       Card(
         shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp),
@@ -159,7 +159,7 @@ class RequestUnitScreen(
       ) {
         Icon(
           modifier = Modifier,
-          painter = rememberVectorPainter(Icons.AutoMirrored.Default.ArrowBack),
+          painter = rememberVectorPainter(Icons.AutoMirrored.Rounded.ArrowBack),
           contentDescription = null,
         )
       }

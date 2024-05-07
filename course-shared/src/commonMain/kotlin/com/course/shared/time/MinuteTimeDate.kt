@@ -30,7 +30,7 @@ value class MinuteTimeDate(val value: Int) : Comparable<MinuteTimeDate> {
     Date(year, month, dayOfMonth), time
   )
 
-  constructor(year: Int, month: Int, dayOfMonth: Int, hour: Int, minute: Int) : this(
+  constructor(year: Int, month: Int, dayOfMonth: Int, hour: Int, minute: Int = 0) : this(
     Date(year, month, dayOfMonth), MinuteTime(hour, minute)
   )
 

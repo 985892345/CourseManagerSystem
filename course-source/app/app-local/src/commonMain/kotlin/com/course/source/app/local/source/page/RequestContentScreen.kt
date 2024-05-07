@@ -31,12 +31,12 @@ import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DataObject
-import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.rounded.DragHandle
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
@@ -66,10 +66,10 @@ import androidx.compose.ui.window.DialogProperties
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import com.course.components.base.theme.LocalAppColors
-import com.course.components.base.ui.dialog.showChooseDialog
-import com.course.components.base.ui.dialog.showDialog
 import com.course.components.base.ui.toast.toast
 import com.course.components.utils.compose.clickableCardIndicator
+import com.course.components.utils.compose.dialog.showChooseDialog
+import com.course.components.utils.compose.dialog.showDialog
 import com.course.components.utils.provider.Provider
 import com.course.components.utils.serializable.ObjectSerializable
 import com.course.components.view.code.CodeCompose
@@ -243,7 +243,7 @@ private fun ToolbarCompose(requestContent: RequestContent<*>) {
       contentAlignment = Alignment.Center,
     ) {
       Icon(
-        imageVector = Icons.AutoMirrored.Default.ArrowBack,
+        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
         contentDescription = null,
       )
     }
@@ -263,7 +263,7 @@ private fun ToolbarCompose(requestContent: RequestContent<*>) {
       contentAlignment = Alignment.Center,
     ) {
       Icon(
-        imageVector = Icons.Default.Settings,
+        imageVector = Icons.Rounded.Settings,
         contentDescription = null,
       )
     }
@@ -376,7 +376,7 @@ private fun DragItemState<RequestUnit>.ListItemCompose(
         contentAlignment = Alignment.Center,
       ) {
         Icon(
-          imageVector = Icons.Default.DragHandle,
+          imageVector = Icons.Rounded.DragHandle,
           contentDescription = null,
         )
       }

@@ -2,7 +2,7 @@ package com.course.source.app.local.source.service
 
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.rounded.Description
 import androidx.compose.runtime.Composable
 import com.g985892345.provider.api.annotation.ImplProvider
 import kotlinx.collections.immutable.persistentMapOf
@@ -19,7 +19,7 @@ class TextDataSourceServiceImpl : IDataSourceService {
   @Composable
   override fun Identifier() {
     Icon(
-      imageVector = Icons.Default.Description,
+      imageVector = Icons.Rounded.Description,
       contentDescription = null,
     )
   }

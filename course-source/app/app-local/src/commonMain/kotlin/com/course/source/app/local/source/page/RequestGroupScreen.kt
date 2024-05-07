@@ -21,8 +21,8 @@ import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -84,7 +84,7 @@ class RequestGroupScreen(
         contentAlignment = Alignment.Center,
       ) {
         Icon(
-          imageVector = Icons.AutoMirrored.Default.ArrowBack,
+          imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
           contentDescription = null,
         )
       }
@@ -122,7 +122,7 @@ class RequestGroupScreen(
             modifier = Modifier.fillMaxSize().clickable {
               requestGroup.addRequestContent()
             },
-            imageVector = Icons.Default.Add,
+            imageVector = Icons.Rounded.Add,
             contentDescription = null,
             colorFilter = ColorFilter.tint(Color.LightGray)
           )

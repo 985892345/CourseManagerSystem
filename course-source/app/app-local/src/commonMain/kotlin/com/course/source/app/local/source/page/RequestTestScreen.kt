@@ -17,7 +17,7 @@ import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
@@ -153,7 +153,7 @@ private fun ToolbarCompose() {
     ) {
       Icon(
         modifier = Modifier,
-        painter = rememberVectorPainter(Icons.AutoMirrored.Default.ArrowBack),
+        painter = rememberVectorPainter(Icons.AutoMirrored.Rounded.ArrowBack),
         contentDescription = null,
       )
     }

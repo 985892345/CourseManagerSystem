@@ -22,8 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
-import cafe.adriel.voyager.core.screen.Screen
 import com.course.components.utils.compose.derivedStateOfStructure
+import com.course.components.utils.navigator.BaseScreen
 import com.course.components.utils.provider.Provider
 import com.course.components.utils.serializable.ObjectSerializable
 import com.course.pages.main.api.IMainPage
@@ -39,11 +39,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @ObjectSerializable
-data object MainScreen : Screen {
+data object MainScreen : BaseScreen() {
   private fun readResolve(): Any = MainScreen
 
   @Composable
-  override fun Content() {
+  override fun ScreenContent() {
     ProMainScreenContent()
   }
 }

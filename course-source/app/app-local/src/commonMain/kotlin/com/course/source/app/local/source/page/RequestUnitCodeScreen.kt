@@ -74,7 +74,7 @@ class RequestUnitCodeScreen(
   private val testValues = mutableMapOf<String, String>()
 
   @Composable
-  override fun Content() {
+  override fun ScreenContent() {
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp)) {
       editContents.forEach {
         Row(modifier = Modifier.padding(vertical = 6.dp).height(IntrinsicSize.Min)) {

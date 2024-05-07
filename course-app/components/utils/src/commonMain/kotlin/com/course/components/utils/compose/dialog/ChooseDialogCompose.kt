@@ -1,4 +1,4 @@
-package com.course.components.base.ui.dialog
+package com.course.components.utils.compose.dialog
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box

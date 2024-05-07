@@ -17,8 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import com.course.components.base.ui.dialog.showChooseDialog
 import com.course.components.base.ui.toast.toast
+import com.course.components.utils.compose.dialog.showChooseDialog
 import com.course.components.utils.coroutine.AppComposeCoroutineScope
 import com.course.pages.course.api.item.CardContent
 import com.course.pages.course.api.item.ICourseItemGroup

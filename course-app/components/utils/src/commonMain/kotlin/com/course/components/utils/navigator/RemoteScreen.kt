@@ -35,9 +35,9 @@ annotation class RemoteScreenEnter
  * - 其子类建议统一放在 base 模块 /navigator/screen 下
  */
 @Stable
-abstract class RemoteScreen : Screen {
+abstract class RemoteScreen : BaseScreen() {
   @Composable
-  final override fun Content() {
+  final override fun ScreenContent() {
     RemoteScreenEnterCollector.getScreenContent(this::class).invoke(this)
   }
 }

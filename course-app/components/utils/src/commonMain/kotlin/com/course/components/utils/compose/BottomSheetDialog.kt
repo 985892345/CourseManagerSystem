@@ -34,7 +34,8 @@ import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.util.fastFirst
-import com.course.components.utils.compose.window.AppWindow
+import com.course.components.utils.navigator.BaseScreen
+import com.course.components.utils.navigator.mainNavigator
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -58,7 +59,7 @@ fun showBottomSheetDialog(
   var offsetY by mutableFloatStateOf(0F)
   val dragValueChannel = Channel<BottomSheetDragValue?>(1, BufferOverflow.DROP_OLDEST)
   val dismiss: () -> Unit = { dragValueChannel.trySend(BottomSheetDragValue(offsetY, height)) }
-  AppWindow { window ->
+  (mainNavigator.lastItem as BaseScreen).showWindow { windowDismiss ->
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
     Box(modifier = Modifier.fillMaxSize().focusRequester(focusRequester).focusable().onKeyEvent {
@@ -147,14 +148,14 @@ fun showBottomSheetDialog(
                 offsetY = value.coerceAtLeast(0F)
               }
               if (dragValue.targetValue == height) {
-                window.dismiss()
+                windowDismiss()
               }
             }
           }
         }
       }
     }
-  }.show()
+  }
 }
 
 private class BottomSheetDragValue(

@@ -2,7 +2,7 @@ package com.course.source.app.local.source.webview
 
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Web
+import androidx.compose.material.icons.rounded.Web
 import androidx.compose.runtime.Composable
 import com.course.components.base.ui.toast.toast
 import com.course.source.app.local.source.service.IDataSourceService
@@ -24,7 +24,7 @@ object WebViewSourceService : IDataSourceService {
   @Composable
   override fun Identifier() {
     Icon(
-      imageVector = Icons.Default.Web,
+      imageVector = Icons.Rounded.Web,
       contentDescription = null
     )
   }

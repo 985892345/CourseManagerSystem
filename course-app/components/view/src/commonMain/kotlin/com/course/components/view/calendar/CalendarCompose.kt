@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.course.components.base.theme.LocalAppColors
 import com.course.components.utils.compose.clickableNoIndicator
 import com.course.components.utils.size.px2dp
 import com.course.components.utils.time.Festival
@@ -187,7 +188,7 @@ fun CalendarState.CalendarDateCompose(
       clickEventFlowInternal.tryEmit(CalendarState.ClickEventData(clickDate, date))
     }.background(
       color = when {
-        date == Today && show == CalendarDateShowValue.Clicked -> Color(0xFF166AFF)
+        date == Today && show == CalendarDateShowValue.Clicked -> LocalAppColors.current.blue
         show == CalendarDateShowValue.Clicked -> Color.LightGray
         date == Today -> Color.White
         else -> Color.Transparent
@@ -237,7 +238,7 @@ private fun CalendarDateDayCompose(
     text = date.dayOfMonth.toString(),
     color = when {
       date == Today && show == CalendarDateShowValue.Clicked -> Color.White
-      date == Today -> Color.Blue
+      date == Today -> LocalAppColors.current.blue
       else -> Color.Black
     },
     fontSize = 19.sp,
@@ -258,7 +259,7 @@ private fun CalendarDateLunarCompose(
     },
     color = when {
       date == Today && show == CalendarDateShowValue.Clicked -> Color.White
-      specialDay != null -> Color(0xFF166AFF)
+      specialDay != null -> LocalAppColors.current.blue
       else -> Color.Gray
     },
     fontSize = 9.sp,
@@ -275,7 +276,7 @@ private fun CalendarDateRestCompose(
     text = "休",
     color = when {
       date == Today && show == CalendarDateShowValue.Clicked -> Color.White
-      else -> Color.Green
+      else -> LocalAppColors.current.green
     },
     fontSize = 8.sp,
   )

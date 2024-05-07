@@ -15,7 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -55,7 +55,7 @@ class ExamScreen(
 ) : BaseScreen() {
 
   @Composable
-  override fun Content() {
+  override fun ScreenContent() {
     Column(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
       ToolbarCompose()
       ListCompose()
@@ -84,7 +84,7 @@ class ExamScreen(
           contentAlignment = Alignment.Center,
         ) {
           Icon(
-            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
             contentDescription = null,
           )
         }

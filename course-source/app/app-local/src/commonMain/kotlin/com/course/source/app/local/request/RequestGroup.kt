@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -182,7 +182,7 @@ private fun CardContent(requestGroup: RequestGroup<*>) {
       }
       Image(
         modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp),
-        painter = rememberVectorPainter(Icons.AutoMirrored.Default.ArrowForwardIos),
+        painter = rememberVectorPainter(Icons.AutoMirrored.Rounded.ArrowForwardIos),
         contentDescription = null,
       )
     }

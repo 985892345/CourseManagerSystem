@@ -20,6 +20,11 @@ sealed class AppColor(
   val tvLv2: Color = Color(0xFF112C57),
   val tvLv3: Color = Color(0xFF15315B),
   val tvLv4: Color = Color(0xFF2A4E84),
+  val red: Color = Color(0xFFD50000),
+  val blue: Color = Color(0xFF1C71FF),
+  val green: Color = Color(0xFF00C853),
+  val yellow: Color = Color(0xFFFFAB00),
+  val orange : Color = Color(0xFFFF6D00),
 )
 
 data object AppLightColor : AppColor()

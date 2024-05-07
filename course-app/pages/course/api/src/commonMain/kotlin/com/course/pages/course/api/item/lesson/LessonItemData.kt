@@ -4,6 +4,7 @@ import com.course.shared.time.MinuteTime
 import com.course.shared.time.MinuteTimeDate
 import com.course.source.app.course.CourseBean
 import com.course.source.app.course.LessonBean
+import kotlinx.serialization.Serializable
 
 /**
  * .
@@ -11,10 +12,13 @@ import com.course.source.app.course.LessonBean
  * @author 985892345
  * 2024/3/11 22:35
  */
+@Serializable
 data class LessonItemData(
+  val week: Int,
   val startTime: MinuteTimeDate, // 开始时间
   val minuteDuration: Int, // 课程总分钟数，包括中途课间
   val lesson: LessonBean,
+  val courseBean: CourseBean,
 ) {
   companion object {
     fun getStartMinuteTime(lesson: Int): MinuteTime {
@@ -61,9 +65,11 @@ fun CourseBean.toLessonItemBean(): List<LessonItemData> {
       val startTime = LessonItemData.getStartMinuteTime(lesson.beginLesson)
       val endTime = LessonItemData.getEndMinuteTime(lesson.beginLesson + lesson.length - 1)
       LessonItemData(
+        week = it,
         startTime = MinuteTimeDate(beginDate.plusWeeks(it - 1).plusDays(lesson.dayOfWeek.ordinal), startTime),
         minuteDuration = startTime.minutesUntil(endTime),
         lesson = lesson,
+        courseBean = this,
       )
     }
   }

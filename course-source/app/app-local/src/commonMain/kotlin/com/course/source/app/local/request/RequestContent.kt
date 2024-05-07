@@ -12,8 +12,8 @@ import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -42,8 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.navigator.LocalNavigator
 import com.course.components.base.theme.LocalAppColors
-import com.course.components.base.ui.dialog.showChooseDialog
 import com.course.components.utils.compose.clickableCardIndicator
+import com.course.components.utils.compose.dialog.showChooseDialog
 import com.course.components.utils.coroutine.AppComposeCoroutineScope
 import com.course.components.utils.preferences.createSettings
 import com.course.components.utils.preferences.longState
@@ -345,14 +345,14 @@ private fun CardContent(requestContent: RequestContent<*>) {
         ) {
           Icon(
             modifier = Modifier.padding(4.dp),
-            imageVector = Icons.Default.Delete,
+            imageVector = Icons.Rounded.Delete,
             contentDescription = null,
           )
         }
       }
       Image(
         modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp),
-        painter = rememberVectorPainter(Icons.AutoMirrored.Default.ArrowForwardIos),
+        painter = rememberVectorPainter(Icons.AutoMirrored.Rounded.ArrowForwardIos),
         contentDescription = null,
       )
     }
