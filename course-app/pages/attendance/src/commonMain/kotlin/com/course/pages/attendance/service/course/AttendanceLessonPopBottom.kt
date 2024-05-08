@@ -4,7 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -27,7 +27,7 @@ import com.g985892345.provider.api.annotation.ImplProvider
  * 2024/5/6 13:32
  */
 @ImplProvider(clazz = ILessonPopBottom::class, name = "AttendanceLessonPopBottom")
-class AttendanceLessonPopBottom : ILessonPopBottom {
+object AttendanceLessonPopBottom : ILessonPopBottom {
 
   override val priority: Int
     get() = 0
@@ -35,8 +35,9 @@ class AttendanceLessonPopBottom : ILessonPopBottom {
   @Composable
   override fun Content(data: LessonItemData, dismiss: () -> Unit) {
     Card(
-      shape = CircleShape,
+      shape = RoundedCornerShape(8.dp),
       backgroundColor = Color(0xFFE8F0FC),
+      elevation = 0.5.dp,
     ) {
       val navigator = LocalNavigator.current
       Box(

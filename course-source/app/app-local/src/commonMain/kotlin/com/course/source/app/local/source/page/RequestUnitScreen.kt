@@ -96,7 +96,7 @@ class RequestUnitScreen(
     Column(modifier = Modifier.fillMaxSize()) {
       Card(
         shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp),
-        elevation = 2.dp,
+        elevation = 0.5.dp,
         backgroundColor = Color.White,
       ) {
         Column(modifier = Modifier.systemBarsPadding()) {

@@ -1,4 +1,4 @@
-package com.course.source.app.local.main
+package com.course.pages.team.service.main
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -11,34 +11,39 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.course.components.utils.compose.clickableCardIndicator
+import com.course.components.utils.debug.logg
 import com.course.pages.main.api.IMainPage
-import com.course.source.app.local.source.page.SourceScreen
+import com.course.pages.team.ui.page.TeamListScreen
 import com.g985892345.provider.api.annotation.ImplProvider
-import coursemanagersystem.course_source.app.app_local.generated.resources.Res
-import coursemanagersystem.course_source.app.app_local.generated.resources.ic_source_bottom_bar
-import org.jetbrains.compose.resources.ExperimentalResourceApi
+import coursemanagersystem.course_app.pages.team.generated.resources.Res
+import coursemanagersystem.course_app.pages.team.generated.resources.ic_team_bottom_bar
 import org.jetbrains.compose.resources.painterResource
 
 /**
  * .
  *
  * @author 985892345
- * 2024/3/24 15:51
+ * 2024/5/8 11:00
  */
-@ImplProvider(clazz = IMainPage::class, name = "source")
-class SourceMainPage : IMainPage {
+@ImplProvider(clazz = IMainPage::class, name = "team")
+class TeamMain : IMainPage {
+
+  init {
+    logg("TeamMain")
+  }
 
   override val priority: Int
-    get() = 200
+    get() = 100
+
+  private val teamListScreen = TeamListScreen(backenable = false)
 
   @Composable
   override fun Content(appBarHeight: Dp) {
     Box(modifier = Modifier.padding(bottom = appBarHeight)) {
-      SourceScreen().Content()
+      teamListScreen.Content()
     }
   }
 
-  @OptIn(ExperimentalResourceApi::class)
   @Composable
   override fun BoxScope.BottomAppBarItem(selectedToPosition: () -> Unit) {
     Box(
@@ -46,8 +51,8 @@ class SourceMainPage : IMainPage {
       contentAlignment = Alignment.Center,
     ) {
       Icon(
-        modifier = Modifier.size(18.dp),
-        painter = painterResource(Res.drawable.ic_source_bottom_bar),
+        modifier = Modifier.size(24.dp),
+        painter = painterResource(Res.drawable.ic_team_bottom_bar),
         contentDescription = null,
       )
     }

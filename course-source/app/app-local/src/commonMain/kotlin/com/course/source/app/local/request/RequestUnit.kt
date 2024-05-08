@@ -10,7 +10,6 @@ import com.course.components.utils.preferences.stringState
 import com.course.components.utils.provider.Provider
 import com.course.source.app.local.source.service.IDataSourceService
 import com.russhwolf.settings.Settings
-import com.russhwolf.settings.long
 import com.russhwolf.settings.nullableString
 import com.russhwolf.settings.string
 import kotlinx.serialization.Serializable
@@ -39,6 +38,8 @@ data class RequestUnit(
   val title: MutableState<String> by lazy { settings.stringState("title", "${requestContent.name}${id}-${serviceKey}") }
 
   var sourceData: String? by settings.nullableString("sourceData")
+
+  var requestParameters: String? by settings.nullableString("requestParameters")
 
   var error: String? by settings.nullableString("error")
 

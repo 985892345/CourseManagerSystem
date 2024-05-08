@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -31,7 +32,6 @@ import coursemanagersystem.course_app.pages.course.generated.resources.Res
 import coursemanagersystem.course_app.pages.course.generated.resources.ic_course_bottom_bar
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
 /**
@@ -54,7 +54,7 @@ class CourseMainPage : IMainPage {
 
   @Composable
   override fun Content(appBarHeight: Dp) {
-    Box(modifier = Modifier.padding(bottom = appBarHeight)) {
+    Box(modifier = Modifier.systemBarsPadding().padding(top = 8.dp, bottom = appBarHeight)) {
       Provider.impl(ICourseService::class).apply {
         key(forceRefreshCourse.intValue) {
           val account by Account.observeAccount().collectAsState()
@@ -64,7 +64,6 @@ class CourseMainPage : IMainPage {
     }
   }
 
-  @OptIn(ExperimentalResourceApi::class)
   @Composable
   override fun BoxScope.BottomAppBarItem(selectedToPosition: () -> Unit) {
     Box(

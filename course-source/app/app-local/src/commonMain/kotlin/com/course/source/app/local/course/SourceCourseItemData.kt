@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.zIndex
 import com.course.components.base.theme.LocalAppColors
-import com.course.components.utils.compose.showBottomSheetDialog
+import com.course.components.utils.compose.showBottomSheetWindow
 import com.course.components.utils.serializable.ColorArgbSerializable
 import com.course.pages.course.api.item.CardContent
 import com.course.pages.course.api.item.ICourseItemGroup
@@ -87,9 +87,9 @@ data class SourceCourseItemData(
 
   @OptIn(ExperimentalFoundationApi::class)
   private fun clickItem() {
-    showBottomSheetDialog {
+    showBottomSheetWindow {
       Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().bottomSheetDraggable(),
         shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp),
       ) {
         Column(

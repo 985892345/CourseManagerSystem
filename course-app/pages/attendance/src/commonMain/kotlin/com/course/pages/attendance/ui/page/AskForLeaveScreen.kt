@@ -129,27 +129,27 @@ class AskForLeaveScreen(
       Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
           text = "课程：",
-          fontSize = 20.sp,
+          fontSize = 18.sp,
           fontWeight = FontWeight.Bold,
         )
         Text(
           text = date.lesson.course,
-          fontSize = 20.sp,
+          fontSize = 18.sp,
         )
       }
       Row(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(
           text = "时间：",
-          fontSize = 20.sp,
+          fontSize = 18.sp,
           fontWeight = FontWeight.Bold,
         )
         Text(
           text = buildAnnotatedString {
             val period = List(date.lesson.length) { Num2CN.transform(date.lesson.beginLesson + it) }
               .joinToString("", postfix = "节")
-            append(AnnotatedString(period, SpanStyle(fontSize = 20.sp)))
+            append(AnnotatedString(period, SpanStyle(fontSize = 18.sp)))
             val time = "（${date.startTime.time}-${date.startTime.time.plusMinutes(date.minuteDuration)}）"
-            append(AnnotatedString(time, SpanStyle(fontSize = 16.sp)))
+            append(AnnotatedString(time, SpanStyle(fontSize = 14.sp)))
           },
         )
       }
@@ -162,14 +162,14 @@ class AskForLeaveScreen(
       modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
       elevation = 0.5.dp,
     ) {
-      Box(modifier = Modifier.padding(horizontal = 4.dp, vertical = 3.dp)) {
+      Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
         EditTextCompose(
           modifier = Modifier.fillMaxWidth().height(200.dp),
           text = editDescription,
           hint = "请输入请假原因",
           isShowIndicatorLine = false,
           textStyle = TextStyle(
-            fontSize = 16.sp,
+            fontSize = 14.sp,
           )
         )
       }

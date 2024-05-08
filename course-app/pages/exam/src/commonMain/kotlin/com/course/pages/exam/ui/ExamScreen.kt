@@ -51,7 +51,7 @@ import kotlinx.serialization.Serializable
 @ObjectSerializable
 class ExamScreen(
   val stuNum: String,
-  val hasBack: Boolean,
+  val backenable: Boolean,
 ) : BaseScreen() {
 
   @Composable
@@ -72,7 +72,7 @@ class ExamScreen(
         fontWeight = FontWeight.Bold,
         color = LocalAppColors.current.tvLv2
       )
-      if (hasBack) {
+      if (backenable) {
         val navigator = LocalNavigator.current
         Box(
           modifier = Modifier.align(Alignment.CenterStart)

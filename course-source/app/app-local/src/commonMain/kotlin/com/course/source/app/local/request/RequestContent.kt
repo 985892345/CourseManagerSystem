@@ -223,6 +223,8 @@ data class RequestContent<T : Any>(
     cacheKey: String,
   ): T? {
     unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Requesting
+    unit.requestParameters = parameters.map { "${it.key} = ${it.value}" }
+      .joinToString("\n").ifEmpty { null }
     unit.response = null
     unit.error = null
     val response: String = try {
@@ -278,7 +280,7 @@ data class RequestContent<T : Any>(
 private fun CardContent(requestContent: RequestContent<*>) {
   Card(
     modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-    elevation = 2.dp,
+    elevation = 0.5.dp,
   ) {
     val title = remember { mutableStateOf(requestContent.title.value) }
     val navigator = LocalNavigator.current

@@ -51,7 +51,8 @@ class RequestUnitFormatScreen(
       }
       Text(text = "输出: ", modifier = Modifier.padding(top = 8.dp))
       Card(
-        modifier = Modifier.padding(top = 6.dp, bottom = 16.dp)
+        modifier = Modifier.padding(top = 6.dp, bottom = 16.dp),
+        elevation = 0.5.dp,
       ) {
         val formatState = remember { mutableStateOf(format) }
           .apply { value = format }

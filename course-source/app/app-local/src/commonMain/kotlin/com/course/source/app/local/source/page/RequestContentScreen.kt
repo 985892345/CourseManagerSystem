@@ -35,8 +35,8 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.DragHandle
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
@@ -142,7 +142,8 @@ class RequestContentScreen(
             .padding(end = 46.dp, bottom = 66.dp)
             .size(44.dp)
             .graphicsLayer {
-              translationY = (-(index + 1) * 56.dp.toPx() - 8.dp.toPx()) * floatBtnAnimFraction.value
+              translationY =
+                (-(index + 1) * 56.dp.toPx() - 8.dp.toPx()) * floatBtnAnimFraction.value
               alpha = minOf(floatBtnAnimFraction.value * 1.25F, 1F) // 因阴影会失效，所以 alpha 特殊设置
             },
           onClick = { navigator?.push(RequestUnitScreen(requestContentKey, pair.first)) }
@@ -263,7 +264,7 @@ private fun ToolbarCompose(requestContent: RequestContent<*>) {
       contentAlignment = Alignment.Center,
     ) {
       Icon(
-        imageVector = Icons.Rounded.Settings,
+        imageVector = Icons.Outlined.Settings,
         contentDescription = null,
       )
     }
@@ -325,7 +326,7 @@ private fun DragItemState<RequestUnit>.ListItemCompose(
   requestContent: RequestContent<*>,
 ) {
   val requestUnit = item
-  val elevation by animateDpAsState(if (isDragging) 4.dp else 2.dp)
+  val elevation by animateDpAsState(if (isDragging) 2.dp else 0.5.dp)
   Card(
     modifier = Modifier.fillMaxWidth()
       .wrapContentHeight(),
@@ -389,7 +390,10 @@ private val PrettyPrintJson = Json(RequestContent.Json) {
 }
 
 @Composable
-private fun BoxScope.RequestResultImageCompose(requestContent: RequestContent<*>, requestUnit: RequestUnit) {
+private fun BoxScope.RequestResultImageCompose(
+  requestContent: RequestContent<*>,
+  requestUnit: RequestUnit
+) {
   if (requestUnit.requestUnitStatus == None || requestUnit.requestUnitStatus == Requesting) return
   Box(
     modifier = Modifier.align(Alignment.CenterEnd)
@@ -410,7 +414,10 @@ private fun BoxScope.RequestResultImageCompose(requestContent: RequestContent<*>
                       requestUnit.response!!
                     )
                   )
-                  Failure -> "请求失败\n返回值: ${requestUnit.response}\n\n异常信息: ${requestUnit.error}"
+
+                  Failure -> "请求参数: \n${requestUnit.requestParameters}\n\n" +
+                      "返回值: \n${requestUnit.response}\n\n" +
+                      "异常信息: \n${requestUnit.error}"
                 }
               )
             },

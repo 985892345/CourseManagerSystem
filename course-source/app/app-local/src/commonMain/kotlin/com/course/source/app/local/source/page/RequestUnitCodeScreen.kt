@@ -92,7 +92,7 @@ class RequestUnitCodeScreen(
       Box(
         modifier = Modifier.padding(top = 8.dp).fillMaxWidth().weight(1F)
       ) {
-        Card(modifier = Modifier.padding(bottom = 90.dp).fillMaxSize()) {
+        Card(modifier = Modifier.padding(bottom = 90.dp).fillMaxSize(), elevation = 0.5.dp) {
           CodeCompose(
             text = codeState,
             hint = dataSourceConfig.codeHint,
@@ -118,6 +118,7 @@ class RequestUnitCodeScreen(
       Card(
         modifier = Modifier.size(100.dp, 40.dp),
         shape = MaterialTheme.shapes.large,
+        elevation = 0.5.dp,
       ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.clickable {
           val newSourceData = dataSourceService.createSourceData(
@@ -142,6 +143,7 @@ class RequestUnitCodeScreen(
       Card(
         modifier = Modifier.size(100.dp, 40.dp),
         shape = MaterialTheme.shapes.large,
+        elevation = 0.5.dp,
       ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.clickable {
           val newSourceData = dataSourceService.createSourceData(

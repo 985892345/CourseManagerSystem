@@ -34,6 +34,7 @@ import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.util.fastFirst
+import com.course.components.utils.debug.logg
 import com.course.components.utils.navigator.BaseScreen
 import com.course.components.utils.navigator.mainNavigator
 import kotlinx.coroutines.Job
@@ -48,12 +49,11 @@ import kotlin.math.roundToInt
  * @author 985892345
  * 2024/4/15 20:43
  */
-fun showBottomSheetDialog(
-  dismissOnDrag: Boolean = true,
+fun showBottomSheetWindow(
   dismissOnBackPress: (dismiss: () -> Unit) -> Boolean = { true },
   dismissOnClickOutside: (dismiss: () -> Unit) -> Boolean = { true },
   scrimColor: Color = Color.Transparent.copy(alpha = 0.6F),
-  content: @Composable (dismiss: () -> Unit) -> Unit
+  content: @Composable BottomSheetScope.(dismiss: () -> Unit) -> Unit
 ) {
   var height by mutableFloatStateOf(0F)
   var offsetY by mutableFloatStateOf(0F)
@@ -92,43 +92,44 @@ fun showBottomSheetDialog(
           .fillMaxWidth()
           .layout { measurable, constraints ->
             val placeable = measurable.measure(constraints)
+            logg("height = ${placeable.height}")
             layout(placeable.width, placeable.height) {
               if (height == 0F) {
                 height = placeable.height.toFloat()
                 offsetY = height
                 dragValueChannel.trySend(BottomSheetDragValue(placeable.height.toFloat(), 0F))
-                placeable.place(0, placeable.height)
-              } else {
-                placeable.place(0, offsetY.roundToInt())
               }
+              placeable.place(0, offsetY.roundToInt())
             }
-          }.run {
-            if (dismissOnDrag) {
-              draggable(
-                orientation = Orientation.Vertical,
-                state = rememberDraggableState {
-                  val newOffset = offsetY + it
-                  offsetY = if (newOffset < 0) 0F else newOffset
-                },
-                onDragStarted = {
-                  dragValueChannel.trySend(null)
-                },
-                onDragStopped = { velocity ->
-                  if (velocity > 1000) {
-                    dragValueChannel.trySend(BottomSheetDragValue(offsetY, height, velocity))
-                  } else if (velocity < -1000) {
-                    dragValueChannel.trySend(BottomSheetDragValue(offsetY, 0F, velocity))
-                  } else if (offsetY > height / 2) {
-                    dragValueChannel.trySend(BottomSheetDragValue(offsetY, height, velocity))
-                  } else {
-                    dragValueChannel.trySend(BottomSheetDragValue(offsetY, 0F, velocity))
-                  }
-                }
-              )
-            } else this
           }
       ) {
-        content(dismiss)
+        val scope = object : BottomSheetScope {
+          @Composable
+          override fun Modifier.bottomSheetDraggable(): Modifier {
+            return draggable(
+              orientation = Orientation.Vertical,
+              state = rememberDraggableState {
+                val newOffset = offsetY + it
+                offsetY = if (newOffset < 0) 0F else newOffset
+              },
+              onDragStarted = {
+                dragValueChannel.trySend(null)
+              },
+              onDragStopped = { velocity ->
+                if (velocity > 1000) {
+                  dragValueChannel.trySend(BottomSheetDragValue(offsetY, height, velocity))
+                } else if (velocity < -1000) {
+                  dragValueChannel.trySend(BottomSheetDragValue(offsetY, 0F, velocity))
+                } else if (offsetY > height / 2) {
+                  dragValueChannel.trySend(BottomSheetDragValue(offsetY, height, velocity))
+                } else {
+                  dragValueChannel.trySend(BottomSheetDragValue(offsetY, 0F, velocity))
+                }
+              }
+            )
+          }
+        }
+        content(scope, dismiss)
       }
       LaunchedEffect(Unit) {
         var prevVelocity = 0F
@@ -146,6 +147,7 @@ fun showBottomSheetDialog(
               ) { value, velocity ->
                 prevVelocity = velocity
                 offsetY = value.coerceAtLeast(0F)
+                logg("offsetY = $offsetY")
               }
               if (dragValue.targetValue == height) {
                 windowDismiss()
@@ -156,6 +158,11 @@ fun showBottomSheetDialog(
       }
     }
   }
+}
+
+interface BottomSheetScope {
+  @Composable
+  fun Modifier.bottomSheetDraggable(): Modifier
 }
 
 private class BottomSheetDragValue(

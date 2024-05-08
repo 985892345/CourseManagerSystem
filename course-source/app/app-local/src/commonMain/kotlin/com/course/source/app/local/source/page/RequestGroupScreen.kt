@@ -116,7 +116,7 @@ class RequestGroupScreen(
       item {
         Card(
           modifier = Modifier.fillMaxWidth().height(58.dp).animateItemPlacement(),
-          elevation = 1.dp,
+          elevation = 0.5.dp,
         ) {
           Image(
             modifier = Modifier.fillMaxSize().clickable {

@@ -29,7 +29,7 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.zIndex
 import cafe.adriel.voyager.navigator.LocalNavigator
 import com.course.components.base.theme.LocalAppColors
-import com.course.components.utils.compose.showBottomSheetDialog
+import com.course.components.utils.compose.showBottomSheetWindow
 import com.course.pages.course.api.IMainCourseDataProvider
 import com.course.pages.course.api.controller.CourseController
 import com.course.pages.course.api.item.CardContent
@@ -147,9 +147,9 @@ class ExamCourseController(
 
     @OptIn(ExperimentalFoundationApi::class)
     private fun clickItem() {
-      showBottomSheetDialog { dismiss ->
+      showBottomSheetWindow { dismiss ->
         Card(
-          modifier = Modifier.fillMaxWidth(),
+          modifier = Modifier.fillMaxWidth().bottomSheetDraggable(),
           shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp),
         ) {
           Column(

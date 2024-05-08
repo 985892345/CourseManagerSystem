@@ -150,7 +150,7 @@ class RequestGroup<T : Any>(
 private fun CardContent(requestGroup: RequestGroup<*>) {
   Card(
     modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-    elevation = 2.dp,
+    elevation = 0.5.dp,
   ) {
     val navigator = LocalNavigator.current
     Box(

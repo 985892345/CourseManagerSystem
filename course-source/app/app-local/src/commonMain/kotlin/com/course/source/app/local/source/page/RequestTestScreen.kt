@@ -107,7 +107,7 @@ class RequestTestScreen(
           )
         }
         val coroutineScope = rememberCoroutineScope()
-        Card(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+        Card(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp), elevation = 0.5.dp) {
           Box(
             modifier = Modifier.fillMaxWidth().height(40.dp).clickable {
               tryRequest(
@@ -175,7 +175,7 @@ private fun ResultCompose(
   hint: MutableState<String>,
   resultState: MutableState<String>,
 ) {
-  Card(modifier = Modifier.padding(top = 6.dp, bottom = 12.dp).fillMaxSize()) {
+  Card(modifier = Modifier.padding(top = 6.dp, bottom = 12.dp).fillMaxSize(), elevation = 0.5.dp) {
     CodeCompose(
       text = resultState,
       hint = hint.value,

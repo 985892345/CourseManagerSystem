@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import com.course.components.base.theme.LocalAppColors
 import com.course.components.utils.compose.clickableNoIndicator
 import com.course.components.utils.compose.derivedStateOfStructure
 import com.course.components.utils.time.Today
@@ -70,7 +70,7 @@ fun CourseContentCompose(
     endDate = detail.endDate,
     itemGroups = (detail.controllers + detail).toImmutableList(),
   )
-  Column(modifier = Modifier.systemBarsPadding()) {
+  Column(modifier = Modifier) {
     CourseHeaderCompose(detail, calendarState, courseComposeState)
     CalendarCompose(
       modifier = Modifier.padding(start = 2.dp, end = 4.dp, top = 4.dp),
@@ -155,7 +155,7 @@ private fun CourseHeaderCompose(
   calendarState: CalendarState,
   courseComposeState: CourseComposeState,
 ) {
-  ConstraintLayout(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+  ConstraintLayout(modifier = Modifier.fillMaxWidth()) {
     val (week, back, term) = createRefs()
     Text(
       text = detail.title,
@@ -164,7 +164,7 @@ private fun CourseHeaderCompose(
         bottom.linkTo(parent.bottom)
         start.linkTo(parent.start, 16.dp)
       }.clickableNoIndicator { detail.onClickTitle() },
-      color = Color.Black,
+      color = LocalAppColors.current.tvLv2,
       fontWeight = FontWeight.Bold,
       fontSize = 22.sp
     )
@@ -175,7 +175,7 @@ private fun CourseHeaderCompose(
         baseline.linkTo(week.baseline)
       }.clickableNoIndicator { detail.onClickSubtitle() },
       fontSize = 12.sp,
-      color = Color.Black,
+      color = LocalAppColors.current.tvLv2,
     )
     if (Today in calendarState.startDateState.value..calendarState.endDateState.value) {
       // Today 不在显示范围时不显示回到今天按钮

@@ -28,7 +28,19 @@ fun MainNavigator(screen: BaseScreen) {
   CompositionLocalProvider(
     LocalNavigatorSaver provides NavigatorSaver
   ) {
-    Navigator(screen = screen) {
+    Navigator(
+      screen = screen,
+      onBackPressed = { sc ->
+        if (sc is BaseScreen) {
+          sc.backHandleList.asReversed().all {
+            if (it.enabled) {
+              it.onBackPressed.invoke()
+              false
+            } else true
+          }
+        } else true
+      }
+    ) {
       mainNavigator = it
       SlideTransition(it)
     }

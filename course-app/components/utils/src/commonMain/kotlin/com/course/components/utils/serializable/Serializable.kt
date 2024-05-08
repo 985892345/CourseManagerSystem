@@ -126,3 +126,16 @@ class LongStateSerializable : KSerializer<MutableLongState> {
     encoder.encodeLong(value.value)
   }
 }
+
+class BooleanStateSerializable : KSerializer<MutableState<Boolean>> {
+  override val descriptor: SerialDescriptor =
+    PrimitiveSerialDescriptor("androidx.compose.runtime.MutableState<Boolean>", PrimitiveKind.BOOLEAN)
+
+  override fun deserialize(decoder: Decoder): MutableState<Boolean> {
+    return mutableStateOf(decoder.decodeBoolean())
+  }
+
+  override fun serialize(encoder: Encoder, value: MutableState<Boolean>) {
+    encoder.encodeBoolean(value.value)
+  }
+}

@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.course.components.base.theme.LocalAppColors
 import com.course.components.utils.compose.clickableCardIndicator
-import com.course.components.utils.compose.showBottomSheetDialog
+import com.course.components.utils.compose.showBottomSheetWindow
 import com.course.components.view.edit.EditTextCompose
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.pages.schedule.ui.edit.EditRepeatCompose
@@ -56,8 +56,7 @@ fun showAddAffairBottomSheet(
   timeline: CourseTimeline,
 ) {
   val type = mutableStateOf(AddAffairBottomSheetState.Description)
-  showBottomSheetDialog(
-    dismissOnDrag = false,
+  showBottomSheetWindow(
     dismissOnBackPress = { item.dismissOnBackPress(it) },
     dismissOnClickOutside = { item.dismissOnClickOutside(it) },
   ) { dismiss ->

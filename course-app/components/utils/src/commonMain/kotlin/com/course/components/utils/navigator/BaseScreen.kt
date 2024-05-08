@@ -9,6 +9,8 @@ import androidx.compose.ui.util.fastForEach
 import cafe.adriel.voyager.core.screen.Screen
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
 /**
  * .
@@ -21,6 +23,9 @@ abstract class BaseScreen : Screen {
 
   @Transient
   private val windows = SnapshotStateList<Window>()
+
+  @Transient
+  internal val backHandleList = mutableListOf<BackHandle>()
 
   @Composable
   final override fun Content() {
@@ -39,11 +44,44 @@ abstract class BaseScreen : Screen {
     windows.add(Window(content))
   }
 
+  // 限制只允许在类全局变量注册
+  fun registerBackHandle(
+    enabled: Boolean = true,
+    onBackPressed: () -> Unit
+  ): ReadWriteProperty<BaseScreen, Boolean> {
+    val backHandle = BackHandle(enabled, onBackPressed)
+    backHandleList.add(backHandle)
+    return object : ReadWriteProperty<BaseScreen, Boolean> {
+      override fun getValue(thisRef: BaseScreen, property: KProperty<*>): Boolean {
+        return backHandle.enabled
+      }
+
+      override fun setValue(thisRef: BaseScreen, property: KProperty<*>, value: Boolean) {
+        backHandle.enabled = value
+      }
+    }
+  }
+
   private inner class Window(
     val content: @Composable (dismiss: () -> Unit) -> Unit,
   ) {
+
+    private val backHandle = BackHandle {
+      dismiss.invoke()
+    }
+
     val dismiss: () -> Unit = {
       windows.remove(this)
+      backHandleList.remove(backHandle)
+    }
+
+    init {
+      backHandleList.add(backHandle)
     }
   }
+
+  internal class BackHandle(
+    var enabled: Boolean = true,
+    val onBackPressed: () -> Unit,
+  )
 }

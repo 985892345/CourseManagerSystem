@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import com.course.components.base.theme.LocalAppColors
-import com.course.components.utils.compose.showBottomSheetDialog
+import com.course.components.utils.compose.showBottomSheetWindow
 import com.course.components.utils.provider.Provider
 import com.course.pages.course.api.item.CardContent
 import com.course.pages.course.api.item.ICourseItemGroup
@@ -107,9 +107,9 @@ class LessonItemGroup : ICourseItemGroup {
 
   @OptIn(ExperimentalFoundationApi::class)
   private fun clickItem(data: LessonItemData) {
-    showBottomSheetDialog { dismiss ->
+    showBottomSheetWindow { dismiss ->
       Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().bottomSheetDraggable(),
         shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp),
       ) {
         Column(
