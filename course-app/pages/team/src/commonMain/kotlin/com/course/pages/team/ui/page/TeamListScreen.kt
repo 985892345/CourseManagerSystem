@@ -25,7 +25,8 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Mail
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.runtime.Composable
@@ -36,8 +37,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -71,6 +73,9 @@ class TeamListScreen(
   val backenable: Boolean,
 ) : BaseScreen() {
 
+  @Serializable(BooleanStateSerializable::class)
+  private val hasNewNotification = mutableStateOf(false)
+
   @Composable
   override fun ScreenContent() {
     Box(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
@@ -92,8 +97,8 @@ class TeamListScreen(
         fontWeight = FontWeight.Bold,
         color = LocalAppColors.current.tvLv2
       )
+      val navigator = LocalNavigator.current
       if (backenable) {
-        val navigator = LocalNavigator.current
         Box(
           modifier = Modifier.align(Alignment.CenterStart)
             .padding(start = 12.dp)
@@ -115,6 +120,32 @@ class TeamListScreen(
           .fillMaxWidth()
           .height(1.dp)
       )
+      val red = LocalAppColors.current.red
+      Box(
+        modifier = Modifier.align(Alignment.CenterEnd)
+          .padding(end = 12.dp)
+          .size(32.dp)
+          .clickableCardIndicator {
+            hasNewNotification.value = false
+            navigator?.push(TeamNotificationScreen())
+          }.drawWithContent {
+            drawContent()
+            if (hasNewNotification.value) {
+              val radius = 2.dp.toPx()
+              drawCircle(
+                color = red,
+                radius = radius,
+                center = Offset(size.width - radius - 8, radius + 8),
+              )
+            }
+          },
+        contentAlignment = Alignment.Center,
+      ) {
+        Icon(
+          imageVector = Icons.Outlined.Mail,
+          contentDescription = null,
+        )
+      }
     }
   }
 
@@ -130,7 +161,7 @@ class TeamListScreen(
     ) {
       Image(
         modifier = Modifier,
-        painter = rememberVectorPainter(Icons.Filled.Add),
+        imageVector = Icons.Rounded.Add,
         contentDescription = null
       )
     }
@@ -142,8 +173,10 @@ class TeamListScreen(
 
   @Serializable(BooleanStateSerializable::class)
   private val isFoldAdmin = mutableStateOf(false)
+
   @Serializable(BooleanStateSerializable::class)
   private val isFoldManager = mutableStateOf(false)
+
   @Serializable(BooleanStateSerializable::class)
   private val isFoldMember = mutableStateOf(false)
 
@@ -155,31 +188,31 @@ class TeamListScreen(
       verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
       if (adminTeamList.isNotEmpty()) {
-        stickyHeader(key = "admin header", contentType = "header") {
+        item(key = "admin header", contentType = "header") {
           ListHeaderCompose("我创建的团队", isFoldAdmin)
         }
         if (!isFoldAdmin.value) {
-          items(adminTeamList, key = { it.id }, contentType = { "content" }) {
+          items(adminTeamList, key = { it.teamId }, contentType = { "content" }) {
             ListContentCompose(it)
           }
         }
       }
       if (managerTeamList.isNotEmpty()) {
-        stickyHeader(key = "manager header", contentType = "header") {
+        item(key = "manager header", contentType = "header") {
           ListHeaderCompose("我管理的团队", isFoldManager)
         }
         if (!isFoldManager.value) {
-          items(managerTeamList, key = { it.id }, contentType = { "content" }) {
+          items(managerTeamList, key = { it.teamId }, contentType = { "content" }) {
             ListContentCompose(it)
           }
         }
       }
       if (memberTeamList.isNotEmpty()) {
-        stickyHeader(key = "member header", contentType = "header") {
+        item(key = "member header", contentType = "header") {
           ListHeaderCompose("我加入的团队", isFoldMember)
         }
         if (!isFoldMember.value) {
-          items(memberTeamList, key = { it.id }, contentType = { "content" }) {
+          items(memberTeamList, key = { it.teamId }, contentType = { "content" }) {
             ListContentCompose(it)
           }
         }
@@ -191,11 +224,12 @@ class TeamListScreen(
           Source.api(TeamApi::class)
             .getTeamList()
             .getOrThrow()
-        }.tryThrowCancellationException().onSuccess { beans ->
+        }.tryThrowCancellationException().onSuccess { teamList ->
+          hasNewNotification.value = teamList.hasNewNotification
           val adminList = mutableListOf<TeamBean>()
           val managerList = mutableListOf<TeamBean>()
           val memberList = mutableListOf<TeamBean>()
-          beans.sortedBy { it.name }.forEach {
+          teamList.list.sortedBy { it.name }.forEach {
             when (it.rank) {
               TeamRank.Administrator -> adminList.add(it)
               TeamRank.Manager -> managerList.add(it)
@@ -214,9 +248,10 @@ class TeamListScreen(
   @Composable
   private fun LazyItemScope.ListHeaderCompose(text: String, isFold: MutableState<Boolean>) {
     Row(
-      modifier = Modifier.animateItemPlacement().clickableCardIndicator {
-        isFold.value = !isFold.value
-      }.padding(end = 4.dp),
+      modifier = Modifier.animateItemPlacement()
+        .clickableCardIndicator {
+          isFold.value = !isFold.value
+        }.padding(end = 4.dp),
       verticalAlignment = Alignment.CenterVertically
     ) {
       Image(

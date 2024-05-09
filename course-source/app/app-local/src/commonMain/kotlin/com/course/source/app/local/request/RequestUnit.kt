@@ -12,6 +12,7 @@ import com.course.source.app.local.source.service.IDataSourceService
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.nullableString
 import com.russhwolf.settings.string
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
@@ -28,6 +29,8 @@ data class RequestUnit(
   val id: Int,
   val serviceKey: String,
 ) {
+
+  val mutex = Mutex()
 
   // 需要 by lazy，防止与 RequestContent 初始化构成冲突
   private val requestContent by lazy { RequestContent.find(contentKey)!! }

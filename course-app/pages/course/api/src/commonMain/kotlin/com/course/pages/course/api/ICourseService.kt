@@ -3,6 +3,9 @@ package com.course.pages.course.api
 import androidx.compose.runtime.Composable
 import com.course.pages.course.api.controller.CourseController
 import com.course.pages.course.api.controller.CourseDetail
+import com.course.pages.course.api.item.lesson.LessonItemData
+import com.course.source.app.account.AccountType
+import com.course.source.app.course.CourseBean
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
@@ -17,13 +20,17 @@ interface ICourseService {
   @Composable
   fun Content(detail: CourseDetail)
 
-  fun stuCourseDetail(
-    stuNum: String,
+  fun courseDetail(
+    num: String,
+    type: AccountType,
     controllers: ImmutableList<CourseController> = persistentListOf(),
+    onlyOneTerm: Boolean = false,
+    onClickItem: ((LessonItemData) -> Unit)? = null,
   ): CourseDetail
 
-  fun teaCourseDetail(
-    teaNum: String,
-    controllers: ImmutableList<CourseController> = persistentListOf(),
-  ): CourseDetail
+  suspend fun refreshCourseBean(
+    num: String,
+    type: AccountType,
+    termIndex: Int = -1,
+  ): CourseBean
 }

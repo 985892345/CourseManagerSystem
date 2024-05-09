@@ -1,5 +1,6 @@
 package com.course.source.app.team
 
+import com.course.shared.time.MinuteTimeDate
 import com.course.source.app.account.AccountType
 import com.course.source.app.response.ResponseWrapper
 import kotlinx.serialization.Serializable
@@ -12,12 +13,12 @@ import kotlinx.serialization.Serializable
  */
 interface TeamApi {
 
-  suspend fun getTeamList(): ResponseWrapper<List<TeamBean>>
+  suspend fun getTeamList(): ResponseWrapper<TeamList>
 
-  suspend fun getTeamDetail(id: Int): ResponseWrapper<TeamDetail>
+  suspend fun getTeamDetail(teamId: Int): ResponseWrapper<TeamDetail>
 
   suspend fun updateTeam(
-    id: Int,
+    teamiId: Int,
     name: String,
     identity: String,
     description: String,
@@ -31,14 +32,32 @@ interface TeamApi {
     members: List<TeamMember>,
   ): ResponseWrapper<Unit>
 
-  suspend fun deleteTeam(id: Int): ResponseWrapper<Unit>
+  suspend fun deleteTeam(teamId: Int): ResponseWrapper<Unit>
 
-  suspend fun searchMember(name: String): ResponseWrapper<List<SearchMember>>
+  suspend fun searchMember(key: String): ResponseWrapper<List<SearchMember>>
+
+  suspend fun getTeamNotification(): ResponseWrapper<List<TeamNotification>>
+
+  suspend fun refuseJoinTeam(teamId: Int): ResponseWrapper<Unit>
+
+  suspend fun acceptJoinTeam(teamId: Int): ResponseWrapper<Unit>
+
+  suspend fun sendNotification(
+    teamId: Int,
+    title: String,
+    content: String,
+  ): ResponseWrapper<Unit>
 }
 
 @Serializable
+data class TeamList(
+  val hasNewNotification: Boolean,
+  val list: List<TeamBean>,
+)
+
+@Serializable
 data class TeamBean(
-  val id: Int,
+  val teamId: Int,
   val name: String,
   val identity: String,
   val description: String,
@@ -59,6 +78,7 @@ data class TeamMember(
   val identity: String,
   val type: AccountType,
   val rank: TeamRank,
+  val isConfirmed: Boolean,
 )
 
 @Serializable
@@ -73,4 +93,37 @@ enum class TeamRank {
   Administrator,
   Manager,
   Member,
+}
+
+@Serializable
+data class TeamNotification(
+  val id: Int,
+  val time: MinuteTimeDate,
+  val content: TeamNotificationContent,
+)
+
+@Serializable
+sealed interface TeamNotificationContent {
+  @Serializable
+  data class Normal(
+    val title: String,
+    val content: String,
+  ) : TeamNotificationContent
+  @Serializable
+  data class AddSchedule(
+    val teamName: String,
+    val teamSenderName: String,
+    val scheduleTitle: String,
+    val scheduleDescription: String,
+    val scheduleStartTime: MinuteTimeDate,
+    val scheduleMinuteDuration: Int,
+  ) : TeamNotificationContent
+  @Serializable
+  data class InviteJoinTeam(
+    val teamId: Int,
+    val teamAdministratorName: String,
+    val teamName: String,
+    val teamDescription: String,
+    var agreeOrNot: Boolean?,
+  ) : TeamNotificationContent
 }

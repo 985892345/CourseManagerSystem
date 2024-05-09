@@ -36,9 +36,11 @@ import kotlinx.coroutines.launch
 class StuCourseDetailController(
   val stuNum: String,
   controllers: ImmutableList<CourseController> = persistentListOf(),
+  val onlyOneTerm: Boolean,
+  val onClickItem: ((LessonItemData) -> Unit)?,
 ) : CourseDetail(controllers) {
 
-  private val itemGroups = LessonItemGroup()
+  private val itemGroups = LessonItemGroup(onClickItem)
   private val courseBeans = mutableStateMapOf<Int, CourseBean>()
   private val courseItems = mutableMapOf<Int, List<LessonItemData>>()
 
@@ -83,6 +85,7 @@ class StuCourseDetailController(
   }
 
   private fun tryRequestPrevTerm() {
+    if (onlyOneTerm) return
     val clickCourseBean = getClickCourseBean()
     if (courseBeans.toMap().isNotEmpty() && // 确保已经加载了第一次的数据
       clickCourseBean != null &&

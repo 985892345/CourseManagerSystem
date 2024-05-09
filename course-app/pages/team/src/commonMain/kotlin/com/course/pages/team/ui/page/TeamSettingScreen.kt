@@ -150,7 +150,7 @@ class TeamSettingScreen(
       coroutineScope.launch(Dispatchers.IO) {
         runCatching {
           Source.api(TeamApi::class).updateTeam(
-            id = teamBean.id,
+            teamiId = teamBean.teamId,
             name = detailEditPage.editName.value,
             identity = detailEditPage.editIdentity.value,
             description = detailEditPage.editDescription.value,
@@ -184,7 +184,7 @@ class TeamSettingScreen(
         coroutineScope.launch(Dispatchers.IO) {
           runCatching {
             Source.api(TeamApi::class)
-              .deleteTeam(teamBean.id)
+              .deleteTeam(teamBean.teamId)
               .getOrThrow()
           }.tryThrowCancellationException().onSuccess {
             toast("解散成功")

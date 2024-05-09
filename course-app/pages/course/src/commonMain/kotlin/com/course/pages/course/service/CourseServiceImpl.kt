@@ -4,9 +4,13 @@ import androidx.compose.runtime.Composable
 import com.course.pages.course.api.ICourseService
 import com.course.pages.course.api.controller.CourseController
 import com.course.pages.course.api.controller.CourseDetail
+import com.course.pages.course.api.item.lesson.LessonItemData
 import com.course.pages.course.model.StuCourseDetailController
+import com.course.pages.course.model.StuLessonRepository
 import com.course.pages.course.model.TeaCourseDetailController
 import com.course.pages.course.ui.CourseContentCompose
+import com.course.source.app.account.AccountType
+import com.course.source.app.course.CourseBean
 import com.g985892345.provider.api.annotation.ImplProvider
 import kotlinx.collections.immutable.ImmutableList
 
@@ -24,18 +28,24 @@ object CourseServiceImpl : ICourseService {
     CourseContentCompose(detail)
   }
 
-  override fun stuCourseDetail(
-    stuNum: String,
-    controllers: ImmutableList<CourseController>
+  override fun courseDetail(
+    num: String,
+    type: AccountType,
+    controllers: ImmutableList<CourseController>,
+    onlyOneTerm: Boolean,
+    onClickItem: ((LessonItemData) -> Unit)?
   ): CourseDetail {
-    return StuCourseDetailController(stuNum, controllers)
+    return when (type) {
+      AccountType.Student -> StuCourseDetailController(num, controllers, onlyOneTerm, onClickItem)
+      AccountType.Teacher -> TeaCourseDetailController(num, controllers, onlyOneTerm, onClickItem)
+    }
   }
 
-  override fun teaCourseDetail(
-    teaNum: String,
-    controllers: ImmutableList<CourseController>
-  ): CourseDetail {
-    return TeaCourseDetailController(teaNum, controllers)
+  override suspend fun refreshCourseBean(num: String, type: AccountType, termIndex: Int): CourseBean {
+    return when (type) {
+      AccountType.Student -> StuLessonRepository.refreshCourseBean(num, termIndex)
+      AccountType.Teacher -> TODO()
+    }
   }
 }
 

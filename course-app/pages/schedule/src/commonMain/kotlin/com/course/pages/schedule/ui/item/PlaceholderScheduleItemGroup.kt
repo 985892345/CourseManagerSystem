@@ -125,7 +125,7 @@ class PlaceholderScheduleItemGroup(
       if (nowTimeInt > initialTimeInt) {
         beginTimeIntState.intValue = initialTimeInt
         finalTimeIntState.intValue = nowTimeInt
-        ICourseItemGroup.calculateItemHeightOffsetByMinuteInt(
+        ICourseItemGroup.calculateItemHeightOffset0(
           timeline = timeline,
           beginTimeInt = initialTimeInt,
           finalTimeInt = nowTimeInt,
@@ -133,7 +133,7 @@ class PlaceholderScheduleItemGroup(
       } else {
         beginTimeIntState.intValue = nowTimeInt
         finalTimeIntState.intValue = initialTimeInt
-        ICourseItemGroup.calculateItemHeightOffsetByMinuteInt(
+        ICourseItemGroup.calculateItemHeightOffset0(
           timeline = timeline,
           beginTimeInt = nowTimeInt,
           finalTimeInt = initialTimeInt,
@@ -142,7 +142,8 @@ class PlaceholderScheduleItemGroup(
     } else if (this::heightOffsetAnim.isInitialized && heightOffsetAnim.isRunning) {
       heightOffsetAnim.value
     } else {
-      ICourseItemGroup.calculateItemHeightOffsetByMinuteInt(
+      // 在不执行动画时会走该分支，从而自动观察 timeline 的变化
+      ICourseItemGroup.calculateItemHeightOffset0(
         timeline = timeline,
         beginTimeInt = beginTimeIntState.intValue,
         finalTimeInt = finalTimeIntState.intValue,
@@ -163,22 +164,31 @@ class PlaceholderScheduleItemGroup(
     minuteDuration: Int
   ) {
     oldWeekBeginDate ?: return
+    val beginTimeInt = startTime.time.minuteOfDay +
+        if (startTime.time >= oldTimeline.delayMinuteTime) 0 else 24 * 60
     if (!this::heightOffsetAnim.isInitialized) {
       heightOffsetAnim = Animatable(
         typeConverter = Offset.VectorConverter,
-        initialValue = ICourseItemGroup.calculateItemHeightOffsetByMinuteInt(
+        initialValue = ICourseItemGroup.calculateItemHeightOffset0(
           timeline = oldTimeline,
           beginTimeInt = beginTimeIntState.intValue,
           finalTimeInt = finalTimeIntState.intValue,
         ),
       )
+    } else {
+      // 这里需要重置动画的开始值
+      heightOffsetAnim.snapTo(
+        ICourseItemGroup.calculateItemHeightOffset0(
+          timeline = oldTimeline,
+          beginTimeInt = beginTimeIntState.intValue,
+          finalTimeInt = finalTimeIntState.intValue,
+        )
+      )
     }
-    val beginTimeInt = startTime.time.minuteOfDay +
-        if (startTime.time >= oldTimeline.delayMinuteTime) 0 else 24 * 60
     beginTimeIntState.intValue = beginTimeInt
     finalTimeIntState.intValue = beginTimeInt + minuteDuration
     heightOffsetAnim.animateTo(
-      targetValue = ICourseItemGroup.calculateItemHeightOffsetByMinuteInt(
+      targetValue = ICourseItemGroup.calculateItemHeightOffset0(
         timeline = oldTimeline,
         beginTimeInt = beginTimeIntState.intValue,
         finalTimeInt = finalTimeIntState.intValue,

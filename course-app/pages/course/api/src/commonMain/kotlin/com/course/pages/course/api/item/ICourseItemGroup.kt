@@ -56,7 +56,7 @@ interface ICourseItemGroup {
     startTimeDate: MinuteTimeDate,
     minuteDuration: Int,
   ): Modifier = this then layout { measurable, constraints ->
-    val heightOffset = calculateItemHeightOffset(
+    val heightOffset = calculateItemHeightOffset2(
       timeline = timeline,
       startTime = startTimeDate.time,
       minuteDuration = minuteDuration,
@@ -77,7 +77,7 @@ interface ICourseItemGroup {
   }
 
   companion object {
-    fun calculateItemHeightOffsetByMinuteInt(
+    fun calculateItemHeightOffset0(
       timeline: CourseTimeline,
       beginTimeInt: Int,
       finalTimeInt: Int,
@@ -89,7 +89,7 @@ interface ICourseItemGroup {
       )
     }
 
-    fun calculateItemHeightOffset(
+    fun calculateItemHeightOffset1(
       timeline: CourseTimeline,
       beginTime: MinuteTime,
       finalTime: MinuteTime,
@@ -107,12 +107,12 @@ interface ICourseItemGroup {
       )
     }
 
-    fun calculateItemHeightOffset(
+    fun calculateItemHeightOffset2(
       timeline: CourseTimeline,
       startTime: MinuteTime,
       minuteDuration: Int,
     ): Offset {
-      return calculateItemHeightOffset(
+      return calculateItemHeightOffset1(
         timeline = timeline,
         beginTime = startTime,
         finalTime = startTime.plusMinutes(minuteDuration),

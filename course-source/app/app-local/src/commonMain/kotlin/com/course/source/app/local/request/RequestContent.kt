@@ -63,6 +63,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import kotlinx.datetime.Clock
 import kotlinx.serialization.KSerializer
@@ -143,11 +144,11 @@ data class RequestContent<T : Any>(
     initialCacheExpiration.inWholeMilliseconds
   )
 
-  private val cacheMap: MutableMap<String, RequestCache> = settings.getStringOrNull("cacheMap")
+  private val cacheMap: SnapshotStateMap<String, RequestCache> = settings.getStringOrNull("cacheMap")
     ?.let {
       runCatching { Json.decodeFromString<Map<String, RequestCache>>(it) }.onFailure {
         settings.remove("cacheMap")
-      }.getOrNull()?.toMutableMap()
+      }.getOrNull()?.let { SnapshotStateMap<String, RequestCache>().apply { putAll(it) } }
     } ?: SnapshotStateMap()
 
   var requestContentStatus: RequestContentStatus by mutableStateOf(
@@ -187,16 +188,18 @@ data class RequestContent<T : Any>(
     var index = 0
     val parameters = parameterWithHint.mapValues { values[index++] }
     for (unit in requestUnits.toList()) {
-      try {
-        return requestUnit(unit, parameters, cacheable, cacheKey)
-      } catch (e: CancellationException) {
-        unit.error = e.stackTraceToString()
-        unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Failure
-        requestContentStatus = Failure
-        throw e
-      } catch (e: Exception) {
-        unit.error = e.stackTraceToString()
-        unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Failure
+      unit.mutex.withLock {
+        try {
+          return requestUnit(unit, parameters, cacheable, cacheKey)
+        } catch (e: CancellationException) {
+          unit.error = e.stackTraceToString()
+          unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Failure
+          requestContentStatus = Failure
+          throw e
+        } catch (e: Exception) {
+          unit.error = e.stackTraceToString()
+          unit.requestUnitStatus = RequestUnit.RequestUnitStatus.Failure
+        }
       }
     }
     // 请求失败则尝试从缓存中拿数据，不管缓存是否过期

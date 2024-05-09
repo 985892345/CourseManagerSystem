@@ -4,7 +4,6 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.util.fastForEach
-import com.course.components.utils.debug.logg
 import com.course.pages.course.api.IMainCourseDataProvider
 import com.course.pages.course.api.controller.CourseController
 import com.course.pages.course.api.timeline.CourseTimeline
@@ -70,7 +69,6 @@ class ScheduleCourseController(
           }
         }
         scheduleItemGroups.value = newMap
-        logg("newMap = ${newMap.mapValues { it.value.bean }}")
       }
     }
   }

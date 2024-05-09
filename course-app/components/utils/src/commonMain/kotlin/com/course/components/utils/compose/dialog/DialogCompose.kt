@@ -108,7 +108,8 @@ fun DialogCompose() {
       Card(
         modifier = Modifier.wrapContentSize(),
         shape = RoundedCornerShape(16.dp),
-        backgroundColor = Color.White,
+        backgroundColor = Color(0xFFFAFAFA),
+        elevation = 0.dp,
       ) {
         AppDialogState.Content()
       }

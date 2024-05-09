@@ -2,6 +2,7 @@ package com.course.pages.course.api.item.lesson
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -9,9 +10,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Text
@@ -44,7 +48,9 @@ import com.course.shared.time.MinuteTime
  * @author 985892345
  * 2024/3/14 17:55
  */
-class LessonItemGroup : ICourseItemGroup {
+class LessonItemGroup(
+  val onClickItem: ((LessonItemData) -> Unit)?,
+) : ICourseItemGroup {
 
   /**
    * 重置数据
@@ -107,6 +113,10 @@ class LessonItemGroup : ICourseItemGroup {
 
   @OptIn(ExperimentalFoundationApi::class)
   private fun clickItem(data: LessonItemData) {
+    if (onClickItem != null) {
+      onClickItem.invoke(data)
+      return
+    }
     showBottomSheetWindow { dismiss ->
       Card(
         modifier = Modifier.fillMaxWidth().bottomSheetDraggable(),
@@ -130,19 +140,25 @@ class LessonItemGroup : ICourseItemGroup {
                 fontSize = 13.sp,
                 color = LocalAppColors.current.tvLv2,
               )
+              Spacer(
+                modifier = Modifier.padding(horizontal = 3.dp)
+                  .size(3.dp, 3.dp)
+                  .background(Color.Gray, CircleShape)
+              )
               Text(
                 modifier = Modifier,
-                text = "⎜${data.lesson.teacher}",
+                text = data.lesson.teacher,
                 fontSize = 13.sp,
                 color = LocalAppColors.current.tvLv2,
               )
             },
             measurePolicy = { measurables, constraints ->
-              val teacherPlaceable = measurables[1].measure(constraints)
+              val teacherPlaceable = measurables[2].measure(constraints)
+              val linePlaceable = measurables[1].measure(constraints)
               val classroomPlaceable = measurables[0].measure(
                 Constraints(
                   minWidth = 0,
-                  maxWidth = constraints.maxWidth - teacherPlaceable.width,
+                  maxWidth = constraints.maxWidth - teacherPlaceable.width - linePlaceable.width,
                 )
               )
               layout(constraints.maxWidth, teacherPlaceable.height) {
@@ -150,7 +166,11 @@ class LessonItemGroup : ICourseItemGroup {
                   0,
                   (teacherPlaceable.height - classroomPlaceable.height) / 2
                 )
-                teacherPlaceable.placeRelative(classroomPlaceable.width, 0)
+                linePlaceable.placeRelative(
+                  classroomPlaceable.width,
+                  (teacherPlaceable.height - linePlaceable.height) / 2
+                )
+                teacherPlaceable.placeRelative(classroomPlaceable.width + linePlaceable.width, 0)
               }
             }
           )

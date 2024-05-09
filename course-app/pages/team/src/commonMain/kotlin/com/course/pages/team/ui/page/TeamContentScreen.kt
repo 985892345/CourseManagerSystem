@@ -1,13 +1,19 @@
 package com.course.pages.team.ui.page
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,26 +27,37 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Card
+import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ForwardToInbox
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ExitToApp
+import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastForEachIndexed
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import com.course.components.base.theme.LocalAppColors
@@ -49,9 +66,12 @@ import com.course.components.utils.compose.clickableCardIndicator
 import com.course.components.utils.compose.dialog.showChooseDialog
 import com.course.components.utils.navigator.BaseScreen
 import com.course.components.utils.result.tryThrowCancellationException
+import com.course.components.utils.serializable.FloatStateSerializable
 import com.course.components.utils.serializable.ObjectSerializable
 import com.course.components.utils.source.Source
 import com.course.components.utils.source.getOrThrow
+import com.course.components.view.edit.EditTextCompose
+import com.course.pages.team.ui.course.MemberCourseBottomSheet
 import com.course.pages.team.utils.TeamDetailStateSerializer
 import com.course.pages.team.utils.TeamMemberStateSerializer
 import com.course.source.app.team.TeamApi
@@ -63,6 +83,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * .
@@ -77,7 +98,7 @@ class TeamContentScreen(
 ) : BaseScreen() {
 
   @Serializable(TeamDetailStateSerializer::class)
-  private var teamDetailState = mutableStateOf<TeamDetail?>(null)
+  private val teamDetailState = mutableStateOf<TeamDetail?>(null)
 
   @Serializable(TeamMemberStateSerializer::class)
   private val adminList = mutableStateOf(emptyList<TeamMember>())
@@ -90,15 +111,32 @@ class TeamContentScreen(
 
   @Composable
   override fun ScreenContent() {
-    Column(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
-      ToolbarCompose()
-      MemberListCompose()
+    val coroutineScope = rememberCoroutineScope()
+    Box(modifier = Modifier.fillMaxSize().systemBarsPadding().pointerInput(Unit) {
+      awaitEachGesture {
+        awaitFirstDown(false, PointerEventPass.Initial)
+        // 接收每次 ACTION_DOWN 事件
+        if (floatBtnAnimFraction.value == 1F) {
+          coroutineScope.launch { closeFloatBtn() }
+        }
+      }
+    }) {
+      Column(modifier = Modifier) {
+        ToolbarCompose()
+        MemberListCompose()
+      }
+      FloatingActionButtonCompose()
     }
+    requestTeaDetail()
+  }
+
+  @Composable
+  private fun requestTeaDetail() {
     LaunchedEffect(Unit) {
       launch(Dispatchers.IO) {
         runCatching {
           Source.api(TeamApi::class)
-            .getTeamDetail(teamBean.id)
+            .getTeamDetail(teamBean.teamId)
             .getOrThrow()
         }.tryThrowCancellationException().onSuccess { detail ->
           val admin = mutableListOf<TeamMember>()
@@ -194,7 +232,7 @@ class TeamContentScreen(
       verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
       if (adminList.value.isNotEmpty()) {
-        stickyHeader(key = "admin header", contentType = "header") {
+        item(key = "admin header", contentType = "header") {
           ListHeaderCompose("队长")
         }
         items(adminList.value, key = { it.num }, contentType = { "content" }) {
@@ -202,7 +240,7 @@ class TeamContentScreen(
         }
       }
       if (managerList.value.isNotEmpty()) {
-        stickyHeader(key = "manager header", contentType = "header") {
+        item(key = "manager header", contentType = "header") {
           ListHeaderCompose("管理")
         }
         items(managerList.value, key = { it.num }, contentType = { "content" }) {
@@ -210,7 +248,7 @@ class TeamContentScreen(
         }
       }
       if (memberList.value.isNotEmpty()) {
-        stickyHeader(key = "member header", contentType = "header") {
+        item(key = "member header", contentType = "header") {
           ListHeaderCompose("成员")
         }
         items(memberList.value, key = { it.num }, contentType = { "content" }) {
@@ -224,7 +262,8 @@ class TeamContentScreen(
   @Composable
   private fun LazyItemScope.ListHeaderCompose(text: String) {
     Text(
-      modifier = Modifier.animateItemPlacement(),
+      modifier = Modifier.fillMaxWidth().animateItemPlacement()
+        .background(MaterialTheme.colors.background),
       text = text,
       fontSize = 14.sp,
     )
@@ -240,8 +279,12 @@ class TeamContentScreen(
       Row(
         modifier = Modifier.fillMaxWidth()
           .clickable {
-            MemberCourseBottomSheet(member).also {
-              it.showCourseBottomSheet()
+            if (member.isConfirmed) {
+              MemberCourseBottomSheet(listOf(member)).also {
+                it.showCourseBottomSheet()
+              }
+            } else {
+              toast("当前成员还未回复团队邀请")
             }
           }.padding(start = 12.dp, top = 8.dp, bottom = 8.dp)
       ) {
@@ -251,16 +294,24 @@ class TeamContentScreen(
           contentDescription = null,
         )
         Column(modifier = Modifier.padding(start = 8.dp, top = 2.dp).weight(1F)) {
-          Text(
-            text = member.name,
-            fontWeight = FontWeight.Bold,
-            fontSize = 14.sp,
-            color = LocalAppColors.current.tvLv2,
-          )
+          Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+              text = member.name,
+              fontWeight = FontWeight.Bold,
+              fontSize = 14.sp,
+              color = LocalAppColors.current.tvLv2,
+            )
+            if (!member.isConfirmed) {
+              Text(
+                modifier = Modifier.padding(start = 8.dp),
+                text = "（未回复邀请）",
+                fontSize = 12.sp,
+                color = Color(0xFF666666),
+              )
+            }
+          }
           Text(
             text = member.num,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
             fontSize = 12.sp,
             color = Color(0xFF666666),
           )
@@ -282,7 +333,7 @@ class TeamContentScreen(
         coroutineScope.launch(Dispatchers.IO) {
           runCatching {
             Source.api(TeamApi::class)
-              .deleteTeam(teamBean.id)
+              .deleteTeam(teamBean.teamId)
               .getOrThrow()
           }.tryThrowCancellationException().onSuccess {
             toast("退出成功")
@@ -301,4 +352,148 @@ class TeamContentScreen(
       }
     }
   }
+
+  @Serializable(FloatStateSerializable::class)
+  private val floatBtnAnimFraction = mutableFloatStateOf(0F)
+
+  @Transient
+  private val floatBtnActions = listOf(
+    FloatBtnAction(Icons.Rounded.CalendarMonth) { _, _ ->
+      MemberCourseBottomSheet(
+        teamDetailState.value?.members?.filter { it.isConfirmed } ?: emptyList()
+      ).showCourseBottomSheet()
+    },
+    FloatBtnAction(Icons.AutoMirrored.Outlined.ForwardToInbox) { coroutineScope, _ ->
+      showSendNotificationDialog(coroutineScope)
+    },
+  )
+
+  @Composable
+  private fun BoxScope.FloatingActionButtonCompose() {
+    val coroutineScope = rememberCoroutineScope()
+    val navigator = LocalNavigator.current
+    floatBtnActions.fastForEachIndexed { index, btnAction ->
+      FloatingActionButton(
+        modifier = Modifier.align(Alignment.BottomEnd)
+          .padding(end = 46.dp, bottom = 66.dp)
+          .size(44.dp)
+          .graphicsLayer {
+            translationY =
+              (-(index + 1) * 56.dp.toPx() - 8.dp.toPx()) * floatBtnAnimFraction.value
+            alpha = minOf(floatBtnAnimFraction.value * 1.25F, 1F) // 因阴影会失效，所以 alpha 特殊设置
+          },
+        onClick = { btnAction.onClick(coroutineScope, navigator) }
+      ) {
+        Box(
+          modifier = Modifier.fillMaxSize().graphicsLayer {
+            rotationZ = -90F * (1 - floatBtnAnimFraction.value)
+          },
+          contentAlignment = Alignment.Center
+        ) {
+          Icon(
+            imageVector = btnAction.icon,
+            contentDescription = null,
+          )
+        }
+      }
+    }
+    FloatingActionButton(
+      modifier = Modifier.align(Alignment.BottomEnd)
+        .padding(end = 40.dp, bottom = 60.dp),
+      onClick = {
+        if (floatBtnAnimFraction.value == 0F) {
+          coroutineScope.launch { openFloatBtn() }
+        }
+      },
+    ) {
+      Box(
+        modifier = Modifier.size(50.dp).graphicsLayer {
+          rotationZ = -45F * floatBtnAnimFraction.value
+        },
+        contentAlignment = Alignment.Center,
+      ) {
+        Image(
+          modifier = Modifier.padding(start = 4.dp, bottom = 1.dp),
+          imageVector = Icons.AutoMirrored.Rounded.Send,
+          contentDescription = null
+        )
+      }
+    }
+  }
+
+  private suspend fun openFloatBtn() {
+    if (floatBtnAnimFraction.value == 0F) {
+      animate(0F, 1F, animationSpec = tween()) { value, _ ->
+        floatBtnAnimFraction.value = value
+      }
+    }
+  }
+
+  private suspend fun closeFloatBtn() {
+    if (floatBtnAnimFraction.value == 1F) {
+      animate(1F, 0F, animationSpec = tween()) { value, _ ->
+        floatBtnAnimFraction.value = value
+      }
+    }
+  }
+
+  private fun showSendNotificationDialog(coroutineScope: CoroutineScope) {
+    val editTitle = mutableStateOf("")
+    val editDescription = mutableStateOf("")
+    showChooseDialog(
+      height = 300.dp,
+      positiveBtnText = "发送",
+      onDismissRequest = {},
+      onClickPositionBtn = {
+        if (editTitle.value.isBlank()) {
+          toast("标题不能为空")
+          return@showChooseDialog
+        }
+        coroutineScope.launch(Dispatchers.IO) {
+          runCatching {
+            Source.api(TeamApi::class)
+              .sendNotification(teamBean.teamId, editTitle.value, editDescription.value)
+              .getOrThrow()
+          }.tryThrowCancellationException().onSuccess {
+            toast("发送成功")
+            hide()
+          }.onFailure {
+            toast("网络异常")
+          }
+        }
+      }
+    ) {
+      Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        EditTextCompose(
+          modifier = Modifier.fillMaxWidth().height(20.dp),
+          text = editTitle,
+          hint = "请输入标题",
+          textStyle = TextStyle(
+            textAlign = TextAlign.Center,
+            fontSize = 14.sp,
+          )
+        )
+        Card(
+          modifier = Modifier.padding(top = 8.dp).weight(1F),
+          elevation = 0.5.dp,
+        ) {
+          EditTextCompose(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+              .fillMaxSize(),
+            text = editDescription,
+            hint = "请输入内容",
+            isShowIndicatorLine = false,
+            textStyle = TextStyle(
+              fontSize = 12.sp,
+            )
+          )
+        }
+      }
+    }
+  }
+
+  private inner class FloatBtnAction(
+    val icon: ImageVector,
+    val onClick: (coroutineScope: CoroutineScope, navigator: Navigator?) -> Unit
+  )
 }

@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
@@ -197,30 +198,28 @@ class TeamDetailEditPage(
         modifier = Modifier.padding(top = 16.dp, bottom = 16.dp),
         elevation = 0.5.dp,
       ) {
-        Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
-          EditTextCompose(
-            modifier = Modifier.fillMaxWidth().height(100.dp),
-            text = editDescription,
-            hint = "请输入团队简介",
-            isShowIndicatorLine = false,
-            textStyle = TextStyle(
-              fontSize = 14.sp,
-            )
+        EditTextCompose(
+          modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+            .fillMaxWidth().height(100.dp),
+          text = editDescription,
+          hint = "请输入团队简介",
+          isShowIndicatorLine = false,
+          textStyle = TextStyle(
+            fontSize = 14.sp,
           )
-        }
+        )
       }
     }
   }
 
-  @OptIn(ExperimentalFoundationApi::class)
   private fun LazyListScope.memberList(screen: BaseScreen) {
-    stickyHeader(key = "manager header", contentType = "header") {
+    item(key = "manager header", contentType = "header") {
       MemberListHeaderCompose(screen = screen, text = "管理", isManager = true)
     }
     items(managerList.value, key = { it.num }, contentType = { "content" }) {
       MemberListContentCompose(it, true)
     }
-    stickyHeader(key = "member header", contentType = "header") {
+    item(key = "member header", contentType = "header") {
       MemberListHeaderCompose(screen = screen, text = "成员", isManager = false)
     }
     items(memberList.value, key = { it.num }, contentType = { "content" }) {
@@ -236,6 +235,7 @@ class TeamDetailEditPage(
     isManager: Boolean,
   ) {
     Row(
+      modifier = Modifier.fillMaxWidth().background(MaterialTheme.colors.background),
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Text(
@@ -510,6 +510,7 @@ class TeamDetailEditPage(
         identity = identity.value,
         rank = rank,
         type = type,
+        isConfirmed = true, // 该字段由 server 控制
       )
     }
   }

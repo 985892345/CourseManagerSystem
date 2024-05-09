@@ -108,7 +108,7 @@ class ExamScreen(
           is ExamListItem -> item(it.key) {
             with(it) { Content() }
           }
-          is ExamTermListHeader -> stickyHeader(it.key, contentType = "stickyHeader") {
+          is ExamTermListHeader -> item(it.key, contentType = "Header") {
             with(it) { Content() }
           }
         }

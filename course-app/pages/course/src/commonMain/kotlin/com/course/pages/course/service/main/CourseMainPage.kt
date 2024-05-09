@@ -96,8 +96,12 @@ class CourseMainPage : IMainPage {
       .flatten()
       .toImmutableList()
     return when (account?.type) {
-      AccountType.Student -> stuCourseDetail(account.num, controllers)
-      AccountType.Teacher -> teaCourseDetail(account.num, controllers)
+      AccountType.Student, AccountType.Teacher -> courseDetail(
+        account.num,
+        account.type,
+        controllers
+      )
+
       null -> EmptyAccountCourseDetail(controllers)
     }.also { this@CourseMainPage.oldCourseDetail = it }
   }

@@ -1,4 +1,4 @@
-package com.course.pages.team.ui.page
+package com.course.pages.team.ui.course
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -22,7 +22,6 @@ import com.course.components.utils.compose.clickableNoIndicator
 import com.course.components.utils.compose.showBottomSheetWindow
 import com.course.components.utils.provider.Provider
 import com.course.pages.course.api.ICourseService
-import com.course.source.app.account.AccountType
 import com.course.source.app.team.TeamMember
 
 /**
@@ -32,15 +31,12 @@ import com.course.source.app.team.TeamMember
  * 2024/5/8 14:10
  */
 class MemberCourseBottomSheet(
-  val member: TeamMember
+  val members: List<TeamMember>,
 ) {
 
   private val courseService = Provider.impl(ICourseService::class)
 
-  private val courseDetail = when (member.type) {
-    AccountType.Student -> courseService.stuCourseDetail(member.num)
-    AccountType.Teacher -> courseService.stuCourseDetail(member.num)
-  }
+  private val courseDetail = MemberCourseDetail(members)
 
   fun showCourseBottomSheet() {
     showBottomSheetWindow(

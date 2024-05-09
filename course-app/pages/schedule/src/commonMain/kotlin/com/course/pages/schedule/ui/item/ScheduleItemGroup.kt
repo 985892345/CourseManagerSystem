@@ -60,17 +60,7 @@ class ScheduleItemGroup(
     startTimeState = startTimeState,
     minuteDurationState = minuteDurationState,
     getHeightOffset = { timeline, _, _ ->
-      if (!this::heightOffsetAnim.isInitialized) {
-        heightOffsetAnim = Animatable(
-          typeConverter = Offset.VectorConverter,
-          initialValue = ICourseItemGroup.calculateItemHeightOffset(
-            timeline = timeline,
-            startTime = startTime.time,
-            minuteDuration = minuteDuration,
-          )
-        )
-      }
-      heightOffsetAnim.value
+      getHeightOffset(timeline)
     },
   ) { item, weekBeginDate, timeline, _ ->
     ItemContent(
@@ -82,7 +72,21 @@ class ScheduleItemGroup(
 
   private lateinit var heightOffsetAnim: Animatable<Offset, *>
   private var oldWeekBeginDate: Date? = null
-  private lateinit var oldTimeline: CourseTimeline
+  private lateinit var oldTimeline: CourseTimeline // 使用 oldWeekBeginDate 判断该变量是否初始化
+
+  private fun getHeightOffset(
+    timeline: CourseTimeline,
+  ): Offset {
+    return if (this::heightOffsetAnim.isInitialized && heightOffsetAnim.isRunning) {
+      heightOffsetAnim.value
+    } else {
+      ICourseItemGroup.calculateItemHeightOffset2(
+        timeline = timeline,
+        startTime = startTime.time,
+        minuteDuration = minuteDuration,
+      )
+    }
+  }
 
   override fun checkBeginFinalTime(startTime: MinuteTimeDate, minuteDuration: Int): Boolean {
     if (minuteDuration < 5) {
@@ -97,10 +101,29 @@ class ScheduleItemGroup(
     minuteDuration: Int
   ) {
     oldWeekBeginDate ?: return
+    if (!this::heightOffsetAnim.isInitialized) {
+      heightOffsetAnim = Animatable(
+        typeConverter = Offset.VectorConverter,
+        initialValue = ICourseItemGroup.calculateItemHeightOffset2(
+          timeline = oldTimeline,
+          startTime = startTime.time,
+          minuteDuration = minuteDuration,
+        ),
+      )
+    } else {
+      // 这里需要重置动画的开始值
+      heightOffsetAnim.snapTo(
+        ICourseItemGroup.calculateItemHeightOffset2(
+          timeline = oldTimeline,
+          startTime = startTime.time,
+          minuteDuration = minuteDuration,
+        )
+      )
+    }
     startTimeState.value = startTime
     minuteDurationState.intValue = minuteDuration
     heightOffsetAnim.animateTo(
-      targetValue = ICourseItemGroup.calculateItemHeightOffset(
+      targetValue = ICourseItemGroup.calculateItemHeightOffset2(
         timeline = oldTimeline,
         startTime = startTime.time,
         minuteDuration = minuteDuration,

@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.course.components.utils.compose.clickableCardIndicator
-import com.course.components.utils.debug.logg
 import com.course.pages.main.api.IMainPage
 import com.course.pages.team.ui.page.TeamListScreen
 import com.g985892345.provider.api.annotation.ImplProvider
@@ -27,10 +26,6 @@ import org.jetbrains.compose.resources.painterResource
  */
 @ImplProvider(clazz = IMainPage::class, name = "team")
 class TeamMain : IMainPage {
-
-  init {
-    logg("TeamMain")
-  }
 
   override val priority: Int
     get() = 100

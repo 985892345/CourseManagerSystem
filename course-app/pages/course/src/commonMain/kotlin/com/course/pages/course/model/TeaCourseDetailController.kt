@@ -2,6 +2,7 @@ package com.course.pages.course.model
 
 import com.course.pages.course.api.controller.CourseController
 import com.course.pages.course.api.controller.CourseDetail
+import com.course.pages.course.api.item.lesson.LessonItemData
 import com.course.shared.time.Date
 import kotlinx.collections.immutable.ImmutableList
 
@@ -14,6 +15,8 @@ import kotlinx.collections.immutable.ImmutableList
 class TeaCourseDetailController(
   val teaNum: String,
   controllers: ImmutableList<CourseController>,
+  val onlyOneTerm: Boolean,
+  val onClickItem: ((LessonItemData) -> Unit)?,
 ) : CourseDetail(controllers) {
   override val startDate: Date
     get() = TODO("Not yet implemented")

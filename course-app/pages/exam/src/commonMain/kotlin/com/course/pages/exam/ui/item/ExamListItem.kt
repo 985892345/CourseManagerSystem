@@ -1,5 +1,6 @@
 package com.course.pages.exam.ui.item
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -225,7 +227,7 @@ data class ExamTermListHeader(
 
   @Composable
   override fun LazyItemScope.Content() {
-    Box(modifier = Modifier.fillMaxWidth()) {
+    Box(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colors.background)) {
       Text(
         modifier = Modifier.padding(start = 20.dp, top = 8.dp, bottom = 8.dp),
         text = termBean.term,

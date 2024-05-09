@@ -18,14 +18,8 @@ class CalendarNestedScroll(
   private val state: CalendarState,
 ) : NestedScrollConnection {
 
-  private var childScrollOffset = -1F
-
   override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-    if (state.verticalIsExpanded) {
-      // 展开状态直接拦截
-      childScrollOffset = 0F
-    }
-    if (childScrollOffset == 0F) {
+    if (state.fraction != 0F) {
       return Offset(x = 0F, y = scrollBy(available.y))
     }
     return Offset.Zero
@@ -36,16 +30,15 @@ class CalendarNestedScroll(
     available: Offset,
     source: NestedScrollSource
   ): Offset {
-    if (available.y > 0F && consumed.y == 0F) {
-      childScrollOffset = 0F // 此时一定滚动到顶部
-    } else {
-      childScrollOffset += consumed.y
+    if (consumed.y == 0F &&
+      (state.fraction == 0F && available.y > 0F || state.fraction == 1F && available.y < 0F)
+    ) {
+      return Offset(x = 0F, y = scrollBy(available.y))
     }
     return super.onPostScroll(consumed, available, source)
   }
 
   override suspend fun onPreFling(available: Velocity): Velocity {
-    childScrollOffset = -1F
     if (state.verticalIsScrolling && (available.y != 0F || available == Velocity.Zero)) {
       val target = if (available.y > 1000) state.maxVerticalScrollOffset
       else if (available.y < -1000) 0F
@@ -99,7 +92,8 @@ class CalendarNestedScroll(
       }
     }
     val newOffset = scrollOffset + y
-    state.verticalScrollState.value = VerticalScrollState.Scrolling(newOffset, newOffset / maxScrollOffset)
+    state.verticalScrollState.value =
+      VerticalScrollState.Scrolling(newOffset, newOffset / maxScrollOffset)
     return y
   }
 }

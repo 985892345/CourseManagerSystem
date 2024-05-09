@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
@@ -29,12 +30,15 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.util.fastFirst
-import com.course.components.utils.debug.logg
 import com.course.components.utils.navigator.BaseScreen
 import com.course.components.utils.navigator.mainNavigator
 import kotlinx.coroutines.Job
@@ -58,6 +62,19 @@ fun showBottomSheetWindow(
   var height by mutableFloatStateOf(0F)
   var offsetY by mutableFloatStateOf(0F)
   val dragValueChannel = Channel<BottomSheetDragValue?>(1, BufferOverflow.DROP_OLDEST)
+
+  fun dragStopped(velocity: Float) {
+    if (velocity > 1000) {
+      dragValueChannel.trySend(BottomSheetDragValue(offsetY, height, velocity))
+    } else if (velocity < -1000) {
+      dragValueChannel.trySend(BottomSheetDragValue(offsetY, 0F, velocity))
+    } else if (offsetY > height / 2) {
+      dragValueChannel.trySend(BottomSheetDragValue(offsetY, height, velocity))
+    } else {
+      dragValueChannel.trySend(BottomSheetDragValue(offsetY, 0F, velocity))
+    }
+  }
+
   val dismiss: () -> Unit = { dragValueChannel.trySend(BottomSheetDragValue(offsetY, height)) }
   (mainNavigator.lastItem as BaseScreen).showWindow { windowDismiss ->
     val focusRequester = remember { FocusRequester() }
@@ -92,7 +109,6 @@ fun showBottomSheetWindow(
           .fillMaxWidth()
           .layout { measurable, constraints ->
             val placeable = measurable.measure(constraints)
-            logg("height = ${placeable.height}")
             layout(placeable.width, placeable.height) {
               if (height == 0F) {
                 height = placeable.height.toFloat()
@@ -101,7 +117,38 @@ fun showBottomSheetWindow(
               }
               placeable.place(0, offsetY.roundToInt())
             }
-          }
+          }.nestedScroll(object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+              if (offsetY != 0F) {
+                // available 手指向上移动为负
+                val newOffset = (offsetY + available.y).coerceIn(0F, height)
+                offsetY = newOffset
+                return available
+              }
+              return super.onPreScroll(available, source)
+            }
+
+            override fun onPostScroll(
+              consumed: Offset,
+              available: Offset,
+              source: NestedScrollSource
+            ): Offset {
+              if (offsetY == 0F && available.y > 0 && consumed.y == 0F) {
+                val newOffset = (offsetY + available.y).coerceIn(0F, height)
+                offsetY = newOffset
+                return Offset(0F, newOffset - offsetY)
+              }
+              return super.onPostScroll(consumed, available, source)
+            }
+
+            override suspend fun onPreFling(available: Velocity): Velocity {
+              if (offsetY != height) {
+                dragStopped(available.y)
+                return available
+              }
+              return super.onPreFling(available)
+            }
+          })
       ) {
         val scope = object : BottomSheetScope {
           @Composable
@@ -116,15 +163,7 @@ fun showBottomSheetWindow(
                 dragValueChannel.trySend(null)
               },
               onDragStopped = { velocity ->
-                if (velocity > 1000) {
-                  dragValueChannel.trySend(BottomSheetDragValue(offsetY, height, velocity))
-                } else if (velocity < -1000) {
-                  dragValueChannel.trySend(BottomSheetDragValue(offsetY, 0F, velocity))
-                } else if (offsetY > height / 2) {
-                  dragValueChannel.trySend(BottomSheetDragValue(offsetY, height, velocity))
-                } else {
-                  dragValueChannel.trySend(BottomSheetDragValue(offsetY, 0F, velocity))
-                }
+                dragStopped(velocity)
               }
             )
           }
@@ -147,7 +186,6 @@ fun showBottomSheetWindow(
               ) { value, velocity ->
                 prevVelocity = velocity
                 offsetY = value.coerceAtLeast(0F)
-                logg("offsetY = $offsetY")
               }
               if (dragValue.targetValue == height) {
                 windowDismiss()

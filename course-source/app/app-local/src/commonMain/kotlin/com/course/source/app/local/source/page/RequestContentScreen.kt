@@ -32,10 +32,10 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -179,7 +179,7 @@ class RequestContentScreen(
         modifier = Modifier.graphicsLayer {
           rotationZ = 45F * floatBtnAnimFraction.value
         },
-        painter = rememberVectorPainter(Icons.Filled.Add),
+        imageVector = Icons.Rounded.Add,
         contentDescription = null
       )
     }
