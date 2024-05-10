@@ -80,7 +80,7 @@ data class RequestUnit(
   ): String {
     val service = Provider.implOrNull(IDataSourceService::class, serviceKey)
       ?: throw RuntimeException("未找到服务 $serviceKey")
-    return service.request(sourceData, parameters)
+    return service.request(sourceData, parameters) {}
   }
 
   fun delete() {

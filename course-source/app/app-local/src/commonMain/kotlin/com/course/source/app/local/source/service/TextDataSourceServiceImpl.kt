@@ -38,7 +38,8 @@ class TextDataSourceServiceImpl : IDataSourceService {
 
   override suspend fun request(
     sourceData: String?,
-    parameterWithValue: Map<String, String>
+    parameterWithValue: Map<String, String>,
+    println: (String) -> Unit,
   ): String {
     return sourceData!!
   }

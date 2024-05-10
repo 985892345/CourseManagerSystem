@@ -198,10 +198,13 @@ private fun tryRequest(
     toast("正在请求")
     return
   }
+  var hintRequest = "请求中... "
+  val printlnList = mutableListOf<String>()
   val waitJob = coroutineScope.launch {
     var time = 0
     while (true) {
-      hint.value = "请求中... $time"
+      hintRequest = "请求中... $time"
+      hint.value = hintRequest + printlnList.joinToString(separator = "\n", prefix = "\n\n")
       delay(1.seconds)
       time++
     }
@@ -210,7 +213,10 @@ private fun tryRequest(
     runCatching {
       val result = try {
         Provider.impl(IDataSourceService::class, serviceKey)
-          .request(sourceData, parameterWithValue.mapValues { it.value.value })
+          .request(sourceData, parameterWithValue.mapValues { it.value.value }) {
+            printlnList.add(it)
+            hint.value = hintRequest + printlnList.joinToString(separator = "\n", prefix = "\n\n")
+          }
       } catch (e: CancellationException) {
         hint.value = "请求被取消"
         throw e

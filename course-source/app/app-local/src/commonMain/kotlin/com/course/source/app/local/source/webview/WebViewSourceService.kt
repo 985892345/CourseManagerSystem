@@ -49,6 +49,8 @@ object WebViewSourceService : IDataSourceService {
           dataBridge.success('...'); 
           // 调用 error() 返回异常，只允许调用一次
           dataBridge.error('...');
+          // 调用 println() 打印日志 (测试时有效)
+          dataBridge.println('...');
           // 调用 load() 异步加载新页面 (不会关闭当前页面), onLoad 回调 (注意：htmlText 不包含 \n)
           dataBridge.load(url);
           dataBridge.onLoad = function (htmlText) {}
@@ -91,13 +93,14 @@ object WebViewSourceService : IDataSourceService {
 
   override suspend fun request(
     sourceData: String?,
-    parameterWithValue: Map<String, String>
+    parameterWithValue: Map<String, String>,
+    println: (String) -> Unit,
   ): String {
     if (sourceData.isNullOrBlank()) throw IllegalArgumentException("sourceData 不能为空")
     val webViewDate = Json.decodeFromString<WebViewData>(sourceData)
     val url = webViewDate.url.replaceValue(parameterWithValue)
     val js = webViewDate.js.replaceValue(parameterWithValue)
-    return requestByWebView(url, js)
+    return requestByWebView(url, js, println)
   }
 
   private fun String?.replaceValue(
@@ -118,4 +121,8 @@ object WebViewSourceService : IDataSourceService {
   )
 }
 
-internal expect suspend fun requestByWebView(url: String?, js: String?): String
+internal expect suspend fun requestByWebView(
+  url: String?,
+  js: String?,
+  println: (String) -> Unit
+): String

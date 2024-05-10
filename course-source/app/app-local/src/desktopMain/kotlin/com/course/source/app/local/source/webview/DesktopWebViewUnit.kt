@@ -30,6 +30,7 @@ class DesktopWebViewUnit {
   suspend fun load(
     url: String?,
     js: String?,
+    println: (String) -> Unit,
   ): String {
     if (url == null && js == null) {
        throw IllegalArgumentException("url 和 js 不能都为 null")
@@ -49,20 +50,19 @@ class DesktopWebViewUnit {
       val htmlPage: HtmlPage = webClient.getPage(url ?: "about:blank")
       delay(200)
       if (js == null) return htmlPage.body.textContent
-      return executeJs(htmlPage, js)
+      return executeJs(htmlPage, js, println)
     }
   }
 
   private suspend fun executeJs(
     htmlPage: HtmlPage,
-    js: String
-  ): String = suspendCancellableCoroutine {
-    val key = it.toString()
-    continuationMap[key] = it
-    htmlPageMap[key] = htmlPage
-    it.invokeOnCancellation {
-      continuationMap.remove(key)
-      htmlPageMap.remove(key)
+    js: String,
+    println: (String) -> Unit,
+  ): String = suspendCancellableCoroutine { continuation ->
+    val key = continuation.toString()
+    dataMap[key] = Data(key, htmlPage, continuation, println)
+    continuation.invokeOnCancellation {
+      dataMap.remove(key)
     }
     val scope = htmlPage.enclosingWindow.getScriptableObject<Scriptable>()
     ScriptableObject.defineClass(scope, Desktop2JsBridge::class.java)
@@ -70,9 +70,36 @@ class DesktopWebViewUnit {
     htmlPage.executeJavaScript(js)
   }
 
+  private class Data(
+    val key: String,
+    val htmlPage: HtmlPage,
+    val continuation: Continuation<String>,
+    val println: (String) -> Unit,
+  ) {
+    fun success(result: Any?) {
+      dataMap.remove(key)
+      continuation.resume(result.toString())
+    }
+
+    fun error(result: Any?) {
+      dataMap.remove(key)
+      continuation.resumeWithException(RuntimeException(result.toString()))
+    }
+
+    fun println(result: Any?) {
+      println.invoke(result.toString())
+    }
+
+    fun load(url: String) {
+      AppCoroutineScope.launch(Dispatchers.IO) {
+        val html = requestByWebView(url, null, println)
+        htmlPage.executeJavaScript("window.dataBridge.onLoad(\'${html.replace("\n", "")}\');")
+      }
+    }
+  }
+
   companion object {
-    private val continuationMap = HashMap<String, Continuation<String>>()
-    private val htmlPageMap = HashMap<String, HtmlPage>()
+    private val dataMap = HashMap<String, Data>()
   }
 
   class Desktop2JsBridge : ScriptableObject {
@@ -92,27 +119,22 @@ class DesktopWebViewUnit {
 
     @JSFunction
     fun success(result: Any?) {
-      htmlPageMap.remove(key)
-      continuationMap.remove(key)?.resume(result.toString())
+      dataMap[key]?.success(result)
     }
 
     @JSFunction
     fun error(result: Any?) {
-      htmlPageMap.remove(key)
-      continuationMap.remove(key)?.resumeWithException(RuntimeException(result.toString()))
+      dataMap[key]?.error(result)
     }
 
     @JSFunction
     fun println(result: Any?) {
-      kotlin.io.println(result)
+      dataMap[key]?.println(result)
     }
 
     @JSFunction
     fun load(url: String) {
-      AppCoroutineScope.launch(Dispatchers.IO) {
-        val html = requestByWebView(url, null)
-        htmlPageMap[key]?.executeJavaScript("window.dataBridge.onLoad(\'${html.replace("\n", "")}\');")
-      }
+      dataMap[key]?.load(url)
     }
 
     companion object {

@@ -10,13 +10,14 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.annotation.Keep
+import com.course.components.utils.coroutine.AppCoroutineScope
 import com.g985892345.android.utils.context.appContext
 import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resumeWithException
 
 /**
- * todo: 对齐 Desktop，添加 load onLoad 功能
  *
  * @author 985892345
  * @date 2023/10/31 08:11
@@ -48,25 +49,29 @@ class AndroidWebViewUnit {
     }
   }
 
+  private var mPrintln: ((String) -> Unit)? = null
+
   suspend fun load(
     url: String?,
     js: String?,
-  ): String = suspendCancellableCoroutine { continuation ->
-    if (url == null && js == null) {
-      continuation.resumeWithException(IllegalArgumentException("url 和 js 不能都为 null"))
-      return@suspendCancellableCoroutine
-    }
-    mContinuation = continuation
-    continuation.invokeOnCancellation {
-      mContinuation = null
-      mainHandler.post {
-        clearWebView()
+    println: (String) -> Unit,
+  ): String {
+    if (url == null && js == null) throw IllegalArgumentException("url 和 js 不能都为 null")
+    return suspendCancellableCoroutine { continuation ->
+      mPrintln = println
+      mContinuation = continuation
+      continuation.invokeOnCancellation {
+        mPrintln = null
+        mContinuation = null
+        mainHandler.post {
+          clearWebView()
+        }
       }
-    }
-    if (url != null) {
-      loadUrl(url, js)
-    } else if (js != null) {
-      loadJs(js)
+      if (url != null) {
+        loadUrl(url, js)
+      } else if (js != null) {
+        loadJs(js)
+      }
     }
   }
 
@@ -78,9 +83,11 @@ class AndroidWebViewUnit {
           if (js != null) {
             view.evaluateJavascript(js, null)
           } else {
-            view.evaluateJavascript("""
+            view.evaluateJavascript(
+              """
               dataBridge.success(document.body.textContent);
-            """.trimIndent(), null)
+            """.trimIndent(), null
+            )
           }
         }
       }
@@ -99,6 +106,11 @@ class AndroidWebViewUnit {
 
   private fun clearWebView() {
     mWebView.webViewClient = mEmptyWebClient
+    mWebView.loadUrl("about:blank")
+  }
+
+  fun destroy() {
+    mWebView.destroy()
   }
 
   @Keep
@@ -107,13 +119,29 @@ class AndroidWebViewUnit {
   ) {
 
     @JavascriptInterface
-    fun success(result: String) {
-      callback.invoke(Result.success(result))
+    fun success(result: String?) {
+      callback.invoke(Result.success(result.toString()))
     }
 
     @JavascriptInterface
-    fun error(result: String) {
-      callback.invoke(Result.failure(RuntimeException(result)))
+    fun error(result: String?) {
+      callback.invoke(Result.failure(RuntimeException(result.toString())))
+    }
+
+    @JavascriptInterface
+    fun println(result: String?) {
+      mPrintln?.invoke(result.toString())
+    }
+
+    @JavascriptInterface
+    fun load(url: String) {
+      AppCoroutineScope.launch(Dispatchers.IO) {
+        val html = requestByWebView(url, null, mPrintln!!)
+        mWebView.evaluateJavascript(
+          "window.dataBridge.onLoad(\'${html.replace("\n", "")}\');",
+          null
+        )
+      }
     }
   }
 

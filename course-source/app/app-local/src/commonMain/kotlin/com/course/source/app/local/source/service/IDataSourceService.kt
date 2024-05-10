@@ -35,7 +35,11 @@ interface IDataSourceService {
    * @param sourceData 自定义保存的数据
    * @param parameterWithValue 参数名字与值
    */
-  suspend fun request(sourceData: String?, parameterWithValue: Map<String, String>): String
+  suspend fun request(
+    sourceData: String?,
+    parameterWithValue: Map<String, String>,
+    println: (String) -> Unit
+  ): String
 
   @Stable
   data class Config(
