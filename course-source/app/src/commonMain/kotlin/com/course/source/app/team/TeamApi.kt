@@ -91,6 +91,7 @@ data class TeamBean(
   val identity: String,
   val description: String,
   val rank: TeamRank,
+  val dissolvable: Boolean,
 )
 
 @Serializable

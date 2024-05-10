@@ -5,7 +5,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
-import com.course.components.utils.debug.logg
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.pages.schedule.api.item.BottomSheetScheduleItem
 import com.course.pages.schedule.api.item.IScheduleCourseItemGroup
@@ -52,7 +51,6 @@ class ScheduleCourseItemGroup(
         oldItemGroup.changeBean(it)
         newMap[it.id] = oldItemGroup
       } else {
-        logg("textColor = ${it.textColor}, bgColor = ${it.backgroundColor}")
         newMap[it.id] = ScheduleItemGroup(
           bean = it,
           onUpdate = onUpdate,

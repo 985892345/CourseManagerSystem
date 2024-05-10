@@ -38,6 +38,7 @@ object TeamApiImpl : TeamApi {
             description = "测试",
             rank = TeamRank.Manager,
             identity = "小组长",
+            dissolvable = true,
           ),
           TeamBean(
             teamId = 2,
@@ -45,6 +46,7 @@ object TeamApiImpl : TeamApi {
             description = "测试",
             rank = TeamRank.Member,
             identity = "",
+            dissolvable = true,
           ),
           TeamBean(
             teamId = 3,
@@ -52,6 +54,7 @@ object TeamApiImpl : TeamApi {
             description = "测试",
             rank = TeamRank.Member,
             identity = "",
+            dissolvable = true,
           ),
           TeamBean(
             teamId = 4,
@@ -59,6 +62,7 @@ object TeamApiImpl : TeamApi {
             description = "测试",
             rank = TeamRank.Administrator,
             identity = "班长",
+            dissolvable = false,
           ),
         )
       )

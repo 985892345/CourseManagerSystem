@@ -125,19 +125,21 @@ class TeamSettingScreen(
           .fillMaxWidth()
           .height(1.dp)
       )
-      Box(
-        modifier = Modifier.align(Alignment.CenterEnd)
-          .padding(end = 12.dp)
-          .size(32.dp)
-          .clickableCardIndicator {
-            showDissolveDialog(coroutineScope)
-          },
-        contentAlignment = Alignment.Center,
-      ) {
-        Icon(
-          imageVector = Icons.Outlined.GroupOff,
-          contentDescription = null,
-        )
+      if (teamBean.dissolvable) {
+        Box(
+          modifier = Modifier.align(Alignment.CenterEnd)
+            .padding(end = 12.dp)
+            .size(32.dp)
+            .clickableCardIndicator {
+              showDissolveDialog(coroutineScope)
+            },
+          contentAlignment = Alignment.Center,
+        ) {
+          Icon(
+            imageVector = Icons.Outlined.GroupOff,
+            contentDescription = null,
+          )
+        }
       }
     }
   }

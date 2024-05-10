@@ -64,7 +64,6 @@ import com.course.source.app.team.SearchMember
 import com.course.source.app.team.TeamApi
 import com.course.source.app.team.TeamMember
 import com.course.source.app.team.TeamRank
-import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -245,7 +244,20 @@ class TeamDetailEditPage(
       )
       Icon(
         modifier = Modifier.padding(start = 8.dp).size(20.dp).clickableCardIndicator {
-          screen.showSearchWindow(if (isManager) managerList else memberList)
+          screen.showSearchWindow {
+            val member = MemberData(
+              name = it.name,
+              num = it.num,
+              type = it.type,
+            )
+            if (isManager) {
+              managerList.value = managerList.value.add(0, member)
+              memberList.value = memberList.value.remove(member)
+            } else {
+              memberList.value = memberList.value.add(0, member)
+              managerList.value = managerList.value.remove(member)
+            }
+          }
         },
         imageVector = Icons.Rounded.Add,
         contentDescription = null,
@@ -319,7 +331,7 @@ class TeamDetailEditPage(
     }
   }
 
-  private fun BaseScreen.showSearchWindow(listState: MutableState<PersistentList<MemberData>>) {
+  private fun BaseScreen.showSearchWindow(addMember: (SearchMember) -> Unit) {
     showWindow { dismiss ->
       Box(
         modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6F))
@@ -336,7 +348,7 @@ class TeamDetailEditPage(
         ) {
           Layout(modifier = Modifier.padding(top = 12.dp), content = {
             val searchResult = remember { mutableStateOf(emptyList<SearchMember>()) }
-            SearchResultCompose(searchResult, listState, dismiss)
+            SearchResultCompose(searchResult, dismiss, addMember)
             SearchEditCompose(searchResult)
           }, measurePolicy = { measurables, constraints ->
             val editPlaceable = measurables[1].measure(
@@ -365,8 +377,8 @@ class TeamDetailEditPage(
   @Composable
   private fun SearchResultCompose(
     searchResult: State<List<SearchMember>>,
-    listState: MutableState<PersistentList<MemberData>>,
     dismiss: () -> Unit,
+    addMember: (SearchMember) -> Unit,
   ) {
     AnimatedContent(
       targetState = searchResult.value,
@@ -374,13 +386,7 @@ class TeamDetailEditPage(
       LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items(it, key = { it.num }) { member ->
           Row(modifier = Modifier.fillMaxWidth().clickable {
-            listState.value = listState.value.add(
-              0, MemberData(
-                name = member.name,
-                num = member.num,
-                type = member.type,
-              )
-            )
+            addMember.invoke(member)
             dismiss.invoke()
           }.padding(start = 12.dp, end = 16.dp, top = 8.dp)) {
             Icon(
@@ -495,7 +501,7 @@ class TeamDetailEditPage(
   }
 
   @Serializable
-  class MemberData(
+  data class MemberData(
     val name: String,
     val num: String,
     val type: AccountType,
