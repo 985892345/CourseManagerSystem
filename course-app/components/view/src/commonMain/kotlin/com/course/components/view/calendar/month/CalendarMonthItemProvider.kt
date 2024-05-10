@@ -8,10 +8,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import com.course.components.utils.compose.derivedStateOfStructure
-import com.course.shared.time.Date
 import com.course.components.view.calendar.CalendarDateShowValue
 import com.course.components.view.calendar.scroll.HorizontalScrollState
 import com.course.components.view.calendar.scroll.VerticalScrollState
+import com.course.shared.time.Date
 import kotlin.math.abs
 
 /**
@@ -51,12 +51,14 @@ internal class CalendarMonthItemProvider(
   }
 
   override fun getIndex(key: Any): Int {
-    key as Int
-    val date = Date(abs(key))
-    val isNowMonth = key > 0
-    val index = getIndex(date, isNowMonth)
-    if (index !in showIndexSet) return -1
-    return index
+    if (key is Int) {
+      val date = Date(abs(key))
+      val isNowMonth = key > 0
+      val index = getIndex(date, isNowMonth)
+      if (index !in showIndexSet) return -1
+      return index
+    }
+    return -1
   }
 
   override fun getKey(index: Int): Any {
