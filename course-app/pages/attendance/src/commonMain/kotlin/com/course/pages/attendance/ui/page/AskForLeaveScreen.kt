@@ -129,27 +129,45 @@ class AskForLeaveScreen(
       Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
           text = "课程：",
-          fontSize = 18.sp,
+          fontSize = 16.sp,
           fontWeight = FontWeight.Bold,
         )
         Text(
           text = date.lesson.course,
-          fontSize = 18.sp,
+          fontSize = 16.sp,
         )
       }
-      Row(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+      Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Text(
+          text = "老师：",
+          fontSize = 16.sp,
+          fontWeight = FontWeight.Bold,
+        )
+        Text(
+          text = date.lesson.teacher,
+          fontSize = 16.sp,
+        )
+      }
+      Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
         Text(
           text = "时间：",
-          fontSize = 18.sp,
+          fontSize = 16.sp,
           fontWeight = FontWeight.Bold,
         )
         Text(
           text = buildAnnotatedString {
             val period = List(date.lesson.length) { Num2CN.transform(date.lesson.beginLesson + it) }
               .joinToString("", postfix = "节")
-            append(AnnotatedString(period, SpanStyle(fontSize = 18.sp)))
-            val time = "（${date.startTime.time}-${date.startTime.time.plusMinutes(date.minuteDuration)}）"
-            append(AnnotatedString(time, SpanStyle(fontSize = 14.sp)))
+            append(AnnotatedString(period, SpanStyle(fontSize = 16.sp)))
+            val time =
+              "（${date.startTime.time}-${date.startTime.time.plusMinutes(date.minuteDuration)}）"
+            append(AnnotatedString(time, SpanStyle(fontSize = 13.sp)))
           },
         )
       }

@@ -1,5 +1,6 @@
 package com.course.pages.schedule.api.item
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +40,11 @@ import com.course.components.utils.compose.clickableCardIndicator
 import com.course.components.utils.compose.showBottomSheetWindow
 import com.course.components.view.edit.EditTextCompose
 import com.course.pages.course.api.timeline.CourseTimeline
+import com.course.pages.schedule.api.item.AddScheduleBottomSheetState.Description
+import com.course.pages.schedule.api.item.AddScheduleBottomSheetState.EditColor
+import com.course.pages.schedule.api.item.AddScheduleBottomSheetState.EditRepeat
+import com.course.pages.schedule.api.item.AddScheduleBottomSheetState.EditTime
+import com.course.pages.schedule.api.item.edit.EditColorCompose
 import com.course.pages.schedule.api.item.edit.EditRepeatCompose
 import com.course.pages.schedule.api.item.edit.EditTimeCompose
 import com.course.shared.time.Date
@@ -57,7 +64,7 @@ fun showAddScheduleBottomSheet(
   timeline: CourseTimeline,
   bottomContent: (@Composable () -> Unit)? = null,
 ) {
-  val type = mutableStateOf(AddScheduleBottomSheetState.Description)
+  val type = mutableStateOf(Description)
   showBottomSheetWindow(
     dismissOnBackPress = { item.dismissOnBackPress(it) },
     dismissOnClickOutside = { item.dismissOnClickOutside(it) },
@@ -117,12 +124,12 @@ fun showAddScheduleBottomSheet(
                 .size(32.dp)
                 .clickableCardIndicator {
                   when (type.value) {
-                    AddScheduleBottomSheetState.Description -> {
+                    Description -> {
                       item.success(coroutineScope, dismiss)
                     }
 
-                    AddScheduleBottomSheetState.EditTime, AddScheduleBottomSheetState.EditRepeat -> {
-                      type.value = AddScheduleBottomSheetState.Description
+                    EditTime, EditRepeat, EditColor -> {
+                      type.value = Description
                     }
                   }
                 },
@@ -130,9 +137,8 @@ fun showAddScheduleBottomSheet(
             ) {
               Icon(
                 imageVector = when (type.value) {
-                  AddScheduleBottomSheetState.Description -> Icons.Rounded.Check
-                  AddScheduleBottomSheetState.EditTime -> Icons.AutoMirrored.Rounded.ArrowBack
-                  AddScheduleBottomSheetState.EditRepeat -> Icons.AutoMirrored.Rounded.ArrowBack
+                  Description -> Icons.Rounded.Check
+                  EditTime, EditRepeat, EditColor -> Icons.AutoMirrored.Rounded.ArrowBack
                 },
                 contentDescription = null,
               )
@@ -144,22 +150,30 @@ fun showAddScheduleBottomSheet(
           verticalAlignment = Alignment.CenterVertically,
         ) {
           TimeTextCompose(item) {
-            type.value = AddScheduleBottomSheetState.EditTime
+            type.value = EditTime
           }
           RepeatTextCompose(
             item = item,
             repeatCurrent = repeatCurrent,
             modifier = Modifier.padding(start = 12.dp)
           ) {
-            type.value = AddScheduleBottomSheetState.EditRepeat
+            type.value = EditRepeat
           }
+          // 暂时没想好该配置哪些颜色
+//          if (item.updatable) {
+//            ItemColorCompose(item) {
+//              type.value = EditColor
+//            }
+//          }
         }
-        type.value.Content(
-          modifier = Modifier.fillMaxWidth().height(160.dp),
-          item = item,
-          weekBeginDate = weekBeginDate,
-          timeline = timeline,
-        )
+        AnimatedContent(targetState = type.value) {
+          it.Content(
+            modifier = Modifier.fillMaxWidth().height(160.dp),
+            item = item,
+            weekBeginDate = weekBeginDate,
+            timeline = timeline,
+          )
+        }
         bottomContent?.invoke()
       }
     }
@@ -257,7 +271,28 @@ private fun RepeatTextCompose(
   }
 }
 
-enum class AddScheduleBottomSheetState {
+@Composable
+private fun ItemColorCompose(item: BottomSheetScheduleItem, onClick: () -> Unit) {
+  Box(
+    modifier = Modifier.padding(start = 12.dp)
+      .size(14.dp)
+      .clip(RoundedCornerShape(3.dp))
+      .background(item.backgroundColor)
+      .clickable {
+        onClick.invoke()
+      },
+    contentAlignment = Alignment.Center,
+  ) {
+    Text(
+      text = "A",
+      fontWeight = FontWeight.Bold,
+      color = item.textColor,
+      fontSize = 12.sp,
+    )
+  }
+}
+
+internal enum class AddScheduleBottomSheetState {
   Description {
     @Composable
     override fun Content(
@@ -320,6 +355,17 @@ enum class AddScheduleBottomSheetState {
         weekBeginDate = weekBeginDate,
         timeline = timeline,
       )
+    }
+  },
+  EditColor {
+    @Composable
+    override fun Content(
+      modifier: Modifier,
+      item: BottomSheetScheduleItem,
+      weekBeginDate: Date,
+      timeline: CourseTimeline
+    ) {
+      EditColorCompose(modifier, item)
     }
   };
 

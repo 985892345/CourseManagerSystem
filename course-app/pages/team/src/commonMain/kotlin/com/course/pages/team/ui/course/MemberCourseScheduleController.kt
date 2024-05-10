@@ -2,7 +2,9 @@ package com.course.pages.team.ui.course
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import com.course.components.base.ui.toast.toast
+import com.course.components.utils.debug.logg
 import com.course.components.utils.provider.Provider
 import com.course.components.utils.result.tryThrowCancellationException
 import com.course.components.utils.source.Source
@@ -10,6 +12,7 @@ import com.course.components.utils.source.getOrThrow
 import com.course.pages.course.api.controller.CourseController
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.pages.schedule.api.IScheduleService
+import com.course.pages.schedule.api.item.edit.ScheduleColorData
 import com.course.shared.time.Date
 import com.course.source.app.schedule.ScheduleBean
 import com.course.source.app.team.TeamApi
@@ -33,6 +36,7 @@ class MemberCourseScheduleController(
 
   private val scheduleController = Provider.impl(IScheduleService::class)
     .getScheduleCourseItemGroup(
+      colorData = ScheduleColorData(Color(0xFF6D4C41), Color(0xFFD7CCC8)),
       onCreate = { createSchedule(it) },
       onUpdate = { updateSchedule(it) },
       onDelete = { deleteSchedule(it) },
@@ -61,6 +65,8 @@ class MemberCourseScheduleController(
             startTime = it.startTime,
             minuteDuration = it.minuteDuration,
             repeat = it.repeat,
+            textColor = it.textColor,
+            backgroundColor = it.backgroundColor,
           )
         }
         scheduleController.resetData(scheduleBeansMap.values)
@@ -73,17 +79,20 @@ class MemberCourseScheduleController(
       runCatching {
         Source.api(TeamApi::class)
           .createTeamSchedule(
+            teamId = teamBean.teamId,
             title = bean.title,
             description = bean.description,
             startTime = bean.startTime,
             minuteDuration = bean.minuteDuration,
             repeat = bean.repeat,
-            teamId = teamBean.teamId,
+            textColor = bean.textColor,
+            backgroundColor = bean.backgroundColor,
           ).getOrThrow()
       }.tryThrowCancellationException().onSuccess {
         scheduleBeansMap[it] = bean.copy(id = it)
         scheduleController.resetData(scheduleBeansMap.values)
       }.onFailure {
+        logg(it.stackTraceToString())
         toast("网络异常")
       }
     }
@@ -100,6 +109,8 @@ class MemberCourseScheduleController(
             startTime = bean.startTime,
             minuteDuration = bean.minuteDuration,
             repeat = bean.repeat,
+            textColor = bean.textColor,
+            backgroundColor = bean.backgroundColor,
           ).getOrThrow()
       }.tryThrowCancellationException().onSuccess {
         scheduleBeansMap[bean.id] = bean

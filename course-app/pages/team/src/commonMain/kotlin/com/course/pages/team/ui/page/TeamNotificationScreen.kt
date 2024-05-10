@@ -122,7 +122,7 @@ class TeamNotificationScreen : BaseScreen() {
       contentPadding = PaddingValues(bottom = 64.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-      items(list, key = { it.id }) {
+      items(list, contentType = { it.content::class }) {
         ListContentCompose(it)
       }
     }
@@ -157,7 +157,7 @@ class TeamNotificationScreen : BaseScreen() {
         when (val content = notification.content) {
           is TeamNotificationContent.Normal -> NormalContentCompose(content)
           is TeamNotificationContent.AddSchedule -> AddScheduleContentCompose(content)
-          is TeamNotificationContent.InviteJoinTeam -> InviteJoinTeamContentCompose(content)
+          is TeamNotificationContent.Decision -> DecisionContentCompose(content)
         }
       }
     }
@@ -216,17 +216,17 @@ class TeamNotificationScreen : BaseScreen() {
   }
 
   @Composable
-  private fun InviteJoinTeamContentCompose(content: TeamNotificationContent.InviteJoinTeam) {
+  private fun DecisionContentCompose(content: TeamNotificationContent.Decision) {
     Column(modifier = Modifier.fillMaxWidth()) {
       Text(
         modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp),
-        text = "${content.teamAdministratorName}邀请你加入${content.teamName}",
+        text = content.title,
         fontSize = 16.sp,
         fontWeight = FontWeight.Bold,
       )
       Text(
         modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 8.dp),
-        text = "团队简介：${content.teamDescription.ifEmpty { "无" }}",
+        text = content.content,
         fontSize = 13.sp,
         color = Color.Gray,
       )
@@ -242,7 +242,7 @@ class TeamNotificationScreen : BaseScreen() {
             val coroutineScope = rememberCoroutineScope()
             Box(
               modifier = Modifier.weight(1F).height(40.dp).clickableCardIndicator(12.dp) {
-                showRefuseJoinTeamDialog(coroutineScope, content) {
+                showRefuseDecisionDialog(coroutineScope, content) {
                   content.agreeOrNot = false
                   agreeOrNot = false
                 }
@@ -257,7 +257,7 @@ class TeamNotificationScreen : BaseScreen() {
             }
             Box(
               modifier = Modifier.weight(1F).height(40.dp).clickableCardIndicator(12.dp) {
-                submitAcceptJoinTeam(coroutineScope, content) {
+                submitAcceptDecision(coroutineScope, content) {
                   content.agreeOrNot = true
                   agreeOrNot = true
                 }
@@ -277,7 +277,7 @@ class TeamNotificationScreen : BaseScreen() {
             contentAlignment = Alignment.Center,
           ) {
             Text(
-              text = if (it) "已接受" else "已拒绝",
+              text = if (it) content.positiveText else content.negativeText,
               color = if (it) LocalAppColors.current.green else LocalAppColors.current.red,
               fontSize = 14.sp,
             )
@@ -287,16 +287,16 @@ class TeamNotificationScreen : BaseScreen() {
     }
   }
 
-  private fun showRefuseJoinTeamDialog(
+  private fun showRefuseDecisionDialog(
     coroutineScope: CoroutineScope,
-    content: TeamNotificationContent.InviteJoinTeam,
+    content: TeamNotificationContent.Decision,
     onRefuseSuccess: () -> Unit,
   ) {
     showChooseDialog(onClickPositionBtn = {
       coroutineScope.launch(Dispatchers.IO) {
         runCatching {
           Source.api(TeamApi::class)
-            .refuseJoinTeam(content.teamId)
+            .refuseDecision(content.id)
         }.tryThrowCancellationException().onSuccess {
           onRefuseSuccess.invoke()
           hide()
@@ -306,20 +306,20 @@ class TeamNotificationScreen : BaseScreen() {
       }
     }) {
       Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = "确定取消加入${content.teamName}吗？")
+        Text(text = content.negativeDialog)
       }
     }
   }
 
-  private fun submitAcceptJoinTeam(
+  private fun submitAcceptDecision(
     coroutineScope: CoroutineScope,
-    content: TeamNotificationContent.InviteJoinTeam,
+    content: TeamNotificationContent.Decision,
     onSuccess: () -> Unit
   ) {
     coroutineScope.launch(Dispatchers.IO) {
       runCatching {
         Source.api(TeamApi::class)
-          .acceptJoinTeam(content.teamId)
+          .acceptDecision(content.id)
       }.tryThrowCancellationException().onSuccess {
         onSuccess.invoke()
       }.onFailure {

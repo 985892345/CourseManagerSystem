@@ -1,6 +1,7 @@
 package com.course.pages.schedule.api.item
 
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.graphics.Color
 import com.course.shared.time.MinuteTimeDate
 import com.course.source.app.schedule.ScheduleRepeat
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +31,9 @@ interface BottomSheetScheduleItem {
   val startTime: MinuteTimeDate
 
   val minuteDuration: Int
+
+  var textColor: Color
+  var backgroundColor: Color
 
   fun checkBeginFinalTime(
     startTime: MinuteTimeDate = this.startTime,

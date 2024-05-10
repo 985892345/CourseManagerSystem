@@ -43,6 +43,8 @@ class ScheduleCourseController(
         startTime = it.startTime,
         minuteDuration = it.minuteDuration,
         repeat = it.repeat,
+        textColor = it.textColor,
+        backgroundColor = it.backgroundColor,
       )
     },
     onUpdate = {

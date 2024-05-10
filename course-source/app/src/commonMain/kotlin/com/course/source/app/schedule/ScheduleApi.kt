@@ -24,6 +24,8 @@ interface ScheduleApi {
     startTime: MinuteTimeDate,
     minuteDuration: Int,
     repeat: ScheduleRepeat,
+    textColor: String,
+    backgroundColor: String,
   ): ResponseWrapper<Int>
 
   suspend fun updateSchedule(bean: ScheduleBean): ResponseWrapper<Unit>
@@ -39,5 +41,7 @@ data class ScheduleBean(
   val startTime: MinuteTimeDate,
   val minuteDuration: Int,
   val repeat: ScheduleRepeat,
+  val textColor: String,
+  val backgroundColor: String,
 )
 

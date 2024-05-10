@@ -39,13 +39,17 @@ object ScheduleLocalAddRepository {
     startTime: MinuteTimeDate,
     minuteDuration: Int,
     repeat: ScheduleRepeat,
+    textColor: String,
+    backgroundColor: String,
   ): ScheduleBean {
     return getLocalAdd(num).add(
       title = title,
       description = description,
       startTime = startTime,
       minuteDuration = minuteDuration,
-      repeat = repeat
+      repeat = repeat,
+      textColor = textColor,
+      backgroundColor = backgroundColor,
     )
   }
 
@@ -78,7 +82,11 @@ object ScheduleLocalAddRepository {
     private var localScheduleBeansStr by settings.string("beans", "[]")
 
     val flow = MutableStateFlow(
-      Json.decodeFromString<List<ScheduleBean>>(localScheduleBeansStr).toPersistentList()
+      runCatching {
+        Json.decodeFromString<List<ScheduleBean>>(localScheduleBeansStr)
+      }.onFailure {
+        localScheduleBeansStr = "[]"
+      }.getOrNull()?.toPersistentList() ?: persistentListOf()
     )
 
     fun add(
@@ -87,6 +95,8 @@ object ScheduleLocalAddRepository {
       startTime: MinuteTimeDate,
       minuteDuration: Int,
       repeat: ScheduleRepeat,
+      textColor: String,
+      backgroundColor: String,
     ): ScheduleBean {
       // 本地日程 id 以负数进行递减
       val id = flow.value.lastOrNull()?.id ?: -1
@@ -97,6 +107,8 @@ object ScheduleLocalAddRepository {
         startTime = startTime,
         minuteDuration = minuteDuration,
         repeat = repeat,
+        textColor = textColor,
+        backgroundColor = backgroundColor,
       )
       val new = flow.value.add(bean)
       localScheduleBeansStr = Json.encodeToString<List<ScheduleBean>>(new)

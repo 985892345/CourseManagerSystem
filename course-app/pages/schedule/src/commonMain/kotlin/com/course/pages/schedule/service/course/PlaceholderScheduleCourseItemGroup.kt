@@ -19,6 +19,7 @@ import androidx.compose.ui.zIndex
 import com.course.pages.course.api.item.ICourseItemGroup
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.pages.schedule.api.item.BottomSheetScheduleItem
+import com.course.pages.schedule.api.item.edit.ScheduleColorData
 import com.course.pages.schedule.ui.item.PlaceholderScheduleItemGroup
 import com.course.shared.time.Date
 import com.course.source.app.schedule.ScheduleBean
@@ -32,6 +33,7 @@ import kotlinx.coroutines.launch
  * 2024/4/28 15:42
  */
 class PlaceholderScheduleCourseItemGroup(
+  val colorData: ScheduleColorData,
   val onCreate: suspend (ScheduleBean) -> Unit,
   val onClick: (
     item: BottomSheetScheduleItem,
@@ -121,6 +123,7 @@ class PlaceholderScheduleCourseItemGroup(
     initialTime: Int,
   ): PlaceholderScheduleItemGroup {
     return PlaceholderScheduleItemGroup(
+      colorData = colorData,
       weekBeginDate = weekBeginDate,
       columnIndex = columnIndex,
       initialTimeInt = initialTime,

@@ -78,11 +78,11 @@ object CourseApiImpl : SourceRequest(), CourseApi, IMainCourseController {
           zIndex: Float, // 显示的层级，数字越大，越显示在上面；日程为 0，课程层级为 10，考试为 20
           startTime: String, // 开始时间，格式为: 2024-04-01 08:00
           minuteDuration: Int, // 持续时间，单位为分钟
-          backgroundColor: Long, // 背景色，如："FF123456" (字符串形式)
+          backgroundColor: String, // 背景色，如："FF123456"
           topText: String, // 顶部文本
-          topTextColor: Long, // 顶部文本颜色，如："FF123456" (字符串形式)
+          topTextColor: String, // 顶部文本颜色，如："FF123456"
           bottomText: String, // 底部文本
-          bottomTextColor: Long, // 底部文本颜色，如："FF123456" (字符串形式)
+          bottomTextColor: String, // 底部文本颜色，如："FF123456"
           title: String?, // 标题，为 null 时取 topText
           description: String?, // 描述，为 null 时不显示
           showOptions: [ // 点击后详细的展示选项

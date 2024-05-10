@@ -24,11 +24,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.util.fastForEach
 import com.course.components.base.ui.toast.toast
 import com.course.components.utils.compose.derivedStateOfStructure
+import com.course.components.utils.serializable.ColorArgbSerializable
 import com.course.pages.course.api.item.CardContent
 import com.course.pages.course.api.item.ICourseItemGroup
 import com.course.pages.course.api.item.TopBottomText
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.pages.schedule.api.item.BottomSheetScheduleItem
+import com.course.pages.schedule.api.item.edit.ScheduleColorData
 import com.course.shared.time.Date
 import com.course.shared.time.MinuteTime
 import com.course.shared.time.MinuteTimeDate
@@ -45,6 +47,7 @@ import kotlin.math.roundToInt
  * 2024/5/5 17:24
  */
 class PlaceholderScheduleItemGroup(
+  colorData: ScheduleColorData,
   weekBeginDate: Date,
   columnIndex: Int,
   val initialTimeInt: Int,
@@ -90,6 +93,9 @@ class PlaceholderScheduleItemGroup(
 
   override val minuteDuration: Int
     get() = minuteDurationState.value
+
+  override var textColor: Color by mutableStateOf(colorData.textColor)
+  override var backgroundColor: Color by mutableStateOf(colorData.backgroundColor)
 
   // 相对于 scroll 外高度的偏移量，在长按移动时设置
   // 并且在手指抬起时需要设置成 Float.POSITIVE_INFINITY 表示结束
@@ -229,6 +235,8 @@ class PlaceholderScheduleItemGroup(
           startTime = startTime,
           minuteDuration = minuteDuration,
           repeat = repeat,
+          textColor = ColorArgbSerializable.colorToArgbStr(textColor),
+          backgroundColor = ColorArgbSerializable.colorToArgbStr(backgroundColor),
         )
       )
       deleteCallback.invoke(this@PlaceholderScheduleItemGroup)
@@ -281,37 +289,40 @@ class PlaceholderScheduleItemGroup(
     timeline: CourseTimeline,
   ) {
     CardContent(
-      backgroundColor = Color.LightGray,
+      backgroundColor = backgroundColor,
       modifier = Modifier.fillMaxSize()
     ) {
-      AnimatedVisibility(
-        visible = title.value.isNotEmpty(),
-      ) {
-        TopBottomText(
-          top = title.value,
-          topColor = Color.Black,
-          bottom = description.value,
-          bottomColor = Color.Black,
+      Box(modifier = Modifier.fillMaxSize().clickable {
+        onClick(
+          this@PlaceholderScheduleItemGroup,
+          item.repeatCurrent,
+          weekBeginDate,
+          timeline,
         )
-      }
-      AnimatedVisibility(
-        visible = title.value.isEmpty(),
-      ) {
-        Box(
-          modifier = Modifier.fillMaxSize().clickable {
-            onClick(
-               this@PlaceholderScheduleItemGroup,
-               item.repeatCurrent,
-               weekBeginDate,
-               timeline,
-            )
-          },
-          contentAlignment = Alignment.Center
+      }) {
+        AnimatedVisibility(
+          visible = title.value.isNotEmpty(),
         ) {
-          Icon(
-            imageVector = Icons.Default.Add,
-            contentDescription = null,
+          TopBottomText(
+            top = title.value,
+            topColor = textColor,
+            bottom = description.value,
+            bottomColor = textColor,
           )
+        }
+        AnimatedVisibility(
+          visible = title.value.isEmpty(),
+        ) {
+          Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+          ) {
+            Icon(
+              imageVector = Icons.Default.Add,
+              contentDescription = null,
+              tint = textColor,
+            )
+          }
         }
       }
     }

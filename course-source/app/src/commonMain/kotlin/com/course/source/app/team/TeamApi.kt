@@ -39,9 +39,9 @@ interface TeamApi {
 
   suspend fun getTeamNotification(): ResponseWrapper<List<TeamNotification>>
 
-  suspend fun refuseJoinTeam(teamId: Int): ResponseWrapper<Unit>
+  suspend fun refuseDecision(teamId: Int): ResponseWrapper<Unit>
 
-  suspend fun acceptJoinTeam(teamId: Int): ResponseWrapper<Unit>
+  suspend fun acceptDecision(teamId: Int): ResponseWrapper<Unit>
 
   suspend fun sendNotification(
     teamId: Int,
@@ -54,12 +54,14 @@ interface TeamApi {
   suspend fun getTeamSchedule(teamId: Int): ResponseWrapper<List<TeamScheduleBean>>
 
   suspend fun createTeamSchedule(
+    teamId: Int,
     title: String,
     description: String,
     startTime: MinuteTimeDate,
     minuteDuration: Int,
     repeat: ScheduleRepeat,
-    teamId: Int,
+    textColor: String,
+    backgroundColor: String,
   ): ResponseWrapper<Int>
 
   suspend fun updateTeamSchedule(
@@ -69,6 +71,8 @@ interface TeamApi {
     startTime: MinuteTimeDate,
     minuteDuration: Int,
     repeat: ScheduleRepeat,
+    textColor: String,
+    backgroundColor: String,
   ): ResponseWrapper<Unit>
 
   suspend fun deleteTeamSchedule(id: Int): ResponseWrapper<Unit>
@@ -122,7 +126,6 @@ enum class TeamRank {
 
 @Serializable
 data class TeamNotification(
-  val id: Int,
   val time: MinuteTimeDate,
   val content: TeamNotificationContent,
 )
@@ -144,23 +147,27 @@ sealed interface TeamNotificationContent {
     val scheduleMinuteDuration: Int,
   ) : TeamNotificationContent
   @Serializable
-  data class InviteJoinTeam(
-    val teamId: Int,
-    val teamAdministratorName: String,
-    val teamName: String,
-    val teamDescription: String,
+  data class Decision(
+    val id: Int,
+    val title: String,
+    val content: String,
+    val positiveText: String,
+    val negativeText: String,
+    val negativeDialog: String,
     var agreeOrNot: Boolean?,
   ) : TeamNotificationContent
 }
 
 @Serializable
 data class TeamScheduleBean(
+  val teamId: Int,
+  val teamName: String,
   val id: Int,
   val title: String,
   val description: String,
   val startTime: MinuteTimeDate,
   val minuteDuration: Int,
   val repeat: ScheduleRepeat,
-  val teamId: Int,
-  val teamName: String,
+  val textColor: String,
+  val backgroundColor: String,
 )

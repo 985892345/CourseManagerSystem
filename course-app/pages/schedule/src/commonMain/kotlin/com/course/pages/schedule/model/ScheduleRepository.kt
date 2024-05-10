@@ -108,6 +108,8 @@ object ScheduleRepository {
     startTime: MinuteTimeDate,
     minuteDuration: Int,
     repeat: ScheduleRepeat,
+    textColor: String,
+    backgroundColor: String,
   ) {
     AppCoroutineScope.launch(Dispatchers.IO) {
       val num = Account.value?.num ?: return@launch
@@ -119,6 +121,8 @@ object ScheduleRepository {
             startTime = startTime,
             minuteDuration = minuteDuration,
             repeat = repeat,
+            textColor = textColor,
+            backgroundColor = backgroundColor,
           )
           .getOrThrow()
       }.map {
@@ -129,6 +133,8 @@ object ScheduleRepository {
           startTime = startTime,
           minuteDuration = minuteDuration,
           repeat = repeat,
+          textColor = textColor,
+          backgroundColor = backgroundColor,
         )
       }
       val bean = result.getOrElse {
@@ -139,6 +145,8 @@ object ScheduleRepository {
           startTime = startTime,
           minuteDuration = minuteDuration,
           repeat = repeat,
+          textColor = textColor,
+          backgroundColor = backgroundColor,
         )
       }
       getScheduleBeansFlow(num).let { flow ->

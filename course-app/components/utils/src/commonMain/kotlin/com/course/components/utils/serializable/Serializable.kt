@@ -72,6 +72,16 @@ class ColorArgbSerializable : KSerializer<Color> {
   override fun serialize(encoder: Encoder, value: Color) {
     encoder.encodeString((value.value.toLong() ushr 32).toString(16))
   }
+
+  companion object {
+    fun colorToArgbStr(color: Color): String {
+      return (color.value.toLong() ushr 32).toString(16).uppercase()
+    }
+
+    fun argbStrToColor(argbStr: String): Color {
+      return Color(argbStr.toLong(16))
+    }
+  }
 }
 
 class StringStateSerializable: KSerializer<MutableState<String>> {

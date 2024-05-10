@@ -57,7 +57,11 @@ object ScheduleLocalUpdateRepository {
     private var updateScheduleBeansStr by settings.string("beans", "[]")
 
     val flow = MutableStateFlow(
-      Json.decodeFromString<List<ScheduleBean>>(updateScheduleBeansStr).toPersistentList()
+      runCatching {
+        Json.decodeFromString<List<ScheduleBean>>(updateScheduleBeansStr)
+      }.onFailure {
+        updateScheduleBeansStr = "[]"
+      }.getOrNull()?.toPersistentList() ?: persistentListOf()
     )
 
     fun add(bean: ScheduleBean) {

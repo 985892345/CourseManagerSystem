@@ -161,7 +161,6 @@ object TeamApiImpl : TeamApi {
     return ResponseWrapper.success(
       listOf(
         TeamNotification(
-          id = 1,
           time = MinuteTimeDate(2024, 5, 1, 11),
           content = TeamNotificationContent.AddSchedule(
             teamName = "测试",
@@ -173,18 +172,18 @@ object TeamApiImpl : TeamApi {
           ),
         ),
         TeamNotification(
-          id = 2,
           time = MinuteTimeDate(2024, 5, 2, 11),
-          content = TeamNotificationContent.InviteJoinTeam(
-            teamName = "测试",
-            teamId = 0,
-            teamAdministratorName = "甲乙丙",
-            teamDescription = "这是一段描述这是一段描述这是一段描述这是一段描述这是一段描述这是一段描述",
+          content = TeamNotificationContent.Decision(
+            id = 1,
+            title = "某某某邀请你加入团队1",
+            content = "团队简介：这是一段描述这是一段描述这是一段描述这是一段描述这是一段描述这是一段描述",
+            positiveText = "已同意",
+            negativeText = "已拒绝",
+            negativeDialog = "确定取消加入该团队吗？",
             agreeOrNot = null,
           ),
         ),
         TeamNotification(
-          id = 3,
           time = MinuteTimeDate(2024, 5, 2, 11),
           content = TeamNotificationContent.Normal(
             title = "这是一段标题",
@@ -195,11 +194,11 @@ object TeamApiImpl : TeamApi {
     )
   }
 
-  override suspend fun refuseJoinTeam(teamId: Int): ResponseWrapper<Unit> {
+  override suspend fun refuseDecision(teamId: Int): ResponseWrapper<Unit> {
     return ResponseWrapper.success(Unit)
   }
 
-  override suspend fun acceptJoinTeam(teamId: Int): ResponseWrapper<Unit> {
+  override suspend fun acceptDecision(teamId: Int): ResponseWrapper<Unit> {
     return ResponseWrapper.success(Unit)
   }
 
@@ -220,7 +219,9 @@ object TeamApiImpl : TeamApi {
       minuteDuration = 30,
       repeat = ScheduleRepeat.Once,
       teamId = 4,
-      teamName = "TeamName"
+      teamName = "TeamName",
+      textColor = "FF000000",
+      backgroundColor = "FFCCCCCC",
     )
   )
 
@@ -237,14 +238,16 @@ object TeamApiImpl : TeamApi {
   }
 
   override suspend fun createTeamSchedule(
+    teamId: Int,
     title: String,
     description: String,
     startTime: MinuteTimeDate,
     minuteDuration: Int,
     repeat: ScheduleRepeat,
-    teamId: Int
+    textColor: String,
+    backgroundColor: String
   ): ResponseWrapper<Int> {
-    val id = teamScheduleBeans.maxBy { it.id }.id + 1
+    val id = teamScheduleBeans.maxByOrNull { it.id }?.id?.plus(1) ?: 1
     teamScheduleBeans.add(
       TeamScheduleBean(
         id = id,
@@ -255,6 +258,8 @@ object TeamApiImpl : TeamApi {
         repeat = repeat,
         teamId = teamId,
         teamName = "TeamName",
+        textColor = textColor,
+        backgroundColor = backgroundColor,
       )
     )
     return ResponseWrapper.success(id)
@@ -266,7 +271,9 @@ object TeamApiImpl : TeamApi {
     description: String,
     startTime: MinuteTimeDate,
     minuteDuration: Int,
-    repeat: ScheduleRepeat
+    repeat: ScheduleRepeat,
+    textColor: String,
+    backgroundColor: String
   ): ResponseWrapper<Unit> {
     teamScheduleBeans.indexOfFirst { it.id == id }.let {
       teamScheduleBeans.set(
@@ -277,6 +284,8 @@ object TeamApiImpl : TeamApi {
           startTime = startTime,
           minuteDuration = minuteDuration,
           repeat = repeat,
+          textColor = textColor,
+          backgroundColor = backgroundColor,
         )
       )
     }

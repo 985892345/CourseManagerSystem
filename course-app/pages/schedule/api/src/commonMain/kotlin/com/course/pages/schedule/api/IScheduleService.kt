@@ -3,6 +3,7 @@ package com.course.pages.schedule.api
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.pages.schedule.api.item.BottomSheetScheduleItem
 import com.course.pages.schedule.api.item.IScheduleCourseItemGroup
+import com.course.pages.schedule.api.item.edit.ScheduleColorData
 import com.course.pages.schedule.api.item.showAddScheduleBottomSheet
 import com.course.shared.time.Date
 import com.course.source.app.schedule.ScheduleBean
@@ -16,6 +17,7 @@ import com.course.source.app.schedule.ScheduleBean
 interface IScheduleService {
 
   fun getScheduleCourseItemGroup(
+    colorData: ScheduleColorData? = null,
     onCreate: (suspend (ScheduleBean) -> Unit)? = null,
     onUpdate: (suspend (ScheduleBean) -> Unit)? = null,
     onDelete: (suspend (ScheduleBean) -> Unit)? = null,

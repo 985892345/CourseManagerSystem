@@ -20,6 +20,8 @@ import androidx.compose.ui.graphics.Color
 import com.course.components.base.ui.toast.toast
 import com.course.components.utils.compose.dialog.showChooseDialog
 import com.course.components.utils.coroutine.AppComposeCoroutineScope
+import com.course.components.utils.debug.logg
+import com.course.components.utils.serializable.ColorArgbSerializable
 import com.course.pages.course.api.item.CardContent
 import com.course.pages.course.api.item.ICourseItemGroup
 import com.course.pages.course.api.item.TopBottomText
@@ -67,6 +69,9 @@ class ScheduleItemGroup(
     get() = startTimeState.value
   override val minuteDuration: Int
     get() = minuteDurationState.value
+
+  override var textColor: Color by mutableStateOf(ColorArgbSerializable.argbStrToColor(bean.textColor))
+  override var backgroundColor: Color by mutableStateOf(ColorArgbSerializable.argbStrToColor(bean.backgroundColor))
 
   override var repeat: ScheduleRepeat by mutableStateOf(bean.repeat)
 
@@ -161,6 +166,8 @@ class ScheduleItemGroup(
     startTimeState.value = newBean.startTime
     minuteDurationState.intValue = newBean.minuteDuration
     repeat = newBean.repeat
+    textColor = ColorArgbSerializable.argbStrToColor(newBean.textColor)
+    backgroundColor = ColorArgbSerializable.argbStrToColor(newBean.backgroundColor)
     if (oldWeekBeginDate?.let { it.daysUntil(newBean.startTime.date) < 7 } == true) {
       // 正在当前页面显示
       AppComposeCoroutineScope.launch {
@@ -184,6 +191,8 @@ class ScheduleItemGroup(
           startTime = startTime,
           minuteDuration = minuteDuration,
           repeat = repeat,
+          textColor = ColorArgbSerializable.colorToArgbStr(textColor),
+          backgroundColor = ColorArgbSerializable.colorToArgbStr(backgroundColor),
         )
       )
       dismiss.invoke()
@@ -203,11 +212,15 @@ class ScheduleItemGroup(
   }
 
   override fun dismissOnClickOutside(dismiss: () -> Unit): Boolean {
+    logg("textColor = ${ColorArgbSerializable.colorToArgbStr(textColor)}, ${bean.textColor}")
+    logg("backgroundColor = ${ColorArgbSerializable.colorToArgbStr(backgroundColor)}, ${bean.backgroundColor}")
     if (title.value != bean.title ||
       description.value != bean.description ||
       startTime != bean.startTime ||
       minuteDuration != bean.minuteDuration ||
-      repeat != bean.repeat
+      repeat != bean.repeat ||
+      ColorArgbSerializable.colorToArgbStr(textColor) != bean.textColor ||
+      ColorArgbSerializable.colorToArgbStr(backgroundColor) != bean.backgroundColor
     ) {
       showChooseDialog(
         onClickPositionBtn = {
@@ -252,7 +265,7 @@ class ScheduleItemGroup(
     timeline: CourseTimeline,
   ) {
     CardContent(
-      backgroundColor = Color.LightGray,
+      backgroundColor = backgroundColor,
       modifier = Modifier.fillMaxSize(),
     ) {
       TopBottomText(
@@ -265,9 +278,9 @@ class ScheduleItemGroup(
           )
         },
         top = title.value,
-        topColor = Color.Black,
+        topColor = textColor,
         bottom = description.value,
-        bottomColor = Color.Black,
+        bottomColor = textColor,
       )
     }
   }
