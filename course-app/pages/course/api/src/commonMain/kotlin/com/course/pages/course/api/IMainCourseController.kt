@@ -9,8 +9,8 @@ import com.course.source.app.account.AccountBean
  * @author 985892345
  * 2024/4/11 23:32
  */
-interface IMainCourseDataProvider {
-  fun createCourseDataProviders(
+interface IMainCourseController {
+  fun createCourseController(
     account: AccountBean?,
   ): List<CourseController>
 }

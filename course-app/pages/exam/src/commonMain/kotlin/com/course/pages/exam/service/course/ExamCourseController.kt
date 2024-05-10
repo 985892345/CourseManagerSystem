@@ -30,7 +30,7 @@ import androidx.compose.ui.zIndex
 import cafe.adriel.voyager.navigator.LocalNavigator
 import com.course.components.base.theme.LocalAppColors
 import com.course.components.utils.compose.showBottomSheetWindow
-import com.course.pages.course.api.IMainCourseDataProvider
+import com.course.pages.course.api.IMainCourseController
 import com.course.pages.course.api.controller.CourseController
 import com.course.pages.course.api.item.CardContent
 import com.course.pages.course.api.item.ICourseItemGroup
@@ -55,9 +55,9 @@ import kotlinx.coroutines.launch
  * @author 985892345
  * 2024/4/17 12:26
  */
-@ImplProvider(clazz = IMainCourseDataProvider::class, name = "ExamMainCourseDataProvider")
-class ExamMainCourseDataProvider : IMainCourseDataProvider {
-  override fun createCourseDataProviders(account: AccountBean?): List<CourseController> {
+@ImplProvider(clazz = IMainCourseController::class, name = "ExamMainCourseDataProvider")
+class ExamMainCourseController : IMainCourseController {
+  override fun createCourseController(account: AccountBean?): List<CourseController> {
     return when (account?.type) {
       AccountType.Student -> listOf(ExamCourseController(account))
       AccountType.Teacher -> emptyList()

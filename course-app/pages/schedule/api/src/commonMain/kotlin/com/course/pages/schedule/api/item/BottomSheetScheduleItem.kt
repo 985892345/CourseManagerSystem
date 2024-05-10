@@ -1,4 +1,4 @@
-package com.course.pages.schedule.ui.item
+package com.course.pages.schedule.api.item
 
 import androidx.compose.runtime.MutableState
 import com.course.shared.time.MinuteTimeDate
@@ -12,6 +12,14 @@ import kotlinx.coroutines.CoroutineScope
  * 2024/4/30 16:35
  */
 interface BottomSheetScheduleItem {
+
+  val id: Int
+
+  val updatable: Boolean
+    get() = true
+
+  val deletable: Boolean
+    get() = true
 
   val title: MutableState<String>
 

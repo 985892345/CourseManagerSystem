@@ -18,6 +18,7 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.zIndex
 import com.course.pages.course.api.item.ICourseItemGroup
 import com.course.pages.course.api.timeline.CourseTimeline
+import com.course.pages.schedule.api.item.BottomSheetScheduleItem
 import com.course.pages.schedule.ui.item.PlaceholderScheduleItemGroup
 import com.course.shared.time.Date
 import com.course.source.app.schedule.ScheduleBean
@@ -32,6 +33,12 @@ import kotlinx.coroutines.launch
  */
 class PlaceholderScheduleCourseItemGroup(
   val onCreate: suspend (ScheduleBean) -> Unit,
+  val onClick: (
+    item: BottomSheetScheduleItem,
+    repeatCurrent: Int,
+    weekBeginDate: Date,
+    timeline: CourseTimeline,
+  ) -> Unit,
 ) : ICourseItemGroup {
 
   private val placeholderScheduleItemGroups = SnapshotStateList<PlaceholderScheduleItemGroup>()
@@ -117,6 +124,7 @@ class PlaceholderScheduleCourseItemGroup(
       weekBeginDate = weekBeginDate,
       columnIndex = columnIndex,
       initialTimeInt = initialTime,
+      onClick = onClick,
       successCallback = onCreate,
       deleteCallback = {
         placeholderScheduleItemGroups.remove(it)

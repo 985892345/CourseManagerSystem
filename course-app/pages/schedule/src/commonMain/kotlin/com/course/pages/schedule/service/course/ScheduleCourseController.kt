@@ -2,9 +2,10 @@ package com.course.pages.schedule.service.course
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.Composable
-import com.course.pages.course.api.IMainCourseDataProvider
+import com.course.pages.course.api.IMainCourseController
 import com.course.pages.course.api.controller.CourseController
 import com.course.pages.course.api.timeline.CourseTimeline
+import com.course.pages.schedule.api.item.showAddScheduleBottomSheet
 import com.course.pages.schedule.model.ScheduleRepository
 import com.course.shared.time.Date
 import com.course.source.app.account.AccountBean
@@ -19,9 +20,9 @@ import kotlinx.coroutines.launch
  * @author 985892345
  * 2024/4/22 15:03
  */
-@ImplProvider(clazz = IMainCourseDataProvider::class, name = "ScheduleMainCourseDataProvider")
-class ScheduleMainCourseDataProvider : IMainCourseDataProvider {
-  override fun createCourseDataProviders(account: AccountBean?): List<CourseController> {
+@ImplProvider(clazz = IMainCourseController::class, name = "ScheduleMainCourseDataProvider")
+class ScheduleMainCourseController : IMainCourseController {
+  override fun createCourseController(account: AccountBean?): List<CourseController> {
     return when (account?.type) {
       AccountType.Student -> listOf(ScheduleCourseController(account))
       AccountType.Teacher -> emptyList()
@@ -49,6 +50,9 @@ class ScheduleCourseController(
     },
     onDelete = {
       ScheduleRepository.removeSchedule(it.id)
+    },
+    onClick = { item, repeatCurrent, weekBeginDate, timeline ->
+      showAddScheduleBottomSheet(item, repeatCurrent, weekBeginDate, timeline)
     },
   )
 

@@ -5,7 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import com.course.pages.course.api.timeline.CourseTimeline
-import com.course.pages.schedule.api.IScheduleItemGroup
+import com.course.pages.schedule.api.item.BottomSheetScheduleItem
+import com.course.pages.schedule.api.item.IScheduleCourseItemGroup
 import com.course.pages.schedule.ui.item.ScheduleItemGroup
 import com.course.shared.time.Date
 import com.course.source.app.schedule.ScheduleBean
@@ -17,13 +18,25 @@ import com.course.source.app.schedule.ScheduleBean
  * 2024/4/28 15:44
  */
 class ScheduleCourseItemGroup(
-  val onCreate: suspend (ScheduleBean) -> Unit,
-  val onUpdate: suspend (ScheduleBean) -> Unit,
-  val onDelete: suspend (ScheduleBean) -> Unit,
-) : IScheduleItemGroup {
+  val onCreate: (suspend (ScheduleBean) -> Unit)?,
+  val onUpdate: (suspend (ScheduleBean) -> Unit)?,
+  val onDelete: (suspend (ScheduleBean) -> Unit)?,
+  val onClick: (
+    item: BottomSheetScheduleItem,
+    repeatCurrent: Int,
+    weekBeginDate: Date,
+    timeline: CourseTimeline,
+  ) -> Unit,
+) : IScheduleCourseItemGroup {
 
   private val scheduleItemGroups = mutableStateOf(mutableMapOf<Int, ScheduleItemGroup>())
-  private val placeholderScheduleCourseItemGroup = PlaceholderScheduleCourseItemGroup(onCreate)
+
+  private val placeholderScheduleCourseItemGroup by lazy {
+    PlaceholderScheduleCourseItemGroup(
+      onCreate = { onCreate?.invoke(it) },
+      onClick = onClick,
+    )
+  }
 
   override fun resetData(data: Collection<ScheduleBean>) {
     val oldMap = scheduleItemGroups.value
@@ -34,7 +47,12 @@ class ScheduleCourseItemGroup(
         oldItemGroup.changeBean(it)
         newMap[it.id] = oldItemGroup
       } else {
-        newMap[it.id] = ScheduleItemGroup(it, onUpdate, onDelete)
+        newMap[it.id] = ScheduleItemGroup(
+          bean = it,
+          onUpdate = onUpdate,
+          onDelete = onDelete,
+          onClick = onClick,
+        )
       }
     }
     scheduleItemGroups.value = newMap
@@ -46,7 +64,9 @@ class ScheduleCourseItemGroup(
     timeline: CourseTimeline,
     scrollState: ScrollState,
   ) {
-    placeholderScheduleCourseItemGroup.Content(weekBeginDate, timeline, scrollState)
+    if (onCreate != null) {
+      placeholderScheduleCourseItemGroup.Content(weekBeginDate, timeline, scrollState)
+    }
     scheduleItemGroups.value.forEach {
       key(it.key) {
         with(it.value) {

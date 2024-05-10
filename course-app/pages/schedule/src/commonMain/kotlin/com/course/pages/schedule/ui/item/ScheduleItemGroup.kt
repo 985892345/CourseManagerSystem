@@ -24,7 +24,7 @@ import com.course.pages.course.api.item.CardContent
 import com.course.pages.course.api.item.ICourseItemGroup
 import com.course.pages.course.api.item.TopBottomText
 import com.course.pages.course.api.timeline.CourseTimeline
-import com.course.pages.schedule.ui.showAddAffairBottomSheet
+import com.course.pages.schedule.api.item.BottomSheetScheduleItem
 import com.course.shared.time.Date
 import com.course.shared.time.MinuteTimeDate
 import com.course.source.app.schedule.ScheduleBean
@@ -40,9 +40,22 @@ import kotlinx.coroutines.launch
  */
 class ScheduleItemGroup(
   var bean: ScheduleBean,
-  val onUpdate: suspend (ScheduleBean) -> Unit,
-  val onDelete: suspend (ScheduleBean) -> Unit,
+  val onUpdate: (suspend (ScheduleBean) -> Unit)?,
+  val onDelete: (suspend (ScheduleBean) -> Unit)?,
+  val onClick: (
+    item: BottomSheetScheduleItem,
+    repeatCurrent: Int,
+    weekBeginDate: Date,
+    timeline: CourseTimeline,
+  ) -> Unit,
 ) : BottomSheetScheduleItem {
+  override val id: Int
+    get() = bean.id
+  override val updatable: Boolean
+    get() = onUpdate != null
+
+  override val deletable: Boolean
+    get() = onDelete != null
 
   override val title: MutableState<String> = mutableStateOf(bean.title)
   override val description: MutableState<String> = mutableStateOf(bean.description)
@@ -164,7 +177,7 @@ class ScheduleItemGroup(
 
   override fun success(coroutineScope: CoroutineScope, dismiss: () -> Unit) {
     coroutineScope.launch {
-      onUpdate.invoke(
+      onUpdate?.invoke(
         bean.copy(
           title = title.value,
           description = description.value,
@@ -179,7 +192,7 @@ class ScheduleItemGroup(
 
   override fun delete(coroutineScope: CoroutineScope, dismiss: () -> Unit) {
     coroutineScope.launch {
-      onDelete.invoke(bean)
+      onDelete?.invoke(bean)
       dismiss.invoke()
       itemShow.cancelShow()
     }
@@ -244,11 +257,11 @@ class ScheduleItemGroup(
     ) {
       TopBottomText(
         modifier = Modifier.clickable {
-          showAddAffairBottomSheet(
-            item = this@ScheduleItemGroup,
-            repeatCurrent = item.repeatCurrent,
-            timeline = timeline,
-            weekBeginDate = weekBeginDate,
+          onClick(
+            this@ScheduleItemGroup,
+            item.repeatCurrent,
+            weekBeginDate,
+            timeline,
           )
         },
         top = title.value,

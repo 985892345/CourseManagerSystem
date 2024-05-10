@@ -211,10 +211,6 @@ object TeamApiImpl : TeamApi {
     return ResponseWrapper.success(Unit)
   }
 
-  override suspend fun getTeamAllSchedule(): ResponseWrapper<List<TeamScheduleBean>> {
-    return ResponseWrapper.success(emptyList())
-  }
-
   private val teamScheduleBeans = mutableListOf(
     TeamScheduleBean(
       id = 1,
@@ -227,6 +223,10 @@ object TeamApiImpl : TeamApi {
       teamName = "TeamName"
     )
   )
+
+  override suspend fun getTeamAllSchedule(): ResponseWrapper<List<TeamScheduleBean>> {
+    return ResponseWrapper.success(teamScheduleBeans)
+  }
 
   override suspend fun getTeamSchedule(teamId: Int): ResponseWrapper<List<TeamScheduleBean>> {
     return ResponseWrapper.success(

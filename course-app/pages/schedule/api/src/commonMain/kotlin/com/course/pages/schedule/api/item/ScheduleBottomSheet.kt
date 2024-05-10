@@ -1,4 +1,4 @@
-package com.course.pages.schedule.ui
+package com.course.pages.schedule.api.item
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
@@ -37,9 +38,8 @@ import com.course.components.utils.compose.clickableCardIndicator
 import com.course.components.utils.compose.showBottomSheetWindow
 import com.course.components.view.edit.EditTextCompose
 import com.course.pages.course.api.timeline.CourseTimeline
-import com.course.pages.schedule.ui.edit.EditRepeatCompose
-import com.course.pages.schedule.ui.edit.EditTimeCompose
-import com.course.pages.schedule.ui.item.BottomSheetScheduleItem
+import com.course.pages.schedule.api.item.edit.EditRepeatCompose
+import com.course.pages.schedule.api.item.edit.EditTimeCompose
 import com.course.shared.time.Date
 import com.course.source.app.schedule.ScheduleRepeat
 
@@ -50,13 +50,14 @@ import com.course.source.app.schedule.ScheduleRepeat
  * 2024/4/26 15:51
  */
 
-fun showAddAffairBottomSheet(
+fun showAddScheduleBottomSheet(
   item: BottomSheetScheduleItem,
   repeatCurrent: Int,
   weekBeginDate: Date,
   timeline: CourseTimeline,
+  bottomContent: (@Composable () -> Unit)? = null,
 ) {
-  val type = mutableStateOf(AddAffairBottomSheetState.Description)
+  val type = mutableStateOf(AddScheduleBottomSheetState.Description)
   showBottomSheetWindow(
     dismissOnBackPress = { item.dismissOnBackPress(it) },
     dismissOnClickOutside = { item.dismissOnClickOutside(it) },
@@ -69,46 +70,73 @@ fun showAddAffairBottomSheet(
         modifier = Modifier.padding(top = 14.dp, start = 16.dp, end = 16.dp, bottom = 12.dp)
       ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-          EditTextCompose(
-            modifier = Modifier.weight(1F),
-            text = item.title,
-            hint = "请输入标题",
-            singleLine = true,
-            isShowIndicatorLine = false,
-            textStyle = TextStyle(
-              fontSize = 22.sp,
-              color = LocalAppColors.current.tvLv2,
-              fontWeight = FontWeight.Bold,
-            ),
-          )
-          val coroutineScope = rememberCoroutineScope()
-          Box(modifier = Modifier.padding(horizontal = 8.dp).size(32.dp).clickableCardIndicator {
-            item.delete(coroutineScope, dismiss)
-          }, contentAlignment = Alignment.Center) {
-            Icon(
-              imageVector = Icons.Rounded.DeleteOutline,
-              contentDescription = null,
+          if (item.updatable) {
+            EditTextCompose(
+              modifier = Modifier.weight(1F),
+              text = item.title,
+              hint = "请输入标题",
+              singleLine = true,
+              isShowIndicatorLine = false,
+              textStyle = TextStyle(
+                fontSize = 22.sp,
+                color = LocalAppColors.current.tvLv2,
+                fontWeight = FontWeight.Bold,
+              ),
             )
-          }
-          Box(modifier = Modifier.size(32.dp).clickableCardIndicator {
-            when (type.value) {
-              AddAffairBottomSheetState.Description -> {
-                item.success(coroutineScope, dismiss)
-              }
-
-              AddAffairBottomSheetState.EditTime, AddAffairBottomSheetState.EditRepeat -> {
-                type.value = AddAffairBottomSheetState.Description
-              }
+          } else {
+            SelectionContainer {
+              Text(
+                text = item.title.value,
+                style = TextStyle(
+                  fontSize = 22.sp,
+                  color = LocalAppColors.current.tvLv2,
+                  fontWeight = FontWeight.Bold,
+                )
+              )
             }
-          }, contentAlignment = Alignment.Center) {
-            Icon(
-              imageVector = when (type.value) {
-                AddAffairBottomSheetState.Description -> Icons.Rounded.Check
-                AddAffairBottomSheetState.EditTime -> Icons.AutoMirrored.Rounded.ArrowBack
-                AddAffairBottomSheetState.EditRepeat -> Icons.AutoMirrored.Rounded.ArrowBack
-              },
-              contentDescription = null,
-            )
+          }
+          val coroutineScope = rememberCoroutineScope()
+          if (item.deletable) {
+            Box(
+              modifier = Modifier.padding(start = 8.dp)
+                .size(32.dp)
+                .clickableCardIndicator {
+                  item.delete(coroutineScope, dismiss)
+                },
+              contentAlignment = Alignment.Center
+            ) {
+              Icon(
+                imageVector = Icons.Rounded.DeleteOutline,
+                contentDescription = null,
+              )
+            }
+          }
+          if (item.updatable) {
+            Box(
+              modifier = Modifier.padding(start = 8.dp)
+                .size(32.dp)
+                .clickableCardIndicator {
+                  when (type.value) {
+                    AddScheduleBottomSheetState.Description -> {
+                      item.success(coroutineScope, dismiss)
+                    }
+
+                    AddScheduleBottomSheetState.EditTime, AddScheduleBottomSheetState.EditRepeat -> {
+                      type.value = AddScheduleBottomSheetState.Description
+                    }
+                  }
+                },
+              contentAlignment = Alignment.Center
+            ) {
+              Icon(
+                imageVector = when (type.value) {
+                  AddScheduleBottomSheetState.Description -> Icons.Rounded.Check
+                  AddScheduleBottomSheetState.EditTime -> Icons.AutoMirrored.Rounded.ArrowBack
+                  AddScheduleBottomSheetState.EditRepeat -> Icons.AutoMirrored.Rounded.ArrowBack
+                },
+                contentDescription = null,
+              )
+            }
           }
         }
         Row(
@@ -116,14 +144,14 @@ fun showAddAffairBottomSheet(
           verticalAlignment = Alignment.CenterVertically,
         ) {
           TimeTextCompose(item) {
-            type.value = AddAffairBottomSheetState.EditTime
+            type.value = AddScheduleBottomSheetState.EditTime
           }
           RepeatTextCompose(
             item = item,
             repeatCurrent = repeatCurrent,
             modifier = Modifier.padding(start = 12.dp)
           ) {
-            type.value = AddAffairBottomSheetState.EditRepeat
+            type.value = AddScheduleBottomSheetState.EditRepeat
           }
         }
         type.value.Content(
@@ -132,6 +160,7 @@ fun showAddAffairBottomSheet(
           weekBeginDate = weekBeginDate,
           timeline = timeline,
         )
+        bottomContent?.invoke()
       }
     }
   }
@@ -150,8 +179,12 @@ private fun TimeTextCompose(
       contentDescription = null,
     )
     Row(
-      modifier = Modifier.clickable {
-        onClick.invoke()
+      modifier = Modifier.run {
+        if (item.updatable) {
+          clickable {
+            onClick.invoke()
+          }
+        } else this
       },
       verticalAlignment = Alignment.CenterVertically
     ) {
@@ -190,8 +223,12 @@ private fun RepeatTextCompose(
     )
     val fraction = "（${repeatCurrent + 1}/${item.repeat.count}）"
     Text(
-      modifier = Modifier.clickable {
-        onClick.invoke()
+      modifier = Modifier.run {
+        if (item.updatable) {
+          clickable {
+            onClick.invoke()
+          }
+        } else this
       },
       text = when (val repeat = item.repeat) {
         is ScheduleRepeat.Day -> if (repeat.count == 1) "一次性" else {
@@ -220,7 +257,7 @@ private fun RepeatTextCompose(
   }
 }
 
-enum class AddAffairBottomSheetState {
+enum class AddScheduleBottomSheetState {
   Description {
     @Composable
     override fun Content(
@@ -229,16 +266,29 @@ enum class AddAffairBottomSheetState {
       weekBeginDate: Date,
       timeline: CourseTimeline
     ) {
-      EditTextCompose(
-        modifier = modifier.padding(top = 8.dp).fillMaxSize(),
-        text = item.description,
-        hint = "描述",
-        isShowIndicatorLine = false,
-        textStyle = TextStyle(
-          fontSize = 13.sp,
-          color = LocalAppColors.current.tvLv2,
-        ),
-      )
+      if (item.updatable) {
+        EditTextCompose(
+          modifier = modifier.padding(top = 8.dp).fillMaxSize(),
+          text = item.description,
+          hint = "描述",
+          isShowIndicatorLine = false,
+          textStyle = TextStyle(
+            fontSize = 13.sp,
+            color = LocalAppColors.current.tvLv2,
+          ),
+        )
+      } else {
+        SelectionContainer {
+          Text(
+            modifier = modifier.padding(top = 8.dp).fillMaxSize(),
+            text = item.description.value,
+            style = TextStyle(
+              fontSize = 13.sp,
+              color = LocalAppColors.current.tvLv2,
+            ),
+          )
+        }
+      }
     }
   },
   EditTime {

@@ -1,4 +1,4 @@
-package com.course.pages.schedule.ui.edit
+package com.course.pages.schedule.api.item.edit
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
@@ -39,7 +39,7 @@ import com.course.components.utils.compose.setValue
 import com.course.components.view.edit.EditTextCompose
 import com.course.components.view.option.OptionScrollCompose
 import com.course.pages.course.api.timeline.CourseTimeline
-import com.course.pages.schedule.ui.item.BottomSheetScheduleItem
+import com.course.pages.schedule.api.item.BottomSheetScheduleItem
 import com.course.shared.time.MinuteTime
 import com.course.shared.time.MinuteTimeDate
 import kotlinx.collections.immutable.ImmutableList
@@ -56,7 +56,7 @@ import kotlin.math.roundToInt
  * 2024/4/30 11:19
  */
 @Composable
-fun EditTimeCompose(
+internal fun EditTimeCompose(
   modifier: Modifier,
   item: BottomSheetScheduleItem,
   timeline: CourseTimeline,

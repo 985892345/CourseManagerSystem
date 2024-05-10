@@ -1,4 +1,4 @@
-package com.course.pages.schedule.ui.edit
+package com.course.pages.schedule.api.item.edit
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.course.components.utils.compose.rememberDerivedStateOfStructure
 import com.course.components.view.option.OptionScrollCompose
 import com.course.pages.course.api.timeline.CourseTimeline
-import com.course.pages.schedule.ui.item.BottomSheetScheduleItem
+import com.course.pages.schedule.api.item.BottomSheetScheduleItem
 import com.course.shared.time.Date
 import com.course.source.app.schedule.ScheduleRepeat
 import kotlinx.collections.immutable.persistentListOf
@@ -41,7 +41,7 @@ import kotlin.math.roundToInt
  */
 
 @Composable
-fun EditRepeatCompose(
+internal fun EditRepeatCompose(
   modifier: Modifier,
   item: BottomSheetScheduleItem,
   weekBeginDate: Date,

@@ -20,7 +20,7 @@ import com.course.components.base.ui.toast.toast
 import com.course.components.utils.compose.combineClickableCardIndicator
 import com.course.components.utils.provider.Provider
 import com.course.pages.course.api.ICourseService
-import com.course.pages.course.api.IMainCourseDataProvider
+import com.course.pages.course.api.IMainCourseController
 import com.course.pages.course.api.controller.CourseController
 import com.course.pages.course.api.controller.CourseDetail
 import com.course.pages.main.api.IMainPage
@@ -91,8 +91,8 @@ class CourseMainPage : IMainPage {
       return oldCourseDetail
     }
     oldAccount = account
-    val controllers = Provider.getAllImpl(IMainCourseDataProvider::class)
-      .map { it.value.get().createCourseDataProviders(account) }
+    val controllers = Provider.getAllImpl(IMainCourseController::class)
+      .map { it.value.get().createCourseController(account) }
       .flatten()
       .toImmutableList()
     return when (account?.type) {

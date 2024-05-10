@@ -28,7 +28,7 @@ import com.course.pages.course.api.item.CardContent
 import com.course.pages.course.api.item.ICourseItemGroup
 import com.course.pages.course.api.item.TopBottomText
 import com.course.pages.course.api.timeline.CourseTimeline
-import com.course.pages.schedule.ui.showAddAffairBottomSheet
+import com.course.pages.schedule.api.item.BottomSheetScheduleItem
 import com.course.shared.time.Date
 import com.course.shared.time.MinuteTime
 import com.course.shared.time.MinuteTimeDate
@@ -50,7 +50,15 @@ class PlaceholderScheduleItemGroup(
   val initialTimeInt: Int,
   val deleteCallback: (PlaceholderScheduleItemGroup) -> Unit,
   val successCallback: suspend (ScheduleBean) -> Unit,
+  val onClick: (
+    item: BottomSheetScheduleItem,
+    repeatCurrent: Int,
+    weekBeginDate: Date,
+    timeline: CourseTimeline,
+  ) -> Unit,
 ) : BottomSheetScheduleItem {
+  override val id: Int
+    get() = 0
 
   override val title: MutableState<String> = mutableStateOf("")
   override val description: MutableState<String> = mutableStateOf("")
@@ -291,11 +299,11 @@ class PlaceholderScheduleItemGroup(
       ) {
         Box(
           modifier = Modifier.fillMaxSize().clickable {
-            showAddAffairBottomSheet(
-              item = this@PlaceholderScheduleItemGroup,
-              repeatCurrent = item.repeatCurrent,
-              weekBeginDate = weekBeginDate,
-              timeline = timeline,
+            onClick(
+               this@PlaceholderScheduleItemGroup,
+               item.repeatCurrent,
+               weekBeginDate,
+               timeline,
             )
           },
           contentAlignment = Alignment.Center

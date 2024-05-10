@@ -2,7 +2,7 @@ package com.course.source.app.local.course
 
 import androidx.compose.runtime.snapshotFlow
 import com.course.components.utils.preferences.createSettings
-import com.course.pages.course.api.IMainCourseDataProvider
+import com.course.pages.course.api.IMainCourseController
 import com.course.pages.course.api.controller.CourseController
 import com.course.source.app.account.AccountBean
 import com.course.source.app.course.CourseApi
@@ -20,8 +20,8 @@ import kotlinx.coroutines.flow.first
  */
 @ImplProvider(clazz = CourseApi::class)
 @ImplProvider(clazz = SourceRequest::class, name = "CourseApiImpl")
-@ImplProvider(clazz = IMainCourseDataProvider::class, name = "CourseApiImpl")
-object CourseApiImpl : SourceRequest(), CourseApi, IMainCourseDataProvider {
+@ImplProvider(clazz = IMainCourseController::class, name = "CourseApiImpl")
+object CourseApiImpl : SourceRequest(), CourseApi, IMainCourseController {
 
   private val courseBeanRequest by requestContent<CourseBean>(
     key = "course",
@@ -124,7 +124,7 @@ object CourseApiImpl : SourceRequest(), CourseApi, IMainCourseDataProvider {
     )
   }
 
-  override fun createCourseDataProviders(account: AccountBean?): List<CourseController> {
+  override fun createCourseController(account: AccountBean?): List<CourseController> {
     return listOf(SourceCourseController(account))
   }
 }
