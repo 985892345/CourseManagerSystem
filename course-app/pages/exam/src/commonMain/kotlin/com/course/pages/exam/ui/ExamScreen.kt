@@ -102,13 +102,13 @@ class ExamScreen(
   @Composable
   private fun ListCompose() {
     val examListItems by loadExamListItem()
-    LazyColumn {
+    LazyColumn(modifier = Modifier.padding(bottom = 16.dp)) {
       examListItems.fastForEach {
         when (it) {
           is ExamListItem -> item(it.key) {
             with(it) { Content() }
           }
-          is ExamTermListHeader -> item(it.key, contentType = "Header") {
+          is ExamTermListHeader -> stickyHeader(it.key, contentType = "Header") {
             with(it) { Content() }
           }
         }

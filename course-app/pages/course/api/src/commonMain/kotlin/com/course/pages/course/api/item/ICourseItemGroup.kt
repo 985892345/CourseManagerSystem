@@ -1,7 +1,6 @@
 package com.course.pages.course.api.item
 
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -10,10 +9,10 @@ import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -151,30 +150,46 @@ fun ICourseItemGroup.TopBottomText(
   bottomColor: Color,
   modifier: Modifier = Modifier,
 ) {
-  Box(
+  Layout(
     modifier = modifier.fillMaxSize()
-      .padding(horizontal = 7.dp, vertical = 7.dp)
-  ) {
-    Text(
-      text = top,
-      textAlign = TextAlign.Center,
-      color = topColor,
-      maxLines = 3,
-      overflow = TextOverflow.Ellipsis,
-      fontSize = 11.sp,
-      modifier = Modifier.fillMaxWidth()
-    )
-    Text(
-      text = bottom,
-      textAlign = TextAlign.Center,
-      color = bottomColor,
-      maxLines = 2,
-      overflow = TextOverflow.Ellipsis,
-      fontSize = 11.sp,
-      modifier = Modifier.fillMaxWidth()
-        .align(Alignment.BottomCenter)
-    )
-  }
+      .padding(horizontal = 7.dp, vertical = 7.dp),
+    content = {
+      Text(
+        text = top,
+        textAlign = TextAlign.Center,
+        color = topColor,
+        maxLines = 3,
+        overflow = TextOverflow.Ellipsis,
+        fontSize = 11.sp,
+        modifier = Modifier.fillMaxWidth()
+      )
+      Text(
+        text = bottom,
+        textAlign = TextAlign.Center,
+        color = bottomColor,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        fontSize = 11.sp,
+        modifier = Modifier.fillMaxWidth()
+      )
+    },
+    measurePolicy = { measurables, constraints ->
+      val topPlaceable = measurables[0].measure(constraints.copy(
+        minHeight = 0
+      ))
+      val space = 2.dp.roundToPx()
+      val bottomPlaceable = measurables[1].measure(constraints.copy(
+        minHeight = 0,
+        maxHeight = (constraints.maxHeight - topPlaceable.height - space).coerceAtLeast(0),
+      ))
+      layout(constraints.maxWidth, constraints.maxHeight) {
+        topPlaceable.place(0, 0)
+        if (topPlaceable.height + bottomPlaceable.height + space < constraints.maxHeight) {
+          bottomPlaceable.place(0, constraints.maxHeight - bottomPlaceable.height - space)
+        }
+      }
+    }
+  )
 }
 
 /**

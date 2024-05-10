@@ -13,6 +13,7 @@ import com.course.pages.course.api.ICourseService
 import com.course.pages.course.api.controller.CourseDetail
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.shared.time.Date
+import com.course.source.app.team.TeamBean
 import com.course.source.app.team.TeamMember
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -28,8 +29,9 @@ import kotlinx.coroutines.launch
  * 2024/5/9 16:28
  */
 class MemberCourseDetail(
-  val members: List<TeamMember>
-) : CourseDetail(persistentListOf()) {
+  val teamBean: TeamBean,
+  val members: List<TeamMember>,
+) : CourseDetail(persistentListOf(MemberCourseScheduleController(teamBean))) {
 
   private val itemGroup = MemberCourseItemGroup()
 
@@ -57,6 +59,11 @@ class MemberCourseDetail(
   override fun Content(weekBeginDate: Date, timeline: CourseTimeline, scrollState: ScrollState) {
     super.Content(weekBeginDate, timeline, scrollState)
     itemGroup.Content(weekBeginDate, timeline, scrollState)
+  }
+
+  override fun onChangedClickDate(date: Date) {
+    super.onChangedClickDate(date)
+    clickDate = date
   }
 
   override fun onComposeInit(coroutineScope: CoroutineScope) {

@@ -8,7 +8,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +25,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
@@ -46,6 +46,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -228,11 +229,13 @@ class TeamContentScreen(
   @Composable
   private fun MemberListCompose() {
     LazyColumn(
-      modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp),
+      modifier = Modifier.fillMaxWidth()
+        .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)
+        .clip(RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)),
       verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
       if (adminList.value.isNotEmpty()) {
-        item(key = "admin header", contentType = "header") {
+        stickyHeader(key = "admin header", contentType = "header") {
           ListHeaderCompose("队长")
         }
         items(adminList.value, key = { it.num }, contentType = { "content" }) {
@@ -240,7 +243,7 @@ class TeamContentScreen(
         }
       }
       if (managerList.value.isNotEmpty()) {
-        item(key = "manager header", contentType = "header") {
+        stickyHeader(key = "manager header", contentType = "header") {
           ListHeaderCompose("管理")
         }
         items(managerList.value, key = { it.num }, contentType = { "content" }) {
@@ -248,7 +251,7 @@ class TeamContentScreen(
         }
       }
       if (memberList.value.isNotEmpty()) {
-        item(key = "member header", contentType = "header") {
+        stickyHeader(key = "member header", contentType = "header") {
           ListHeaderCompose("成员")
         }
         items(memberList.value, key = { it.num }, contentType = { "content" }) {
@@ -273,20 +276,13 @@ class TeamContentScreen(
   @Composable
   private fun LazyItemScope.ListContentCompose(member: TeamMember) {
     Card(
-      modifier = Modifier.animateItemPlacement(),
+      modifier = Modifier.animateItemPlacement().padding(end = 1.dp), // end padding 为解决 stickyHeader 右边界线问题
+      shape = RoundedCornerShape(8.dp),
       elevation = 0.5.dp
     ) {
       Row(
         modifier = Modifier.fillMaxWidth()
-          .clickable {
-            if (member.isConfirmed) {
-              MemberCourseBottomSheet(listOf(member)).also {
-                it.showCourseBottomSheet()
-              }
-            } else {
-              toast("当前成员还未回复团队邀请")
-            }
-          }.padding(start = 12.dp, top = 8.dp, bottom = 8.dp)
+          .padding(start = 12.dp, top = 8.dp, bottom = 8.dp)
       ) {
         Icon(
           modifier = Modifier.size(32.dp).align(Alignment.CenterVertically),
@@ -360,7 +356,11 @@ class TeamContentScreen(
   private val floatBtnActions = listOf(
     FloatBtnAction(Icons.Rounded.CalendarMonth) { _, _ ->
       MemberCourseBottomSheet(
-        teamDetailState.value?.members?.filter { it.isConfirmed } ?: emptyList()
+        teamBean = teamBean,
+        members = teamDetailState.value?.members
+          ?.sortedBy { it.name }
+          ?.filter { it.isConfirmed }
+          ?: emptyList()
       ).showCourseBottomSheet()
     },
     FloatBtnAction(Icons.AutoMirrored.Outlined.ForwardToInbox) { coroutineScope, _ ->

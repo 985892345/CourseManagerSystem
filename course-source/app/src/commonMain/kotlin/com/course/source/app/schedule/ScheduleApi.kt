@@ -26,9 +26,9 @@ interface ScheduleApi {
     repeat: ScheduleRepeat,
   ): ResponseWrapper<Int>
 
-  suspend fun updateSchedule(vararg bean: ScheduleBean): ResponseWrapper<Unit>
+  suspend fun updateSchedule(bean: ScheduleBean): ResponseWrapper<Unit>
 
-  suspend fun removeSchedule(vararg id: Int): ResponseWrapper<Unit>
+  suspend fun removeSchedule(id: Int): ResponseWrapper<Unit>
 }
 
 @Serializable

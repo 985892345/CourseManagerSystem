@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.zIndex
 import com.course.components.base.theme.LocalAppColors
 import com.course.components.utils.compose.showBottomSheetWindow
 import com.course.components.utils.provider.Provider
@@ -90,7 +91,7 @@ class LessonItemGroup(
           timeline = timeline,
           startTimeDate = it.startTime,
           minuteDuration = it.minuteDuration,
-        )
+        ).zIndex(10F)
       ) {
         Box(modifier = Modifier.clickable {
           clickItem(it)

@@ -124,7 +124,7 @@ class ExamCourseController(
     ) {
       CardContent(
         backgroundColor = Color(0xFFE4D9F5),
-        modifier = Modifier.zIndex(3F) // 考试显示在课程上面
+        modifier = Modifier.zIndex(20F) // 考试显示在课程上面
           .singleDayItem(
             weekBeginDate = weekBeginDate,
             timeline = timeline,

@@ -144,6 +144,9 @@ data class RequestContent<T : Any>(
     initialCacheExpiration.inWholeMilliseconds
   )
 
+  // 最大缓存时间
+  val maxCacheException = 7.days.inWholeMilliseconds
+
   private val cacheMap: SnapshotStateMap<String, RequestCache> = settings.getStringOrNull("cacheMap")
     ?.let {
       runCatching { Json.decodeFromString<Map<String, RequestCache>>(it) }.onFailure {
@@ -171,15 +174,20 @@ data class RequestContent<T : Any>(
     // 如果不强制请求则尝试从缓存中获取数据
     if (!isForce) {
       val cache = cacheMap[cacheKey]
-      if (cache != null && nowTime - cache.responseTimestamp < cacheExpiration) {
-        val response = cache.response ?: return null
-        runCatching {
-          Json.decodeFromString(resultSerializer, response)
-        }.onSuccess {
-          requestContentStatus = HitCache
-          return it
-        }.onFailure {
-          cache.clear()
+      if (cache != null) {
+        if (nowTime - cache.responseTimestamp < cacheExpiration) {
+          val response = cache.response ?: return null
+          runCatching {
+            Json.decodeFromString(resultSerializer, response)
+          }.onSuccess {
+            requestContentStatus = HitCache
+            return it
+          }.onFailure {
+            cache.clear()
+          }
+        } else if (nowTime - cache.responseTimestamp > maxCacheException) {
+          // 大于最大缓存时间则强制删除缓存
+          cacheMap.remove(cacheKey)
         }
       }
     }

@@ -22,6 +22,7 @@ import com.course.components.utils.compose.clickableNoIndicator
 import com.course.components.utils.compose.showBottomSheetWindow
 import com.course.components.utils.provider.Provider
 import com.course.pages.course.api.ICourseService
+import com.course.source.app.team.TeamBean
 import com.course.source.app.team.TeamMember
 
 /**
@@ -31,12 +32,13 @@ import com.course.source.app.team.TeamMember
  * 2024/5/8 14:10
  */
 class MemberCourseBottomSheet(
+  val teamBean: TeamBean,
   val members: List<TeamMember>,
 ) {
 
   private val courseService = Provider.impl(ICourseService::class)
 
-  private val courseDetail = MemberCourseDetail(members)
+  private val courseDetail = MemberCourseDetail(teamBean, members)
 
   fun showCourseBottomSheet() {
     showBottomSheetWindow(

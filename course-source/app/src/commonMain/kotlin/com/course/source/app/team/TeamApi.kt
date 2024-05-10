@@ -3,6 +3,7 @@ package com.course.source.app.team
 import com.course.shared.time.MinuteTimeDate
 import com.course.source.app.account.AccountType
 import com.course.source.app.response.ResponseWrapper
+import com.course.source.app.schedule.ScheduleRepeat
 import kotlinx.serialization.Serializable
 
 /**
@@ -18,7 +19,7 @@ interface TeamApi {
   suspend fun getTeamDetail(teamId: Int): ResponseWrapper<TeamDetail>
 
   suspend fun updateTeam(
-    teamiId: Int,
+    teamId: Int,
     name: String,
     identity: String,
     description: String,
@@ -47,6 +48,30 @@ interface TeamApi {
     title: String,
     content: String,
   ): ResponseWrapper<Unit>
+
+  suspend fun getTeamAllSchedule(): ResponseWrapper<List<TeamScheduleBean>>
+
+  suspend fun getTeamSchedule(teamId: Int): ResponseWrapper<List<TeamScheduleBean>>
+
+  suspend fun createTeamSchedule(
+    title: String,
+    description: String,
+    startTime: MinuteTimeDate,
+    minuteDuration: Int,
+    repeat: ScheduleRepeat,
+    teamId: Int,
+  ): ResponseWrapper<Int>
+
+  suspend fun updateTeamSchedule(
+    id: Int,
+    title: String,
+    description: String,
+    startTime: MinuteTimeDate,
+    minuteDuration: Int,
+    repeat: ScheduleRepeat,
+  ): ResponseWrapper<Unit>
+
+  suspend fun deleteTeamSchedule(id: Int): ResponseWrapper<Unit>
 }
 
 @Serializable
@@ -127,3 +152,15 @@ sealed interface TeamNotificationContent {
     var agreeOrNot: Boolean?,
   ) : TeamNotificationContent
 }
+
+@Serializable
+data class TeamScheduleBean(
+  val id: Int,
+  val title: String,
+  val description: String,
+  val startTime: MinuteTimeDate,
+  val minuteDuration: Int,
+  val repeat: ScheduleRepeat,
+  val teamId: Int,
+  val teamName: String,
+)

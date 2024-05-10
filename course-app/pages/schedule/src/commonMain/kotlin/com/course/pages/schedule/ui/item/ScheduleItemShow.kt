@@ -126,6 +126,7 @@ class ScheduleItemShow(
 
   @Composable
   fun ICourseItemGroup.ShowContent(
+    zIndex: Float,
     weekBeginDate: Date,
     timeline: CourseTimeline,
     scrollState: ScrollState,
@@ -144,6 +145,7 @@ class ScheduleItemShow(
       if (timeline.getItemWhichDate(it.timeDate).weekBeginDate == weekBeginDate) {
         ItemContent(
           item = it,
+          zIndex = zIndex,
           weekBeginDate = weekBeginDate,
           timeline = timeline,
           scrollState = scrollState,
@@ -155,6 +157,7 @@ class ScheduleItemShow(
   @Composable
   private fun ICourseItemGroup.ItemContent(
     item: ShowItem,
+    zIndex: Float,
     weekBeginDate: Date,
     timeline: CourseTimeline,
     scrollState: ScrollState,
@@ -162,7 +165,7 @@ class ScheduleItemShow(
     Layout(
       modifier = Modifier.graphicsLayer {
         alpha = item.alphaAnim.value
-      }.zIndex(99999F), // 避免被其他 item 覆盖
+      }.zIndex(zIndex),
       content = {
         itemContent(item, weekBeginDate, timeline, scrollState)
         if (isShowTopBottomTime.value) {

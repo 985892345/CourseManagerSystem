@@ -16,11 +16,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.util.fastFirstOrNull
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.zIndex
-import com.course.components.base.ui.toast.toast
 import com.course.pages.course.api.item.ICourseItemGroup
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.pages.schedule.ui.item.PlaceholderScheduleItemGroup
 import com.course.shared.time.Date
+import com.course.source.app.schedule.ScheduleBean
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
@@ -30,7 +30,9 @@ import kotlinx.coroutines.launch
  * @author 985892345
  * 2024/4/28 15:42
  */
-class PlaceholderScheduleCourseItemGroup : ICourseItemGroup {
+class PlaceholderScheduleCourseItemGroup(
+  val onCreate: suspend (ScheduleBean) -> Unit,
+) : ICourseItemGroup {
 
   private val placeholderScheduleItemGroups = SnapshotStateList<PlaceholderScheduleItemGroup>()
 
@@ -64,7 +66,6 @@ class PlaceholderScheduleCourseItemGroup : ICourseItemGroup {
           return@awaitEachGesture
         }
         longPressPointer.consume()
-        toast("长按")
         val columnIndex = (longPressPointer.position.x / (size.width / 7)).toInt()
         val initialTime = PlaceholderScheduleItemGroup
           .getMinuteTimeByOffset(timeline, size.height, longPressPointer.position.y)
@@ -116,9 +117,10 @@ class PlaceholderScheduleCourseItemGroup : ICourseItemGroup {
       weekBeginDate = weekBeginDate,
       columnIndex = columnIndex,
       initialTimeInt = initialTime,
+      successCallback = onCreate,
       deleteCallback = {
         placeholderScheduleItemGroups.remove(it)
-      }
+      },
     )
   }
 }

@@ -300,6 +300,20 @@ private fun showSettingDialog(requestContent: RequestContent<*>) {
             textAlign = TextAlign.Center,
           ),
           keyboardType = KeyboardType.Decimal,
+          onValueChange = {
+            if (it.isEmpty()) {
+              cacheExpiration.value = ""
+            } else {
+              val decimal = it.toDoubleOrNull()
+              if (decimal != null) {
+                if (decimal.hours.inWholeMilliseconds <= requestContent.maxCacheException) {
+                  cacheExpiration.value = it
+                } else {
+                  toast("超出最大缓存过期时间")
+                }
+              }
+            }
+          }
         )
         Text(text = "小时")
       }

@@ -3,6 +3,7 @@ package com.course.pages.schedule.ui.item
 import androidx.compose.runtime.MutableState
 import com.course.shared.time.MinuteTimeDate
 import com.course.source.app.schedule.ScheduleRepeat
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * .
@@ -36,9 +37,9 @@ interface BottomSheetScheduleItem {
     repeat: ScheduleRepeat,
   )
 
-  fun success(dismiss: () -> Unit)
+  fun success(coroutineScope: CoroutineScope, dismiss: () -> Unit)
 
-  fun delete(dismiss: () -> Unit)
+  fun delete(coroutineScope: CoroutineScope, dismiss: () -> Unit)
 
   fun dismissOnBackPress(dismiss: () -> Unit): Boolean
 

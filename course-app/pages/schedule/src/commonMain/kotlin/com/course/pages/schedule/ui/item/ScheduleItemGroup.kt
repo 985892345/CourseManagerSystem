@@ -24,12 +24,12 @@ import com.course.pages.course.api.item.CardContent
 import com.course.pages.course.api.item.ICourseItemGroup
 import com.course.pages.course.api.item.TopBottomText
 import com.course.pages.course.api.timeline.CourseTimeline
-import com.course.pages.schedule.model.ScheduleRepository
 import com.course.pages.schedule.ui.showAddAffairBottomSheet
 import com.course.shared.time.Date
 import com.course.shared.time.MinuteTimeDate
 import com.course.source.app.schedule.ScheduleBean
 import com.course.source.app.schedule.ScheduleRepeat
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 /**
@@ -40,6 +40,8 @@ import kotlinx.coroutines.launch
  */
 class ScheduleItemGroup(
   var bean: ScheduleBean,
+  val onUpdate: suspend (ScheduleBean) -> Unit,
+  val onDelete: suspend (ScheduleBean) -> Unit,
 ) : BottomSheetScheduleItem {
 
   override val title: MutableState<String> = mutableStateOf(bean.title)
@@ -101,24 +103,19 @@ class ScheduleItemGroup(
     minuteDuration: Int
   ) {
     oldWeekBeginDate ?: return
+    val initialValue = ICourseItemGroup.calculateItemHeightOffset2(
+      timeline = oldTimeline,
+      startTime = startTimeState.value.time,
+      minuteDuration = minuteDurationState.intValue,
+    )
     if (!this::heightOffsetAnim.isInitialized) {
       heightOffsetAnim = Animatable(
         typeConverter = Offset.VectorConverter,
-        initialValue = ICourseItemGroup.calculateItemHeightOffset2(
-          timeline = oldTimeline,
-          startTime = startTime.time,
-          minuteDuration = minuteDuration,
-        ),
+        initialValue = initialValue,
       )
     } else {
       // 这里需要重置动画的开始值
-      heightOffsetAnim.snapTo(
-        ICourseItemGroup.calculateItemHeightOffset2(
-          timeline = oldTimeline,
-          startTime = startTime.time,
-          minuteDuration = minuteDuration,
-        )
-      )
+      heightOffsetAnim.snapTo(initialValue)
     }
     startTimeState.value = startTime
     minuteDurationState.intValue = minuteDuration
@@ -165,23 +162,26 @@ class ScheduleItemGroup(
     }
   }
 
-  override fun success(dismiss: () -> Unit) {
-    bean = bean.copy(
-      title = title.value,
-      description = description.value,
-      startTime = startTime,
-      minuteDuration = minuteDuration,
-      repeat = repeat,
-    )
-    ScheduleRepository.updateSchedule(bean)
-    dismiss.invoke()
+  override fun success(coroutineScope: CoroutineScope, dismiss: () -> Unit) {
+    coroutineScope.launch {
+      onUpdate.invoke(
+        bean.copy(
+          title = title.value,
+          description = description.value,
+          startTime = startTime,
+          minuteDuration = minuteDuration,
+          repeat = repeat,
+        )
+      )
+      dismiss.invoke()
+    }
   }
 
-  override fun delete(dismiss: () -> Unit) {
-    AppComposeCoroutineScope.launch {
+  override fun delete(coroutineScope: CoroutineScope, dismiss: () -> Unit) {
+    coroutineScope.launch {
+      onDelete.invoke(bean)
       dismiss.invoke()
       itemShow.cancelShow()
-      ScheduleRepository.removeSchedule(bean.id)
     }
   }
 
@@ -224,6 +224,7 @@ class ScheduleItemGroup(
     oldTimeline = timeline
     with(itemShow) {
       ShowContent(
+        zIndex = 0F, // 显示在课程之下
         weekBeginDate = weekBeginDate,
         timeline = timeline,
         scrollState = scrollState,

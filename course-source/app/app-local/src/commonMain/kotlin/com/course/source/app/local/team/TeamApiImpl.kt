@@ -3,6 +3,7 @@ package com.course.source.app.local.team
 import com.course.shared.time.MinuteTimeDate
 import com.course.source.app.account.AccountType
 import com.course.source.app.response.ResponseWrapper
+import com.course.source.app.schedule.ScheduleRepeat
 import com.course.source.app.team.SearchMember
 import com.course.source.app.team.TeamApi
 import com.course.source.app.team.TeamBean
@@ -12,6 +13,7 @@ import com.course.source.app.team.TeamMember
 import com.course.source.app.team.TeamNotification
 import com.course.source.app.team.TeamNotificationContent
 import com.course.source.app.team.TeamRank
+import com.course.source.app.team.TeamScheduleBean
 import com.g985892345.provider.api.annotation.ImplProvider
 import kotlinx.coroutines.delay
 
@@ -22,7 +24,7 @@ import kotlinx.coroutines.delay
  * 2024/5/8 12:53
  */
 @ImplProvider
-class TeamApiImpl : TeamApi {
+object TeamApiImpl : TeamApi {
 
   override suspend fun getTeamList(): ResponseWrapper<TeamList> {
     delay(200)
@@ -108,7 +110,7 @@ class TeamApiImpl : TeamApi {
   }
 
   override suspend fun updateTeam(
-    teamiId: Int,
+    teamId: Int,
     name: String,
     identity: String,
     description: String,
@@ -206,6 +208,83 @@ class TeamApiImpl : TeamApi {
     title: String,
     content: String
   ): ResponseWrapper<Unit> {
+    return ResponseWrapper.success(Unit)
+  }
+
+  override suspend fun getTeamAllSchedule(): ResponseWrapper<List<TeamScheduleBean>> {
+    return ResponseWrapper.success(emptyList())
+  }
+
+  private val teamScheduleBeans = mutableListOf(
+    TeamScheduleBean(
+      id = 1,
+      title = "123测试",
+      description = "123测试123测试123测试123测试123测试123测试123测试",
+      startTime = MinuteTimeDate(2024, 5, 11, 8),
+      minuteDuration = 30,
+      repeat = ScheduleRepeat.Once,
+      teamId = 4,
+      teamName = "TeamName"
+    )
+  )
+
+  override suspend fun getTeamSchedule(teamId: Int): ResponseWrapper<List<TeamScheduleBean>> {
+    return ResponseWrapper.success(
+      teamScheduleBeans.groupBy {
+        it.teamId
+      }[teamId] ?: emptyList()
+    )
+  }
+
+  override suspend fun createTeamSchedule(
+    title: String,
+    description: String,
+    startTime: MinuteTimeDate,
+    minuteDuration: Int,
+    repeat: ScheduleRepeat,
+    teamId: Int
+  ): ResponseWrapper<Int> {
+    val id = teamScheduleBeans.maxBy { it.id }.id + 1
+    teamScheduleBeans.add(
+      TeamScheduleBean(
+        id = id,
+        title = title,
+        description = description,
+        startTime = startTime,
+        minuteDuration = minuteDuration,
+        repeat = repeat,
+        teamId = teamId,
+        teamName = "TeamName",
+      )
+    )
+    return ResponseWrapper.success(id)
+  }
+
+  override suspend fun updateTeamSchedule(
+    id: Int,
+    title: String,
+    description: String,
+    startTime: MinuteTimeDate,
+    minuteDuration: Int,
+    repeat: ScheduleRepeat
+  ): ResponseWrapper<Unit> {
+    teamScheduleBeans.indexOfFirst { it.id == id }.let {
+      teamScheduleBeans.set(
+        it,
+        teamScheduleBeans[it].copy(
+          title = title,
+          description = description,
+          startTime = startTime,
+          minuteDuration = minuteDuration,
+          repeat = repeat,
+        )
+      )
+    }
+    return ResponseWrapper.success(Unit)
+  }
+
+  override suspend fun deleteTeamSchedule(id: Int): ResponseWrapper<Unit> {
+    teamScheduleBeans.removeAt(teamScheduleBeans.indexOfFirst { it.id == id })
     return ResponseWrapper.success(Unit)
   }
 }

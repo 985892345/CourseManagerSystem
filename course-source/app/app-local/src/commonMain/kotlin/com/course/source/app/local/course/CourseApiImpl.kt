@@ -75,7 +75,7 @@ object CourseApiImpl : SourceRequest(), CourseApi, IMainCourseDataProvider {
       [
         {
           id: String, // 唯一 id
-          zIndex: Float, // 显示的层级，数字越大，越显示在上面；课程层级为 0，考试为 3
+          zIndex: Float, // 显示的层级，数字越大，越显示在上面；日程为 0，课程层级为 10，考试为 20
           startTime: String, // 开始时间，格式为: 2024-04-01 08:00
           minuteDuration: Int, // 持续时间，单位为分钟
           backgroundColor: Long, // 背景色，如："FF123456" (字符串形式)

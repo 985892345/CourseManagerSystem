@@ -24,6 +24,7 @@ import androidx.compose.material.icons.rounded.Repeat
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -80,8 +81,9 @@ fun showAddAffairBottomSheet(
               fontWeight = FontWeight.Bold,
             ),
           )
+          val coroutineScope = rememberCoroutineScope()
           Box(modifier = Modifier.padding(horizontal = 8.dp).size(32.dp).clickableCardIndicator {
-            item.delete(dismiss)
+            item.delete(coroutineScope, dismiss)
           }, contentAlignment = Alignment.Center) {
             Icon(
               imageVector = Icons.Rounded.DeleteOutline,
@@ -91,7 +93,7 @@ fun showAddAffairBottomSheet(
           Box(modifier = Modifier.size(32.dp).clickableCardIndicator {
             when (type.value) {
               AddAffairBottomSheetState.Description -> {
-                item.success(dismiss)
+                item.success(coroutineScope, dismiss)
               }
 
               AddAffairBottomSheetState.EditTime, AddAffairBottomSheetState.EditRepeat -> {

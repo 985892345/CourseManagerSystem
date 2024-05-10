@@ -44,6 +44,7 @@ import com.course.components.utils.navigator.mainNavigator
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -187,6 +188,7 @@ fun showBottomSheetWindow(
                 prevVelocity = velocity
                 offsetY = value.coerceAtLeast(0F)
               }
+              delay(100) // 等待后台其他任务执行完毕
               if (dragValue.targetValue == height) {
                 windowDismiss()
               }

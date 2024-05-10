@@ -19,9 +19,11 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -37,6 +39,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -184,11 +187,13 @@ class TeamListScreen(
   @Composable
   private fun ListCompose() {
     LazyColumn(
-      modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp),
+      modifier = Modifier.fillMaxWidth()
+        .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)
+        .clip(RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)),
       verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
       if (adminTeamList.isNotEmpty()) {
-        item(key = "admin header", contentType = "header") {
+        stickyHeader(key = "admin header", contentType = "header") {
           ListHeaderCompose("我创建的团队", isFoldAdmin)
         }
         if (!isFoldAdmin.value) {
@@ -198,7 +203,7 @@ class TeamListScreen(
         }
       }
       if (managerTeamList.isNotEmpty()) {
-        item(key = "manager header", contentType = "header") {
+        stickyHeader(key = "manager header", contentType = "header") {
           ListHeaderCompose("我管理的团队", isFoldManager)
         }
         if (!isFoldManager.value) {
@@ -208,7 +213,7 @@ class TeamListScreen(
         }
       }
       if (memberTeamList.isNotEmpty()) {
-        item(key = "member header", contentType = "header") {
+        stickyHeader(key = "member header", contentType = "header") {
           ListHeaderCompose("我加入的团队", isFoldMember)
         }
         if (!isFoldMember.value) {
@@ -247,21 +252,26 @@ class TeamListScreen(
   @OptIn(ExperimentalFoundationApi::class)
   @Composable
   private fun LazyItemScope.ListHeaderCompose(text: String, isFold: MutableState<Boolean>) {
-    Row(
+    Box(
       modifier = Modifier.animateItemPlacement()
-        .clickableCardIndicator {
+        .fillParentMaxWidth()
+        .background(MaterialTheme.colors.background)
+    ) {
+      Row(
+        modifier = Modifier.clickableCardIndicator {
           isFold.value = !isFold.value
         }.padding(end = 4.dp),
-      verticalAlignment = Alignment.CenterVertically
-    ) {
-      Image(
-        imageVector = if (isFold.value) Icons.Rounded.ChevronRight else Icons.Rounded.ExpandMore,
-        contentDescription = null,
-      )
-      Text(
-        text = text,
-        fontWeight = FontWeight.Bold,
-      )
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Image(
+          imageVector = if (isFold.value) Icons.Rounded.ChevronRight else Icons.Rounded.ExpandMore,
+          contentDescription = null,
+        )
+        Text(
+          text = text,
+          fontWeight = FontWeight.Bold,
+        )
+      }
     }
   }
 
@@ -270,7 +280,8 @@ class TeamListScreen(
   private fun LazyItemScope.ListContentCompose(bean: TeamBean) {
     val navigator = LocalNavigator.current
     Card(
-      modifier = Modifier.animateItemPlacement(),
+      modifier = Modifier.animateItemPlacement().padding(end = 1.dp),
+      shape = RoundedCornerShape(8.dp),
       elevation = 0.5.dp
     ) {
       Row(

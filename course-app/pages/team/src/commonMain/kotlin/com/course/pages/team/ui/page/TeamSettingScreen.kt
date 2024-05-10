@@ -150,7 +150,7 @@ class TeamSettingScreen(
       coroutineScope.launch(Dispatchers.IO) {
         runCatching {
           Source.api(TeamApi::class).updateTeam(
-            teamiId = teamBean.teamId,
+            teamId = teamBean.teamId,
             name = detailEditPage.editName.value,
             identity = detailEditPage.editIdentity.value,
             description = detailEditPage.editDescription.value,

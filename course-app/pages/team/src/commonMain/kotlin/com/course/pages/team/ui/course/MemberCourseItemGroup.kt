@@ -189,13 +189,13 @@ class MemberCourseItemGroup : ICourseItemGroup {
         shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp),
       ) {
         Column(
-          modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 24.dp)
+          modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
             .reflexScrollableForMouse()
             .verticalScroll(rememberScrollState())
         ) {
           Column {
             Text(
-              text = "忙碌：",
+              text = "忙碌：${node.member.size}人",
               fontSize = 14.sp,
             )
             FlowRow(
@@ -209,12 +209,15 @@ class MemberCourseItemGroup : ICourseItemGroup {
             }
             Text(
               modifier = Modifier.padding(top = 16.dp),
-              text = "空闲：${if (node.member.size == membersState.value.size) "无" else ""}",
+              text = "空闲：${
+                if (node.member.size == membersState.value.size) "无" 
+                else "${membersState.value.size - node.member.size}人"
+              }",
               fontSize = 14.sp,
             )
             if (node.member.size != membersState.value.size) {
               FlowRow(
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
               ) {

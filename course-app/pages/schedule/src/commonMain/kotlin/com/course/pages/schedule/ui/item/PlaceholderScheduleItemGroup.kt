@@ -24,17 +24,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.util.fastForEach
 import com.course.components.base.ui.toast.toast
 import com.course.components.utils.compose.derivedStateOfStructure
-import com.course.components.utils.coroutine.AppComposeCoroutineScope
 import com.course.pages.course.api.item.CardContent
 import com.course.pages.course.api.item.ICourseItemGroup
 import com.course.pages.course.api.item.TopBottomText
 import com.course.pages.course.api.timeline.CourseTimeline
-import com.course.pages.schedule.model.ScheduleRepository
 import com.course.pages.schedule.ui.showAddAffairBottomSheet
 import com.course.shared.time.Date
 import com.course.shared.time.MinuteTime
 import com.course.shared.time.MinuteTimeDate
+import com.course.source.app.schedule.ScheduleBean
 import com.course.source.app.schedule.ScheduleRepeat
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -49,6 +49,7 @@ class PlaceholderScheduleItemGroup(
   columnIndex: Int,
   val initialTimeInt: Int,
   val deleteCallback: (PlaceholderScheduleItemGroup) -> Unit,
+  val successCallback: suspend (ScheduleBean) -> Unit,
 ) : BottomSheetScheduleItem {
 
   override val title: MutableState<String> = mutableStateOf("")
@@ -166,24 +167,19 @@ class PlaceholderScheduleItemGroup(
     oldWeekBeginDate ?: return
     val beginTimeInt = startTime.time.minuteOfDay +
         if (startTime.time >= oldTimeline.delayMinuteTime) 0 else 24 * 60
+    val initialValue = ICourseItemGroup.calculateItemHeightOffset0(
+      timeline = oldTimeline,
+      beginTimeInt = beginTimeIntState.intValue,
+      finalTimeInt = finalTimeIntState.intValue,
+    )
     if (!this::heightOffsetAnim.isInitialized) {
       heightOffsetAnim = Animatable(
         typeConverter = Offset.VectorConverter,
-        initialValue = ICourseItemGroup.calculateItemHeightOffset0(
-          timeline = oldTimeline,
-          beginTimeInt = beginTimeIntState.intValue,
-          finalTimeInt = finalTimeIntState.intValue,
-        ),
+        initialValue = initialValue,
       )
     } else {
       // 这里需要重置动画的开始值
-      heightOffsetAnim.snapTo(
-        ICourseItemGroup.calculateItemHeightOffset0(
-          timeline = oldTimeline,
-          beginTimeInt = beginTimeIntState.intValue,
-          finalTimeInt = finalTimeIntState.intValue,
-        )
-      )
+      heightOffsetAnim.snapTo(initialValue)
     }
     beginTimeIntState.intValue = beginTimeInt
     finalTimeIntState.intValue = beginTimeInt + minuteDuration
@@ -207,7 +203,7 @@ class PlaceholderScheduleItemGroup(
     )
   }
 
-  override fun success(dismiss: () -> Unit) {
+  override fun success(coroutineScope: CoroutineScope, dismiss: () -> Unit) {
     if (title.value.isBlank()) {
       toast("标题不能为空")
       return
@@ -216,22 +212,27 @@ class PlaceholderScheduleItemGroup(
       toast("日程长度不能小于 5 分钟")
       return
     }
-    ScheduleRepository.addSchedule(
-      title = title.value,
-      description = description.value,
-      startTime = startTime,
-      minuteDuration = minuteDuration,
-      repeat = repeat,
-    )
-    dismiss.invoke()
-    deleteCallback.invoke(this@PlaceholderScheduleItemGroup)
+    coroutineScope.launch {
+      successCallback.invoke(
+        ScheduleBean(
+          id = 0,
+          title = title.value,
+          description = description.value,
+          startTime = startTime,
+          minuteDuration = minuteDuration,
+          repeat = repeat,
+        )
+      )
+      deleteCallback.invoke(this@PlaceholderScheduleItemGroup)
+      dismiss.invoke()
+    }
   }
 
-  override fun delete(dismiss: () -> Unit) {
-    AppComposeCoroutineScope.launch {
-      dismiss.invoke()
+  override fun delete(coroutineScope: CoroutineScope, dismiss: () -> Unit) {
+    coroutineScope.launch {
       cancelShow()
       deleteCallback.invoke(this@PlaceholderScheduleItemGroup)
+      dismiss.invoke()
     }
   }
 
@@ -257,6 +258,7 @@ class PlaceholderScheduleItemGroup(
     oldTimeline = timeline
     with(itemShow) {
       ShowContent(
+        zIndex = 99999F, // 显示在其他内容之上
         weekBeginDate = weekBeginDate,
         timeline = timeline,
         scrollState = scrollState,
