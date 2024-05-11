@@ -30,6 +30,16 @@ annotation class RemoteScreenEnter
 /**
  * Composable 页面入口函数的数据类，即页面启动参数
  *
+ * ```
+ * // 实现模块中
+ * @RemoteScreenEnter
+ * fun XXXRemoteScreenEnter(screen: XXXRemoteScreen) {
+ *   // ...
+ * }
+ *
+ * // 之后会由 ksp 生成该函数与 XXXRemoteScreen 关联的代码
+ * ```
+ *
  * 有如下约定:
  * - 必须打上 [ObjectSerializable] 注解，因此所有变量需要支持序列化
  * - 其子类建议统一放在 base 模块 /navigator/screen 下

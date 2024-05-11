@@ -18,7 +18,6 @@ import androidx.compose.runtime.snapshots.StateFactoryMarker
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -159,7 +158,7 @@ internal class ChooseDialog(
         modifier = Modifier.clickable(onClick = { onClickNegativeBtn.invoke(this) }),
         contentAlignment = Alignment.Center
       ) {
-        Text(text = negativeBtnText, textAlign = TextAlign.Center)
+        Text(text = negativeBtnText)
       }
     }
   }

@@ -135,7 +135,7 @@ class AttendanceDialog(
           },
           contentAlignment = Alignment.Center
         ) {
-          Text(text = "请假申请", textAlign = TextAlign.Center)
+          Text(text = "请假申请")
         }
       }
       Card(
@@ -150,7 +150,7 @@ class AttendanceDialog(
           },
           contentAlignment = Alignment.Center
         ) {
-          Text(text = "考勤记录", textAlign = TextAlign.Center)
+          Text(text = "考勤记录")
         }
       }
     }

@@ -7,9 +7,10 @@ import com.course.components.base.account.Account
 import com.course.components.utils.init.IInitialService
 import com.course.source.app.account.AccountApi
 import com.course.source.app.account.AccountBean
-import com.course.source.app.response.ResponseWrapper
 import com.course.source.app.local.request.SourceRequest
+import com.course.source.app.response.ResponseWrapper
 import com.g985892345.provider.api.annotation.ImplProvider
+import kotlinx.coroutines.flow.collectLatest
 
 /**
  * .
@@ -58,7 +59,7 @@ object AccountApiImpl : SourceRequest(), AccountApi {
               it.changedCount // 如果内容发生改变也需要更新
             }
           }
-        }.collect {
+        }.collectLatest {
           if (it.isNotEmpty()) {
             Account.refreshAccount()
           } else {
