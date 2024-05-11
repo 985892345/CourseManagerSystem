@@ -28,9 +28,6 @@ abstract class CourseDetail(
   open val initialClickDate: Date
     get() = Today
 
-  // 获取当前用户的学期与开学日期
-  abstract fun getTerms(): List<Pair<Int, Date>>
-
   override fun onChangedClickDate(date: Date) {
     super.onChangedClickDate(date)
     controllers.forEach { it.onChangedClickDate(date) }

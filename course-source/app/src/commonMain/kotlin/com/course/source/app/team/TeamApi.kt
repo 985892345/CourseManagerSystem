@@ -14,7 +14,7 @@ import kotlinx.serialization.Serializable
  */
 interface TeamApi {
 
-  suspend fun getTeamList(): ResponseWrapper<TeamList>
+  suspend fun getTeamList(): ResponseWrapper<List<TeamBean>>
 
   suspend fun getTeamDetail(teamId: Int): ResponseWrapper<TeamDetail>
 
@@ -36,8 +36,6 @@ interface TeamApi {
   suspend fun deleteTeam(teamId: Int): ResponseWrapper<Unit>
 
   suspend fun searchMember(key: String): ResponseWrapper<List<SearchMember>>
-
-  suspend fun getTeamNotification(): ResponseWrapper<List<TeamNotification>>
 
   suspend fun refuseDecision(teamId: Int): ResponseWrapper<Unit>
 
@@ -77,12 +75,6 @@ interface TeamApi {
 
   suspend fun deleteTeamSchedule(id: Int): ResponseWrapper<Unit>
 }
-
-@Serializable
-data class TeamList(
-  val hasNewNotification: Boolean,
-  val list: List<TeamBean>,
-)
 
 @Serializable
 data class TeamBean(
@@ -125,39 +117,6 @@ enum class TeamRank {
   Member,
 }
 
-@Serializable
-data class TeamNotification(
-  val time: MinuteTimeDate,
-  val content: TeamNotificationContent,
-)
-
-@Serializable
-sealed interface TeamNotificationContent {
-  @Serializable
-  data class Normal(
-    val title: String,
-    val content: String,
-  ) : TeamNotificationContent
-  @Serializable
-  data class AddSchedule(
-    val teamName: String,
-    val teamSenderName: String,
-    val scheduleTitle: String,
-    val scheduleDescription: String,
-    val scheduleStartTime: MinuteTimeDate,
-    val scheduleMinuteDuration: Int,
-  ) : TeamNotificationContent
-  @Serializable
-  data class Decision(
-    val id: Int,
-    val title: String,
-    val content: String,
-    val positiveText: String,
-    val negativeText: String,
-    val negativeDialog: String,
-    var agreeOrNot: Boolean?,
-  ) : TeamNotificationContent
-}
 
 @Serializable
 data class TeamScheduleBean(

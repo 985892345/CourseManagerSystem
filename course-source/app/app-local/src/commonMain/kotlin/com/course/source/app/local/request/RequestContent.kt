@@ -433,7 +433,7 @@ private fun clickDelete(
   requestContent: RequestContent<*>,
 ) {
   showChooseDialog(
-    onClickPositionBtn = {
+    onClickPositiveBtn = {
       val requestGroupKey = requestContent.key.substringBeforeLast("-")
       RequestGroup.find(requestGroupKey)?.requestContents?.remove(requestContent)
       hide()

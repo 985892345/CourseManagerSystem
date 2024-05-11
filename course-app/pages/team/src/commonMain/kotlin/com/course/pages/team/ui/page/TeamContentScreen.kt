@@ -72,7 +72,7 @@ import com.course.components.utils.serializable.ObjectSerializable
 import com.course.components.utils.source.Source
 import com.course.components.utils.source.getOrThrow
 import com.course.components.view.edit.EditTextCompose
-import com.course.pages.team.ui.course.MemberCourseBottomSheet
+import com.course.pages.team.ui.course.TeamCourseBottomSheet
 import com.course.pages.team.utils.TeamDetailStateSerializer
 import com.course.pages.team.utils.TeamMemberStateSerializer
 import com.course.source.app.team.TeamApi
@@ -143,7 +143,7 @@ class TeamContentScreen(
           val admin = mutableListOf<TeamMember>()
           val manager = mutableListOf<TeamMember>()
           val member = mutableListOf<TeamMember>()
-          detail.members.sortedBy { it.name }.fastForEach {
+          detail.members.fastForEach {
             when (it.rank) {
               TeamRank.Administrator -> admin.add(it)
               TeamRank.Manager -> manager.add(it)
@@ -325,7 +325,7 @@ class TeamContentScreen(
 
   private fun showExitDialog(coroutineScope: CoroutineScope, navigator: Navigator?) {
     showChooseDialog(
-      onClickPositionBtn = {
+      onClickPositiveBtn = {
         coroutineScope.launch(Dispatchers.IO) {
           runCatching {
             Source.api(TeamApi::class)
@@ -355,10 +355,9 @@ class TeamContentScreen(
   @Transient
   private val floatBtnActions = listOf(
     FloatBtnAction(Icons.Rounded.CalendarMonth) { _, _ ->
-      MemberCourseBottomSheet(
+      TeamCourseBottomSheet(
         teamBean = teamBean,
         members = teamDetailState.value?.members
-          ?.sortedBy { it.name }
           ?.filter { it.isConfirmed }
           ?: emptyList()
       ).showCourseBottomSheet()
@@ -444,7 +443,7 @@ class TeamContentScreen(
       height = 300.dp,
       positiveBtnText = "发送",
       onDismissRequest = {},
-      onClickPositionBtn = {
+      onClickPositiveBtn = {
         if (editTitle.value.isBlank()) {
           toast("标题不能为空")
           return@showChooseDialog

@@ -1,4 +1,4 @@
-package com.course.pages.team.ui.course
+package com.course.pages.team.ui.course.base
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
@@ -34,7 +34,6 @@ import com.course.shared.time.Date
 import com.course.shared.time.MinuteTime
 import com.course.source.app.course.CourseBean
 import com.course.source.app.course.LessonBean
-import com.course.source.app.team.TeamMember
 
 /**
  * .
@@ -42,11 +41,13 @@ import com.course.source.app.team.TeamMember
  * @author 985892345
  * 2024/5/9 17:13
  */
-class MemberCourseItemGroup : ICourseItemGroup {
+class MemberCourseItemGroup(
+  val excludeCourseNum: Set<String>,
+) : ICourseItemGroup {
 
-  fun resetData(data: List<Pair<TeamMember, CourseBean>>) {
+  fun resetData(data: List<Pair<MemberCourseItemData.Member, CourseBean>>) {
     val map = mutableMapOf<Date, WeekData>()
-    val members = mutableListOf<TeamMember>()
+    val members = mutableListOf<MemberCourseItemData.Member>()
     data.fastForEach { (member, bean) ->
       members.add(member)
       bean.lessons.fastForEach { lesson ->
@@ -62,14 +63,14 @@ class MemberCourseItemGroup : ICourseItemGroup {
     dataMapState.value = map
   }
 
-  private val membersState = mutableStateOf(emptyList<TeamMember>())
+  private val membersState = mutableStateOf(emptyList<MemberCourseItemData.Member>())
   private val dataMapState = mutableStateOf(emptyMap<Date, WeekData>())
 
-  private class WeekData(
+  private inner class WeekData(
     val weekBeginDate: Date,
   ) {
 
-    val lesson = mutableListOf<Pair<TeamMember, LessonBean>>()
+    val lesson = mutableListOf<Pair<MemberCourseItemData.Member, LessonBean>>()
 
     private var data: List<MemberCourseItemData>? = null
 
@@ -81,16 +82,19 @@ class MemberCourseItemGroup : ICourseItemGroup {
       return lesson.groupBy { it.second.dayOfWeek }
         .map { collectDayData(weekBeginDate.plusDays(it.key.ordinal), it.value) }
         .flatten()
+        .also { data = it }
     }
 
     private fun collectDayData(
       date: Date,
-      data: List<Pair<TeamMember, LessonBean>>,
+      data: List<Pair<MemberCourseItemData.Member, LessonBean>>,
     ): List<MemberCourseItemData> {
-      val positionArray = Array<MutableList<Pair<TeamMember, LessonBean>>>(12) { mutableListOf() }
+      val positionArray = Array<MutableList<Pair<MemberCourseItemData.Member, LessonBean>>>(12) { mutableListOf() }
       data.fastForEach {
-        repeat(it.second.length) { position ->
-          positionArray[position + it.second.beginLesson - 1].add(it)
+        if (it.second.courseNum !in excludeCourseNum) {
+          repeat(it.second.length) { position ->
+            positionArray[position + it.second.beginLesson - 1].add(it)
+          }
         }
       }
       val result = mutableListOf<MemberCourseItemData>()
@@ -235,7 +239,7 @@ class MemberCourseItemGroup : ICourseItemGroup {
   }
 
   @Composable
-  private fun MemberCompose(member: TeamMember) {
+  private fun MemberCompose(member: MemberCourseItemData.Member) {
     Card(
       modifier = Modifier,
       elevation = 1.dp,

@@ -28,9 +28,14 @@ interface ICourseService {
     onClickItem: ((LessonItemData) -> Unit)? = null,
   ): CourseDetail
 
-  suspend fun refreshCourseBean(
+  suspend fun requestCourseBean(
     num: String,
     type: AccountType,
     termIndex: Int = -1,
   ): CourseBean
+
+  /**
+   * 强制刷新主页课表
+   */
+  fun forceRefreshMainCourse()
 }

@@ -24,8 +24,4 @@ class TeaCourseDetailController(
     get() = TODO("Not yet implemented")
   override val subtitle: String
     get() = TODO("Not yet implemented")
-
-  override fun getTerms(): List<Pair<Int, Date>> {
-    return emptyList()
-  }
 }

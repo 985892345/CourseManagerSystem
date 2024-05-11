@@ -41,7 +41,7 @@ fun showChooseDialog(
   priority: Int = Int.MAX_VALUE / 2,
   properties: DialogProperties = DialogProperties(),
   onDismissRequest: Dialog.() -> Unit = { hide() },
-  onClickPositionBtn: Dialog.() -> Unit = { hide() },
+  onClickPositiveBtn: Dialog.() -> Unit = { hide() },
   onClickNegativeBtn: Dialog.() -> Unit = { hide() },
   content: @Composable () -> Unit,
 ) : Dialog = ChooseDialog(
@@ -55,7 +55,7 @@ fun showChooseDialog(
   priority,
   properties,
   onDismissRequest,
-  onClickPositionBtn,
+  onClickPositiveBtn,
   onClickNegativeBtn,
   content,
 ).apply { show() }

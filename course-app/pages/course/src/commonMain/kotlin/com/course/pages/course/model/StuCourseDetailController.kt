@@ -40,7 +40,7 @@ class StuCourseDetailController(
   val onClickItem: ((LessonItemData) -> Unit)?,
 ) : CourseDetail(controllers) {
 
-  private val itemGroups = LessonItemGroup(onClickItem)
+  private val itemGroups = LessonItemGroup(onClickItem = onClickItem)
   private val courseBeans = mutableStateMapOf<Int, CourseBean>()
   private val courseItems = mutableMapOf<Int, List<LessonItemData>>()
 
@@ -52,10 +52,6 @@ class StuCourseDetailController(
 
   override val initialClickDate: Date
     get() = clickDate
-
-  override fun getTerms(): List<Pair<Int, Date>> {
-    return courseBeans.toMap().map { it.key to it.value.beginDate }.sortedBy { -it.first }
-  }
 
   override val title: String by derivedStateOfStructure {
     val start = getClickCourseBean()?.beginDate

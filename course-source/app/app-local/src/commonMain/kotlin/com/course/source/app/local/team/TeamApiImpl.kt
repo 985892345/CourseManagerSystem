@@ -8,10 +8,7 @@ import com.course.source.app.team.SearchMember
 import com.course.source.app.team.TeamApi
 import com.course.source.app.team.TeamBean
 import com.course.source.app.team.TeamDetail
-import com.course.source.app.team.TeamList
 import com.course.source.app.team.TeamMember
-import com.course.source.app.team.TeamNotification
-import com.course.source.app.team.TeamNotificationContent
 import com.course.source.app.team.TeamRank
 import com.course.source.app.team.TeamScheduleBean
 import com.g985892345.provider.api.annotation.ImplProvider
@@ -26,45 +23,42 @@ import kotlinx.coroutines.delay
 @ImplProvider
 object TeamApiImpl : TeamApi {
 
-  override suspend fun getTeamList(): ResponseWrapper<TeamList> {
+  override suspend fun getTeamList(): ResponseWrapper<List<TeamBean>> {
     delay(200)
     return ResponseWrapper.success(
-      TeamList(
-        hasNewNotification = true,
-        list = listOf(
-          TeamBean(
-            teamId = 1,
-            name = "群1",
-            description = "测试",
-            rank = TeamRank.Manager,
-            identity = "小组长",
-            dissolvable = true,
-          ),
-          TeamBean(
-            teamId = 2,
-            name = "群2",
-            description = "测试",
-            rank = TeamRank.Member,
-            identity = "",
-            dissolvable = true,
-          ),
-          TeamBean(
-            teamId = 3,
-            name = "群3",
-            description = "测试",
-            rank = TeamRank.Member,
-            identity = "",
-            dissolvable = true,
-          ),
-          TeamBean(
-            teamId = 4,
-            name = "群4",
-            description = "测试",
-            rank = TeamRank.Administrator,
-            identity = "班长",
-            dissolvable = false,
-          ),
-        )
+      listOf(
+        TeamBean(
+          teamId = 1,
+          name = "群1",
+          description = "测试",
+          rank = TeamRank.Manager,
+          identity = "小组长",
+          dissolvable = true,
+        ),
+        TeamBean(
+          teamId = 2,
+          name = "群2",
+          description = "测试",
+          rank = TeamRank.Member,
+          identity = "",
+          dissolvable = true,
+        ),
+        TeamBean(
+          teamId = 3,
+          name = "群3",
+          description = "测试",
+          rank = TeamRank.Member,
+          identity = "",
+          dissolvable = true,
+        ),
+        TeamBean(
+          teamId = 4,
+          name = "群4",
+          description = "测试",
+          rank = TeamRank.Administrator,
+          identity = "班长",
+          dissolvable = false,
+        ),
       )
     )
   }
@@ -156,43 +150,6 @@ object TeamApiImpl : TeamApi {
           num = "333",
           college = "通信",
           type = AccountType.Student,
-        ),
-      )
-    )
-  }
-
-  override suspend fun getTeamNotification(): ResponseWrapper<List<TeamNotification>> {
-    return ResponseWrapper.success(
-      listOf(
-        TeamNotification(
-          time = MinuteTimeDate(2024, 5, 1, 11),
-          content = TeamNotificationContent.AddSchedule(
-            teamName = "测试",
-            teamSenderName = "甲",
-            scheduleTitle = "123测试",
-            scheduleDescription = "123测试123测试123测试123测试123测试123测试123测试",
-            scheduleStartTime = MinuteTimeDate(2024, 5, 1, 12),
-            scheduleMinuteDuration = 30,
-          ),
-        ),
-        TeamNotification(
-          time = MinuteTimeDate(2024, 5, 2, 11),
-          content = TeamNotificationContent.Decision(
-            id = 1,
-            title = "某某某邀请你加入团队1",
-            content = "团队简介：这是一段描述这是一段描述这是一段描述这是一段描述这是一段描述这是一段描述",
-            positiveText = "已同意",
-            negativeText = "已拒绝",
-            negativeDialog = "确定取消加入该团队吗？",
-            agreeOrNot = null,
-          ),
-        ),
-        TeamNotification(
-          time = MinuteTimeDate(2024, 5, 2, 11),
-          content = TeamNotificationContent.Normal(
-            title = "这是一段标题",
-            content = "这是一段描述这是一段描述这是一段描述这是一段描述这是一段描述"
-          ),
         ),
       )
     )

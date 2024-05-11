@@ -12,6 +12,9 @@ interface ILessonPopBottom {
 
   val priority: Int
 
+  val visibility: Boolean
+    get() = true
+
   @Composable
   fun Content(data: LessonItemData, dismiss: () -> Unit)
 }

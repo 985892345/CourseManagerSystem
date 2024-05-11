@@ -281,7 +281,7 @@ private fun showSettingDialog(requestContent: RequestContent<*>) {
     properties = DialogProperties(
       dismissOnClickOutside = false,
     ),
-    onClickPositionBtn = {
+    onClickPositiveBtn = {
       requestContent.cacheExpiration =
         cacheExpiration.value.toDouble().hours.inWholeMilliseconds
       hide()

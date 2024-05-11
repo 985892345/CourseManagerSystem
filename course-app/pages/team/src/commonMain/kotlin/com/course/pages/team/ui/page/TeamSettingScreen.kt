@@ -182,7 +182,7 @@ class TeamSettingScreen(
 
   private fun showDissolveDialog(coroutineScope: CoroutineScope) {
     showChooseDialog(
-      onClickPositionBtn = {
+      onClickPositiveBtn = {
         coroutineScope.launch(Dispatchers.IO) {
           runCatching {
             Source.api(TeamApi::class)
@@ -216,7 +216,7 @@ class TeamSettingScreen(
   private fun tryShowCloseDialog() {
     if (detailEditPage.hasChange()) {
       showChooseDialog(
-        onClickPositionBtn = {
+        onClickPositiveBtn = {
           navigator?.pop()
           hide()
         }

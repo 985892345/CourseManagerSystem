@@ -27,7 +27,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.ExpandMore
@@ -40,8 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -73,11 +70,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 @ObjectSerializable
 class TeamListScreen(
-  val backenable: Boolean,
+  val backable: Boolean,
 ) : BaseScreen() {
-
-  @Serializable(BooleanStateSerializable::class)
-  private val hasNewNotification = mutableStateOf(false)
 
   @Composable
   override fun ScreenContent() {
@@ -101,7 +95,7 @@ class TeamListScreen(
         color = LocalAppColors.current.tvLv2
       )
       val navigator = LocalNavigator.current
-      if (backenable) {
+      if (backable) {
         Box(
           modifier = Modifier.align(Alignment.CenterStart)
             .padding(start = 12.dp)
@@ -123,32 +117,6 @@ class TeamListScreen(
           .fillMaxWidth()
           .height(1.dp)
       )
-      val red = LocalAppColors.current.red
-      Box(
-        modifier = Modifier.align(Alignment.CenterEnd)
-          .padding(end = 12.dp)
-          .size(32.dp)
-          .clickableCardIndicator {
-            hasNewNotification.value = false
-            navigator?.push(TeamNotificationScreen())
-          }.drawWithContent {
-            drawContent()
-            if (hasNewNotification.value) {
-              val radius = 2.dp.toPx()
-              drawCircle(
-                color = red,
-                radius = radius,
-                center = Offset(size.width - radius - 8, radius + 8),
-              )
-            }
-          },
-        contentAlignment = Alignment.Center,
-      ) {
-        Icon(
-          imageVector = Icons.Outlined.Mail,
-          contentDescription = null,
-        )
-      }
     }
   }
 
@@ -229,12 +197,11 @@ class TeamListScreen(
           Source.api(TeamApi::class)
             .getTeamList()
             .getOrThrow()
-        }.tryThrowCancellationException().onSuccess { teamList ->
-          hasNewNotification.value = teamList.hasNewNotification
+        }.tryThrowCancellationException().onSuccess { list ->
           val adminList = mutableListOf<TeamBean>()
           val managerList = mutableListOf<TeamBean>()
           val memberList = mutableListOf<TeamBean>()
-          teamList.list.sortedBy { it.name }.forEach {
+          list.forEach {
             when (it.rank) {
               TeamRank.Administrator -> adminList.add(it)
               TeamRank.Manager -> managerList.add(it)

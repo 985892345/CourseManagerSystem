@@ -223,7 +223,7 @@ class ScheduleItemGroup(
       ColorArgbSerializable.colorToArgbStr(backgroundColor) != bean.backgroundColor
     ) {
       showChooseDialog(
-        onClickPositionBtn = {
+        onClickPositiveBtn = {
           dismiss.invoke()
           changeBean(bean)
           hide()

@@ -61,16 +61,20 @@ data class LessonItemData(
 
 fun CourseBean.toLessonItemBean(): List<LessonItemData> {
   return lessons.flatMap { lesson ->
-    lesson.weeks.map {
-      val startTime = LessonItemData.getStartMinuteTime(lesson.beginLesson)
-      val endTime = LessonItemData.getEndMinuteTime(lesson.beginLesson + lesson.length - 1)
-      LessonItemData(
-        week = it,
-        startTime = MinuteTimeDate(beginDate.plusWeeks(it - 1).plusDays(lesson.dayOfWeek.ordinal), startTime),
-        minuteDuration = startTime.minutesUntil(endTime),
-        lesson = lesson,
-        courseBean = this,
-      )
-    }
+    lesson.toLessonItemBean(this)
+  }
+}
+
+fun LessonBean.toLessonItemBean(courseBean: CourseBean): List<LessonItemData> {
+  return weeks.map {
+    val startTime = LessonItemData.getStartMinuteTime(beginLesson)
+    val endTime = LessonItemData.getEndMinuteTime(beginLesson + length - 1)
+    LessonItemData(
+      week = it,
+      startTime = MinuteTimeDate(courseBean.beginDate.plusWeeks(it - 1).plusDays(dayOfWeek.ordinal), startTime),
+      minuteDuration = startTime.minutesUntil(endTime),
+      lesson = this,
+      courseBean = courseBean,
+    )
   }
 }

@@ -42,4 +42,5 @@ data class LessonBean(
   val beginLesson: Int, // 开始节数，如：1、2 节课以 1 开始
   val length: Int, // 课的长度
   val showOptions: List<Pair<String, String>>, // 点击后课程详细的展示选项
+  val isNewlyAddedCourse: Boolean = false, // 是否为后期新增课程
 )

@@ -1,9 +1,9 @@
-package com.course.pages.team.ui.course
+package com.course.pages.team.ui.course.base
 
 import com.course.pages.course.api.item.lesson.LessonItemData
 import com.course.shared.time.Date
 import com.course.shared.time.MinuteTimeDate
-import com.course.source.app.team.TeamMember
+import com.course.source.app.account.AccountType
 
 /**
  * .
@@ -22,6 +22,12 @@ data class MemberCourseItemData(
     .minuteOfDay - startTime.minuteOfDay
 
   class Node(
-    val member: Set<TeamMember>,
+    val member: Set<Member>,
+  )
+
+  class Member(
+    val name: String,
+    val num: String,
+    val type: AccountType,
   )
 }

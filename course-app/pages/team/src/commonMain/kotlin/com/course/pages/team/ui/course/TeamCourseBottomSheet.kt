@@ -9,14 +9,17 @@ import com.course.components.utils.provider.Provider
 import com.course.components.utils.result.tryThrowCancellationException
 import com.course.components.utils.source.Source
 import com.course.components.utils.source.getOrThrow
-import com.course.pages.course.api.controller.CourseController
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.pages.schedule.api.IScheduleService
 import com.course.pages.schedule.api.item.edit.ScheduleColorData
+import com.course.pages.team.ui.course.base.BottomSheetCourseController
+import com.course.pages.team.ui.course.base.MemberCourseItemData
 import com.course.shared.time.Date
 import com.course.source.app.schedule.ScheduleBean
 import com.course.source.app.team.TeamApi
 import com.course.source.app.team.TeamBean
+import com.course.source.app.team.TeamMember
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,15 +29,20 @@ import kotlinx.coroutines.withContext
  * .
  *
  * @author 985892345
- * 2024/5/10 13:28
+ * 2024/5/8 14:10
  */
-class MemberCourseScheduleController(
-  val teamBean: TeamBean
-) : CourseController() {
+class TeamCourseBottomSheet(
+  val teamBean: TeamBean,
+  members: List<TeamMember>,
+) : BottomSheetCourseController(
+  members = members.map { MemberCourseItemData.Member(name = it.name, num = it.num, type = it.type) },
+  excludeCourseNum = emptySet(),
+  controllers = persistentListOf(),
+) {
 
   private val scheduleBeansMap = mutableMapOf<Int, ScheduleBean>()
 
-  private val scheduleController = Provider.impl(IScheduleService::class)
+  private val scheduleCourseItemGroup = Provider.impl(IScheduleService::class)
     .getScheduleCourseItemGroup(
       colorData = ScheduleColorData(Color(0xFF6D4C41), Color(0xFFD7CCC8)),
       onCreate = { createSchedule(it) },
@@ -45,7 +53,7 @@ class MemberCourseScheduleController(
   @Composable
   override fun Content(weekBeginDate: Date, timeline: CourseTimeline, scrollState: ScrollState) {
     super.Content(weekBeginDate, timeline, scrollState)
-    scheduleController.Content(weekBeginDate, timeline, scrollState)
+    scheduleCourseItemGroup.Content(weekBeginDate, timeline, scrollState)
   }
 
   override fun onComposeInit(coroutineScope: CoroutineScope) {
@@ -69,7 +77,7 @@ class MemberCourseScheduleController(
             backgroundColor = it.backgroundColor,
           )
         }
-        scheduleController.resetData(scheduleBeansMap.values)
+        scheduleCourseItemGroup.resetData(scheduleBeansMap.values)
       }
     }
   }
@@ -90,7 +98,7 @@ class MemberCourseScheduleController(
           ).getOrThrow()
       }.tryThrowCancellationException().onSuccess {
         scheduleBeansMap[it] = bean.copy(id = it)
-        scheduleController.resetData(scheduleBeansMap.values)
+        scheduleCourseItemGroup.resetData(scheduleBeansMap.values)
       }.onFailure {
         logg(it.stackTraceToString())
         toast("网络异常")
@@ -114,7 +122,7 @@ class MemberCourseScheduleController(
           ).getOrThrow()
       }.tryThrowCancellationException().onSuccess {
         scheduleBeansMap[bean.id] = bean
-        scheduleController.resetData(scheduleBeansMap.values)
+        scheduleCourseItemGroup.resetData(scheduleBeansMap.values)
       }.onFailure {
         toast("网络异常")
       }
@@ -129,7 +137,7 @@ class MemberCourseScheduleController(
           .getOrThrow()
       }.tryThrowCancellationException().onSuccess {
         scheduleBeansMap.remove(bean.id)
-        scheduleController.resetData(scheduleBeansMap.values)
+        scheduleCourseItemGroup.resetData(scheduleBeansMap.values)
       }.onFailure {
         toast("网络异常")
       }

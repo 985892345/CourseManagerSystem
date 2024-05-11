@@ -21,8 +21,8 @@ import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.zIndex
 import com.course.components.base.theme.LocalAppColors
+import com.course.components.utils.compose.derivedStateOfStructure
 import com.course.components.utils.compose.showBottomSheetWindow
 import com.course.components.utils.provider.Provider
 import com.course.pages.course.api.item.CardContent
@@ -50,6 +51,7 @@ import com.course.shared.time.MinuteTime
  * 2024/3/14 17:55
  */
 class LessonItemGroup(
+  val zIndex: Float = 10F,
   val onClickItem: ((LessonItemData) -> Unit)?,
 ) : ICourseItemGroup {
 
@@ -91,7 +93,7 @@ class LessonItemGroup(
           timeline = timeline,
           startTimeDate = it.startTime,
           minuteDuration = it.minuteDuration,
-        ).zIndex(10F)
+        ).zIndex(zIndex)
       ) {
         Box(modifier = Modifier.clickable {
           clickItem(it)
@@ -192,14 +194,12 @@ class LessonItemGroup(
               )
             }
           }
-          val popBottoms = remember {
-            Provider.getAllImpl(ILessonPopBottom::class).map {
-              it.value.get()
-            }.sortedBy {
+          val showPopBottoms by derivedStateOfStructure {
+            AllPopBottom.filter { it.visibility }.sortedBy {
               it.priority
             }
           }
-          if (popBottoms.isNotEmpty()) {
+          if (showPopBottoms.isNotEmpty()) {
             Row(
               modifier = Modifier.fillMaxWidth()
                 .padding(top = 16.dp)
@@ -207,13 +207,19 @@ class LessonItemGroup(
               verticalAlignment = Alignment.CenterVertically,
               horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-              popBottoms.fastForEach {
+              showPopBottoms.fastForEach {
                 it.Content(data, dismiss)
               }
             }
           }
         }
       }
+    }
+  }
+
+  companion object {
+    private val AllPopBottom = Provider.getAllImpl(ILessonPopBottom::class).map {
+      it.value.get()
     }
   }
 }

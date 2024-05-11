@@ -76,13 +76,19 @@ fun showBottomSheetWindow(
     }
   }
 
-  val dismiss: () -> Unit = { dragValueChannel.trySend(BottomSheetDragValue(offsetY, height)) }
-  (mainNavigator.lastItem as BaseScreen).showWindow { windowDismiss ->
+  var isDismissed = false
+  val dismiss: () -> Unit = {
+    isDismissed = true
+    dragValueChannel.trySend(BottomSheetDragValue(offsetY, height))
+  }
+  (mainNavigator.lastItem as BaseScreen).showWindow(dismissOnBackPress) { windowDismiss ->
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
     Box(modifier = Modifier.fillMaxSize().focusRequester(focusRequester).focusable().onKeyEvent {
       if (it.type == KeyEventType.KeyDown && it.key == Key.Escape && dismissOnBackPress(dismiss)) {
-        dismiss.invoke()
+        if (!isDismissed) {
+          dismiss.invoke()
+        }
         true
       } else false
     }) {

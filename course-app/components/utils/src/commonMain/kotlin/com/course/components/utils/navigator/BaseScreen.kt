@@ -40,8 +40,11 @@ abstract class BaseScreen : Screen {
   @Composable
   abstract fun ScreenContent()
 
-  fun showWindow(content: @Composable (dismiss: () -> Unit) -> Unit) {
-    windows.add(Window(content))
+  fun showWindow(
+    dismissOnBackPress: (dismiss: () -> Unit) -> Boolean = { true },
+    content: @Composable (dismiss: () -> Unit) -> Unit
+  ) {
+    windows.add(Window(dismissOnBackPress, content))
   }
 
   // 限制只允许在类全局变量注册
@@ -63,11 +66,16 @@ abstract class BaseScreen : Screen {
   }
 
   private inner class Window(
+    val dismissOnBackPress: (dismiss: () -> Unit) -> Boolean,
     val content: @Composable (dismiss: () -> Unit) -> Unit,
   ) {
 
     private val backHandle = BackHandle {
-      dismiss.invoke()
+      if (dismissOnBackPress(dismiss)) {
+        if (windows.contains(this)) {
+          dismiss.invoke()
+        }
+      }
     }
 
     val dismiss: () -> Unit = {

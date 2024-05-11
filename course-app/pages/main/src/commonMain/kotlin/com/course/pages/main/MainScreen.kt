@@ -23,6 +23,7 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
 import com.course.components.utils.compose.derivedStateOfStructure
+import com.course.components.utils.compose.rememberDerivedStateOfStructure
 import com.course.components.utils.navigator.BaseScreen
 import com.course.components.utils.provider.Provider
 import com.course.components.utils.serializable.ObjectSerializable
@@ -97,7 +98,11 @@ private fun ProMainScreenContent() {
           key(key) {
             Box(modifier = Modifier.weight(1F), contentAlignment = Alignment.Center) {
               mainPages.getValue(key).apply {
-                BottomAppBarItem {
+                BottomAppBarItem(
+                  selected = rememberDerivedStateOfStructure {
+                    pagerState.targetPage == index
+                  },
+                ) {
                   mainPages.forEach { if (it.key != key) it.value.onUnselected() }
                   coroutineScope.launch {
                     pagerState.animateScrollToPage(index)

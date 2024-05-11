@@ -8,6 +8,7 @@ import com.course.pages.course.api.item.lesson.LessonItemData
 import com.course.pages.course.model.StuCourseDetailController
 import com.course.pages.course.model.StuLessonRepository
 import com.course.pages.course.model.TeaCourseDetailController
+import com.course.pages.course.service.main.CourseMainPage
 import com.course.pages.course.ui.CourseContentCompose
 import com.course.source.app.account.AccountType
 import com.course.source.app.course.CourseBean
@@ -41,11 +42,15 @@ object CourseServiceImpl : ICourseService {
     }
   }
 
-  override suspend fun refreshCourseBean(num: String, type: AccountType, termIndex: Int): CourseBean {
+  override suspend fun requestCourseBean(num: String, type: AccountType, termIndex: Int): CourseBean {
     return when (type) {
-      AccountType.Student -> StuLessonRepository.refreshCourseBean(num, termIndex)
+      AccountType.Student -> StuLessonRepository.requestCourseBean(num, termIndex)
       AccountType.Teacher -> TODO()
     }
+  }
+
+  override fun forceRefreshMainCourse() {
+    CourseMainPage.forceRefreshCourse()
   }
 }
 

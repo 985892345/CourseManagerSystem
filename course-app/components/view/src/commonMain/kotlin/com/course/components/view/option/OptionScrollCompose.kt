@@ -2,11 +2,17 @@ package com.course.components.view.option
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.layout.LazyLayout
 import androidx.compose.foundation.lazy.layout.LazyLayoutItemProvider
+import androidx.compose.material.Card
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -17,6 +23,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -33,7 +40,7 @@ import kotlin.math.roundToInt
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun OptionScrollCompose(
+fun OptionSelectCompose(
   selectedLine: Animatable<Float, *>,
   options: ImmutableList<String>,
   modifier: Modifier = Modifier,
@@ -97,4 +104,39 @@ fun OptionScrollCompose(
       },
     ).clipToBounds(),
   )
+}
+
+
+
+@Composable
+fun OptionSelectBackground(
+  modifier: Modifier = Modifier,
+  content: @Composable () -> Unit,
+) {
+  Card(modifier) {
+    content()
+    Column(modifier = Modifier.fillMaxSize()) {
+      Spacer(
+        modifier = Modifier.weight(1F).fillMaxWidth().background(
+          brush = Brush.verticalGradient(
+            colors = listOf(
+              Color.Black.copy(alpha = 0.05F),
+              Color.Transparent,
+            )
+          )
+        )
+      )
+      Spacer(modifier = Modifier.weight(1F))
+      Spacer(
+        modifier = Modifier.weight(1F).fillMaxWidth().background(
+          brush = Brush.verticalGradient(
+            colors = listOf(
+              Color.Transparent,
+              Color.Black.copy(alpha = 0.05F),
+            )
+          )
+        )
+      )
+    }
+  }
 }

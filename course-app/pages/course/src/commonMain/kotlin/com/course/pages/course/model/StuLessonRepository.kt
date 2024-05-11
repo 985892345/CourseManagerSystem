@@ -34,7 +34,7 @@ object StuLessonRepository {
       if (termIndex < 0) {
         runCatching {
           // termIndex 为负数表示获取当前学期数据
-          refreshCourseBean(stuNum, termIndex)
+          requestCourseBean(stuNum, termIndex)
         }.tryThrowCancellationException().onSuccess {
           emit(it)
         }.onFailure {
@@ -59,7 +59,7 @@ object StuLessonRepository {
         val cache = getCourseBeanFromCache(stuNum, termIndex)
         if (cache != null) emit(cache)
         val new = runCatching {
-          refreshCourseBean(stuNum, termIndex)
+          requestCourseBean(stuNum, termIndex)
         }.tryThrowCancellationException().getOrNull()
         if (new != null && new != cache) emit(new)
       }
@@ -124,7 +124,7 @@ object StuLessonRepository {
   /**
    * @param termIndex 为负数时请求当前学期数据
    */
-  suspend fun refreshCourseBean(
+  suspend fun requestCourseBean(
     stuNum: String,
     termIndex: Int,
   ): CourseBean {

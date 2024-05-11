@@ -2,6 +2,7 @@ package com.course.pages.main.api
 
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.ui.unit.Dp
 
 /**
@@ -25,7 +26,8 @@ interface IMainPage {
 
   @Composable
   fun BoxScope.BottomAppBarItem(
-    selectedToPosition: () -> Unit
+    selected: State<Boolean>,
+    selectToPosition: () -> Unit
   )
 
   fun onUnselected() {}

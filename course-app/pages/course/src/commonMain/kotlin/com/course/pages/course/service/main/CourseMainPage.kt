@@ -6,13 +6,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.Icon
+import androidx.compose.material.LocalContentAlpha
+import androidx.compose.material.LocalContentColor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.course.components.base.account.Account
@@ -41,7 +45,7 @@ import org.jetbrains.compose.resources.painterResource
  * 2024/3/24 15:45
  */
 @ImplProvider(clazz = IMainPage::class, name = "course")
-class CourseMainPage : IMainPage {
+object CourseMainPage : IMainPage {
 
   override val priority: Int
     get() = 0
@@ -51,6 +55,12 @@ class CourseMainPage : IMainPage {
   private var oldCourseDetail: CourseDetail? = null
 
   private val forceRefreshCourse = mutableIntStateOf(0)
+
+  fun forceRefreshCourse() {
+    oldAccount = null
+    oldCourseDetail = null
+    forceRefreshCourse.value++
+  }
 
   @Composable
   override fun Content(appBarHeight: Dp) {
@@ -65,14 +75,12 @@ class CourseMainPage : IMainPage {
   }
 
   @Composable
-  override fun BoxScope.BottomAppBarItem(selectedToPosition: () -> Unit) {
+  override fun BoxScope.BottomAppBarItem(selected: State<Boolean>, selectToPosition: () -> Unit) {
     Box(
       modifier = Modifier.size(32.dp).combineClickableCardIndicator(
-        onClick = { selectedToPosition() },
+        onClick = { selectToPosition() },
         onLongClick = {
-          oldAccount = null
-          oldCourseDetail = null
-          forceRefreshCourse.value++
+          forceRefreshCourse()
         }
       ),
       contentAlignment = Alignment.Center,
@@ -81,6 +89,7 @@ class CourseMainPage : IMainPage {
         modifier = Modifier.size(22.dp),
         painter = painterResource(Res.drawable.ic_course_bottom_bar),
         contentDescription = null,
+        tint = if (selected.value) Color.Black else LocalContentColor.current.copy(alpha = LocalContentAlpha.current)
       )
     }
   }
@@ -113,10 +122,6 @@ private class EmptyAccountCourseDetail(
   override val startDate: Date = Date(1901, 1, 1)
   override val title: String = "未登陆"
   override val subtitle: String = ""
-
-  override fun getTerms(): List<Pair<Int, Date>> {
-    return emptyList()
-  }
 
   override fun onClickTitle() {
     toast("请在数据源中设置用户信息")

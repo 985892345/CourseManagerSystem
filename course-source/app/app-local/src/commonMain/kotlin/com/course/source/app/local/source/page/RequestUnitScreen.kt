@@ -187,7 +187,7 @@ private fun clickDelete(
   navigator: Navigator?
 ) {
   showChooseDialog(
-    onClickPositionBtn = {
+    onClickPositiveBtn = {
       requestUnit.delete()
       navigator?.pop()
       hide()

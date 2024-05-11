@@ -91,7 +91,9 @@ fun showAddScheduleBottomSheet(
               ),
             )
           } else {
-            SelectionContainer {
+            SelectionContainer(
+              modifier = Modifier.weight(1F),
+            ) {
               Text(
                 text = item.title.value,
                 style = TextStyle(

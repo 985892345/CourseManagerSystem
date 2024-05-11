@@ -7,13 +7,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.IntState
@@ -25,7 +23,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
@@ -37,7 +34,8 @@ import com.course.components.utils.compose.Wrapper
 import com.course.components.utils.compose.getValue
 import com.course.components.utils.compose.setValue
 import com.course.components.view.edit.EditTextCompose
-import com.course.components.view.option.OptionScrollCompose
+import com.course.components.view.option.OptionSelectBackground
+import com.course.components.view.option.OptionSelectCompose
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.pages.schedule.api.item.BottomSheetScheduleItem
 import com.course.shared.time.MinuteTime
@@ -323,7 +321,7 @@ private fun TimeSelectCompose(
       }
     }
   }
-  TimeSelectBackground(modifier) {
+  OptionSelectBackground(modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min)) {
     Row(
       verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -335,7 +333,7 @@ private fun TimeSelectCompose(
 
       @Composable
       fun TimelineOption() {
-        OptionScrollCompose(
+        OptionSelectCompose(
           modifier = Modifier.size(50.dp, 120.dp),
           selectedLine = selectedTimeline,
           options = timelineOptions,
@@ -372,7 +370,7 @@ private fun TimeSelectCompose(
 
       @Composable
       fun TimeOption(line: Animatable<Float, *>, lines: ImmutableList<String>) {
-        OptionScrollCompose(
+        OptionSelectCompose(
           modifier = Modifier.size(40.dp, 120.dp),
           selectedLine = line,
           options = lines,
@@ -423,39 +421,6 @@ private fun TimeSelectCompose(
       val minuteTargetValue = (it % 60 - timeline.delayMinuteTime.minute).toFloat()
       dragLine(hourTargetValue, minuteTargetValue)
     }.launchIn(this)
-  }
-}
-
-@Composable
-private fun TimeSelectBackground(
-  modifier: Modifier = Modifier,
-  content: @Composable () -> Unit,
-) {
-  Card(modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min)) {
-    content()
-    Column(modifier = Modifier.fillMaxSize()) {
-      Spacer(
-        modifier = Modifier.weight(1F).fillMaxWidth().background(
-          brush = Brush.verticalGradient(
-            colors = listOf(
-              Color.Black.copy(alpha = 0.05F),
-              Color.Transparent,
-            )
-          )
-        )
-      )
-      Spacer(modifier = Modifier.weight(1F))
-      Spacer(
-        modifier = Modifier.weight(1F).fillMaxWidth().background(
-          brush = Brush.verticalGradient(
-            colors = listOf(
-              Color.Transparent,
-              Color.Black.copy(alpha = 0.05F),
-            )
-          )
-        )
-      )
-    }
   }
 }
 

@@ -133,7 +133,7 @@ class AddTeamScreen : BaseScreen() {
   private fun tryShowCloseDialog() {
     if (detailEditPage.hasChange()) {
       showChooseDialog(
-        onClickPositionBtn = {
+        onClickPositiveBtn = {
           navigator?.pop()
           hide()
         }
