@@ -115,7 +115,7 @@ object WebViewSourceService : IDataSourceService {
   }
 
   @Serializable
-  private data class WebViewData(
+  internal data class WebViewData(
     val url: String?,
     val js: String?,
   )

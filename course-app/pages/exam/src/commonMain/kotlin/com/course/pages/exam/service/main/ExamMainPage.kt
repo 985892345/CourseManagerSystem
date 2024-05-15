@@ -39,8 +39,8 @@ class ExamMainPage : IMainPage {
     get() = 10
 
   override val visibility: Boolean
-//    get() = Account.observeAccount().value?.type == AccountType.Student
-    get() = false // tab 过多，暂时不显示
+    get() = Account.observeAccount().value?.type == AccountType.Student
+//    get() = false // tab 过多，暂时不显示
 
   @Composable
   override fun Content(appBarHeight: Dp) {

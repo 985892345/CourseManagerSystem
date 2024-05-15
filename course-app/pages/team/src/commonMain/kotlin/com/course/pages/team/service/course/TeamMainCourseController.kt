@@ -42,7 +42,7 @@ class TeamMainCourseController : IMainCourseController {
   override fun createCourseController(account: AccountBean?): List<CourseController> {
     return when (account?.type) {
       AccountType.Student, AccountType.Teacher -> listOf(TeamCourseController(account))
-      null -> TODO()
+      null -> emptyList()
     }
   }
 }

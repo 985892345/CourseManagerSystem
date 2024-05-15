@@ -15,13 +15,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,11 +29,14 @@ import com.course.components.utils.compose.derivedStateOfStructure
 import com.course.components.utils.compose.dialog.showChooseDialog
 import com.course.components.utils.compose.rememberDerivedStateOfStructure
 import com.course.components.utils.navigator.BaseScreen
+import com.course.components.utils.preferences.createSettings
 import com.course.components.utils.provider.Provider
 import com.course.components.utils.serializable.ObjectSerializable
 import com.course.pages.main.api.IMainPage
+import com.russhwolf.settings.boolean
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * .
@@ -48,10 +45,15 @@ import kotlinx.serialization.Serializable
  * @date 2024/2/29 22:38
  */
 
+private val settings = createSettings("Login")
+
+var sHasLogin: Boolean by settings.boolean("hasLogin", false)
+
 @Serializable
 @ObjectSerializable
 class MainScreen : BaseScreen() {
 
+  @Transient
   private val mainPages = Provider.getAllImpl(IMainPage::class)
     .mapValues { it.value.get() }
 
@@ -76,7 +78,7 @@ class MainScreen : BaseScreen() {
       HorizontalPager(
         state = pagerState,
         modifier = Modifier.fillMaxSize(),
-        beyondBoundsPageCount = 2,
+        beyondBoundsPageCount = 3,
         userScrollEnabled = false,
         key = { sortedPageKeys[it] }
       ) { page ->
@@ -145,6 +147,7 @@ class MainScreen : BaseScreen() {
   private fun showLogoutDialog(navigator: Navigator?, loginScreen: BaseScreen) {
     showChooseDialog(
       onClickPositiveBtn = {
+        sHasLogin = false
         navigator?.replaceAll(loginScreen)
         hide()
       }

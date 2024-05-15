@@ -7,9 +7,9 @@ import androidx.compose.runtime.State
 import androidx.compose.ui.layout.MeasureResult
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.unit.Constraints
-import com.course.shared.time.Date
 import com.course.components.view.calendar.scroll.HorizontalScrollState
 import com.course.components.view.calendar.scroll.VerticalScrollState
+import com.course.shared.time.Date
 import kotlin.math.roundToInt
 
 /**
@@ -30,9 +30,6 @@ internal class CalendarMonthMeasurePolicy(
   private val itemProvider: CalendarMonthItemProvider,
 ) : (LazyLayoutMeasureScope, Constraints) -> MeasureResult {
 
-  // 上一次布局时的水平移动距离
-  private var lastHorizontalScrollOffset = 0F
-
   override fun invoke(scope: LazyLayoutMeasureScope, constraints: Constraints): MeasureResult {
     showIndexSet.clear()
     itemConstraints = Constraints.fixed(0, 0)
@@ -48,8 +45,6 @@ internal class CalendarMonthMeasurePolicy(
       }
 
       is VerticalScrollState.Scrolling -> scope.verticalScrollingMeasure(constraints, vertical)
-    }.apply {
-      lastHorizontalScrollOffset = horizontalScrollState.value.offset
     }
   }
 

@@ -107,7 +107,7 @@ data class TeamMember(
 data class SearchMember(
   val name: String,
   val num: String,
-  val college: String,
+  val major: String,
   val type: AccountType,
 )
 

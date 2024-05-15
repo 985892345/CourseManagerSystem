@@ -1,27 +1,14 @@
 package com.course.pages.exam.ui.item
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -138,18 +125,52 @@ data class ExamListItem(
                 color = LocalAppColors.current.tvLv2,
               )
             }
-            Text(
+            Row(
               modifier = Modifier.padding(top = 6.dp),
-              text = getTime(),
-              fontSize = 14.sp,
-              color = Color(0xFF666666),
-            )
-            Text(
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              val (date, time) = getTime()
+              Text(
+                modifier = Modifier,
+                text = date,
+                fontSize = 14.sp,
+                color = Color(0xFF666666),
+              )
+              Spacer(
+                modifier = Modifier.align(Alignment.CenterVertically)
+                  .padding(horizontal = 6.dp)
+                  .size(3.dp, 3.dp)
+                  .background(Color(0xFF666666), CircleShape)
+              )
+              Text(
+                modifier = Modifier,
+                text = time,
+                fontSize = 14.sp,
+                color = Color(0xFF666666),
+              )
+            }
+            Row(
               modifier = Modifier.padding(top = 6.dp),
-              text = "${bean.classroom}⎜${bean.seat}",
-              fontSize = 14.sp,
-              color = Color(0xFF666666),
-            )
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Text(
+                modifier = Modifier,
+                text = bean.classroom,
+                fontSize = 14.sp,
+                color = Color(0xFF666666),
+              )
+              Spacer(
+                modifier = Modifier.padding(horizontal = 6.dp)
+                  .size(3.dp, 3.dp)
+                  .background(Color(0xFF666666), CircleShape)
+              )
+              Text(
+                modifier = Modifier,
+                text = bean.seat,
+                fontSize = 14.sp,
+                color = Color(0xFF666666),
+              )
+            }
           }
         }
       }
@@ -210,11 +231,11 @@ data class ExamListItem(
     }
   }
 
-  private fun getTime(): String {
+  private fun getTime(): Pair<String, String> {
     val date = "${bean.startTime.date.monthNumber}月${bean.startTime.date.dayOfMonth}号"
     val start = bean.startTime.time
     val end = start.plusMinutes(bean.minuteDuration)
-    return "$date⎜${start.hour}:${start.minute}-${end.hour}:${end.minute}"
+    return date to "${start.hour}:${start.minute}-${end.hour}:${end.minute}"
   }
 }
 

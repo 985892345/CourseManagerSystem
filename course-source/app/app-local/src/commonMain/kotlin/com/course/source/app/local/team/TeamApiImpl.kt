@@ -4,13 +4,7 @@ import com.course.shared.time.MinuteTimeDate
 import com.course.source.app.account.AccountType
 import com.course.source.app.response.ResponseWrapper
 import com.course.source.app.schedule.ScheduleRepeat
-import com.course.source.app.team.SearchMember
-import com.course.source.app.team.TeamApi
-import com.course.source.app.team.TeamBean
-import com.course.source.app.team.TeamDetail
-import com.course.source.app.team.TeamMember
-import com.course.source.app.team.TeamRank
-import com.course.source.app.team.TeamScheduleBean
+import com.course.source.app.team.*
 import com.g985892345.provider.api.annotation.ImplProvider
 import kotlinx.coroutines.delay
 
@@ -93,7 +87,7 @@ object TeamApiImpl : TeamApi {
             rank = TeamRank.Member,
             isConfirmed = true,
           ),
-        ) + List(70) {
+        )/* + List(70) {
           TeamMember(
             name = "$it",
             num = (2023211300 + it).toString(),
@@ -102,7 +96,7 @@ object TeamApiImpl : TeamApi {
             rank = TeamRank.Member,
             isConfirmed = true,
           )
-        }
+        }*/
       )
     )
   }
@@ -136,19 +130,19 @@ object TeamApiImpl : TeamApi {
         SearchMember(
           name = "甲",
           num = "111",
-          college = "软件工程",
+          major = "软件工程",
           type = AccountType.Student,
         ),
         SearchMember(
           name = "乙",
           num = "222",
-          college = "计算机科学与技术",
+          major = "计算机科学与技术",
           type = AccountType.Student,
         ),
         SearchMember(
           name = "丙",
           num = "333",
-          college = "通信",
+          major = "通信",
           type = AccountType.Student,
         ),
       )
@@ -174,10 +168,10 @@ object TeamApiImpl : TeamApi {
   private val teamScheduleBeans = mutableListOf(
     TeamScheduleBean(
       id = 1,
-      title = "123测试",
+      title = "团队日程测试",
       description = "123测试123测试123测试123测试123测试123测试123测试",
       startTime = MinuteTimeDate(2024, 5, 11, 8),
-      minuteDuration = 30,
+      minuteDuration = 120,
       repeat = ScheduleRepeat.Once,
       teamId = 4,
       teamName = "TeamName",

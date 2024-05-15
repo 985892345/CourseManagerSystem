@@ -127,4 +127,8 @@ object CourseApiImpl : SourceRequest(), CourseApi, IMainCourseController {
   override fun createCourseController(account: AccountBean?): List<CourseController> {
     return listOf(SourceCourseController(account))
   }
+
+  init {
+    CourseApiInjector.init(courseBeanRequest)
+  }
 }

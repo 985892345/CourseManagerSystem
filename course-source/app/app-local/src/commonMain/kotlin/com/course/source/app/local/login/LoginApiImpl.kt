@@ -1,5 +1,6 @@
 package com.course.source.app.local.login
 
+import com.course.source.app.local.account.AccountApiImpl
 import com.course.source.app.login.LoginApi
 import com.course.source.app.login.RefreshTokenBean
 import com.course.source.app.response.ResponseWrapper
@@ -14,10 +15,11 @@ import kotlin.random.Random
  * 2024/5/11 22:24
  */
 @ImplProvider
-class LoginApiImpl : LoginApi {
+object LoginApiImpl : LoginApi {
 
   override suspend fun login(username: String, password: String): ResponseWrapper<RefreshTokenBean> {
     delay(500 + Random.nextLong(300))
+    AccountApiImpl.injectorAccount(username)
     return ResponseWrapper.success(
       RefreshTokenBean("", "", 1000)
     )

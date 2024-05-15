@@ -1,10 +1,6 @@
 package com.course.source.app.local.request
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import com.course.components.utils.preferences.createSettings
 import com.course.components.utils.preferences.stringState
 import com.course.components.utils.provider.Provider
@@ -30,6 +26,7 @@ data class RequestUnit(
   val serviceKey: String,
 ) {
 
+  @Transient
   val mutex = Mutex()
 
   // 需要 by lazy，防止与 RequestContent 初始化构成冲突

@@ -7,6 +7,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.unit.Velocity
 import com.course.components.view.calendar.state.CalendarState
+import kotlin.math.abs
 
 /**
  * .
@@ -30,7 +31,7 @@ class CalendarNestedScroll(
     available: Offset,
     source: NestedScrollSource
   ): Offset {
-    if (consumed.y == 0F &&
+    if (abs(available.y) > abs(available.x) &&
       (state.fraction == 0F && available.y > 0F || state.fraction == 1F && available.y < 0F)
     ) {
       return Offset(x = 0F, y = scrollBy(available.y))

@@ -10,13 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -246,9 +240,9 @@ class PlaceholderScheduleItemGroup(
 
   override fun delete(coroutineScope: CoroutineScope, dismiss: () -> Unit) {
     coroutineScope.launch {
-      cancelShow()
       deleteCallback.invoke(this@PlaceholderScheduleItemGroup)
       dismiss.invoke()
+      cancelShow()
     }
   }
 

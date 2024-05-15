@@ -1,23 +1,11 @@
 package com.course.components.view.code
 
-import androidx.compose.animation.core.AnimationState
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.VectorConverter
-import androidx.compose.animation.core.animateTo
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.AwaitPointerEventScope
-import androidx.compose.ui.input.pointer.PointerEvent
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.PointerInputScope
-import androidx.compose.ui.input.pointer.SuspendingPointerInputModifierNode
-import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
-import androidx.compose.ui.node.DelegatingNode
-import androidx.compose.ui.node.ModifierNodeElement
-import androidx.compose.ui.node.ObserverModifierNode
-import androidx.compose.ui.node.currentValueOf
+import androidx.compose.ui.input.pointer.*
+import androidx.compose.ui.node.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
@@ -308,7 +296,7 @@ private class AnimatedMouseWheelScrollPhysics(
  * Returns true, if the value is too low for visible change in scroll (consumed delta, animation-based change, etc),
  * false otherwise
  */
-private inline fun Offset.isLowScrollingDelta(): Boolean = abs(x) < 0.5F && abs(y) < 0.5F
+private fun Offset.isLowScrollingDelta(): Boolean = abs(x) < 0.5F && abs(y) < 0.5F
 
 internal interface ScrollConfig {
 

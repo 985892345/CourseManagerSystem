@@ -3,17 +3,11 @@ package com.course.source.app.local.source.webview
 import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
-import android.webkit.JavascriptInterface
-import android.webkit.WebResourceError
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
 import androidx.annotation.Keep
 import com.course.components.utils.coroutine.AppCoroutineScope
 import com.g985892345.android.utils.context.appContext
 import kotlinx.coroutines.CancellableContinuation
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 
@@ -135,12 +129,14 @@ class AndroidWebViewUnit {
 
     @JavascriptInterface
     fun load(url: String) {
-      AppCoroutineScope.launch(Dispatchers.IO) {
+      AppCoroutineScope.launch {
         val html = requestByWebView(url, null, mPrintln!!)
-        mWebView.evaluateJavascript(
-          "window.dataBridge.onLoad(\'${html.replace("\n", "")}\');",
-          null
-        )
+        mainHandler.post {
+          mWebView.evaluateJavascript(
+            "window.dataBridge.onLoad(\'${html.replace("\n", "")}\');",
+            null
+          )
+        }
       }
     }
   }

@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import com.course.components.base.page.MainPageCompose
 import com.course.components.utils.Utils
 import com.course.pages.login.LoginScreen
+import com.course.pages.main.MainScreen
+import com.course.pages.main.sHasLogin
 import com.g985892345.provider.coursemanagersystem.courseapp.applications.pro.ProKtProviderInitializer
 
 /**
@@ -23,6 +25,6 @@ object ProApp {
   @Composable
   fun Content() {
     Utils.initCompose()
-    MainPageCompose(LoginScreen())
+    MainPageCompose(if (sHasLogin) MainScreen() else LoginScreen())
   }
 }
