@@ -20,8 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.course.components.base.theme.LocalAppColors
-import com.course.components.utils.time.Num2CN
 import com.course.shared.time.MinuteTimeDate
+import com.course.shared.utils.Num2CN
 import com.course.source.app.exam.ExamBean
 import com.course.source.app.exam.ExamTermBean
 import kotlinx.coroutines.delay
@@ -46,13 +46,11 @@ sealed interface IExamListItem {
   fun LazyItemScope.Content()
 
   companion object {
-    fun transform(termBeans: List<ExamTermBean>): List<IExamListItem> {
+    fun transform(termBeans: ExamTermBean): List<IExamListItem> {
       val result = mutableListOf<IExamListItem>()
-      termBeans.forEach { term ->
-        result.add(ExamTermListHeader(term))
-        term.exams.forEach {
-          result.add(ExamListItem(term, it))
-        }
+      result.add(ExamTermListHeader(termBeans))
+      termBeans.exams.sortedBy { it.startTime }.forEach {
+        result.add(ExamListItem(termBeans, it))
       }
       return result
     }
@@ -65,7 +63,7 @@ data class ExamListItem(
 ) : IExamListItem {
 
   override val key: String
-    get() = termBean.term + bean.courseNum
+    get() = bean.courseName + bean.examType
 
   @Composable
   override fun LazyItemScope.Content() {
@@ -112,14 +110,14 @@ data class ExamListItem(
             Row {
               Text(
                 modifier = Modifier.weight(1F),
-                text = bean.course,
+                text = bean.courseName,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = LocalAppColors.current.tvLv2,
               )
               Text(
                 modifier = Modifier.align(Alignment.CenterVertically),
-                text = bean.type,
+                text = bean.examType,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 color = LocalAppColors.current.tvLv2,
@@ -244,7 +242,7 @@ data class ExamTermListHeader(
 ) : IExamListItem {
 
   override val key: String
-    get() = termBean.term
+    get() = termBean.beginDate.toString()
 
   @Composable
   override fun LazyItemScope.Content() {

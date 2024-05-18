@@ -15,10 +15,13 @@ interface NotificationApi {
   suspend fun getNotifications(): ResponseWrapper<List<Notification>>
 
   suspend fun hasNewNotification(): ResponseWrapper<Boolean>
+
+  suspend fun decision(notificationId: Int, isAgree: Boolean): ResponseWrapper<Unit>
 }
 
 @Serializable
 data class Notification(
+  val notificationId: Int,
   val time: MinuteTimeDate,
   val content: NotificationContent,
 )
@@ -41,12 +44,31 @@ sealed interface NotificationContent {
   ) : NotificationContent
   @Serializable
   data class Decision(
-    val id: Int,
     val title: String,
     val content: String,
+    var btn: DecisionBtn,
+  ) : NotificationContent
+}
+
+@Serializable
+sealed interface DecisionBtn {
+  @Serializable
+  data class Pending(
     val positiveText: String,
     val negativeText: String,
     val negativeDialog: String,
-    var agreeOrNot: Boolean?,
-  ) : NotificationContent
+  ) : DecisionBtn
+  @Serializable
+  data class Agree(
+    val positiveText: String,
+  ) : DecisionBtn
+  @Serializable
+  data class Disagree(
+    val negativeText: String,
+  ) : DecisionBtn
+  @Serializable
+  data class Expired(
+    val text: String,
+  ) : DecisionBtn
 }
+

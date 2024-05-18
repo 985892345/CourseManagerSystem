@@ -14,10 +14,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.navigator.LocalNavigator
+import com.course.components.base.account.Account
 import com.course.components.base.theme.LocalAppColors
 import com.course.pages.course.api.item.lesson.ILessonPopBottom
 import com.course.pages.course.api.item.lesson.LessonItemData
 import com.course.pages.team.ui.page.ClassContentScreen
+import com.course.source.app.account.AccountType
 import com.g985892345.provider.api.annotation.ImplProvider
 
 /**
@@ -33,8 +35,7 @@ class ClassLessonPopBottom : ILessonPopBottom {
     get() = 10
 
   override val visibility: Boolean
-//    get() = Account.value?.type == AccountType.Teacher
-    get() = true
+    get() = Account.value?.type == AccountType.Teacher
 
   @Composable
   override fun Content(data: LessonItemData, dismiss: () -> Unit) {

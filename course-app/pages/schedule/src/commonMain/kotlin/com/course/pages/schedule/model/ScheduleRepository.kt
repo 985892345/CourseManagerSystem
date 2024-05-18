@@ -7,6 +7,7 @@ import com.course.components.utils.source.Source
 import com.course.components.utils.source.getOrThrow
 import com.course.components.utils.source.onSuccess
 import com.course.shared.time.MinuteTimeDate
+import com.course.source.app.schedule.LocalScheduleBody
 import com.course.source.app.schedule.ScheduleApi
 import com.course.source.app.schedule.ScheduleBean
 import com.course.source.app.schedule.ScheduleRepeat
@@ -14,11 +15,7 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
@@ -89,9 +86,11 @@ object ScheduleRepository {
     return withContext(Dispatchers.IO) {
       Source.api(ScheduleApi::class)
         .getSchedule(
-          addBeans = ScheduleLocalAddRepository.getAddSchedule(num),
-          updateBeans = ScheduleLocalUpdateRepository.getUpdateSchedule(num),
-          removeIds = ScheduleLocalRemoveRepository.getRemoveScheduleIds(num),
+          LocalScheduleBody(
+            addBeans = ScheduleLocalAddRepository.getAddSchedule(num),
+            updateBeans = ScheduleLocalUpdateRepository.getUpdateSchedule(num),
+            removeIds = ScheduleLocalRemoveRepository.getRemoveScheduleIds(num),
+          )
         ).onSuccess {
           ScheduleLocalAddRepository.clearAddSchedule(num)
           ScheduleLocalUpdateRepository.clearUpdateSchedule(num)
@@ -113,44 +112,31 @@ object ScheduleRepository {
   ) {
     AppCoroutineScope.launch(Dispatchers.IO) {
       val num = Account.value?.num ?: return@launch
+      val bean = ScheduleBean(
+        id = 0,
+        title = title,
+        description = description,
+        startTime = startTime,
+        minuteDuration = minuteDuration,
+        repeat = repeat,
+        textColor = textColor,
+        backgroundColor = backgroundColor,
+      )
       val result = runCatching {
         Source.api(ScheduleApi::class)
-          .addSchedule(
-            title = title,
-            description = description,
-            startTime = startTime,
-            minuteDuration = minuteDuration,
-            repeat = repeat,
-            textColor = textColor,
-            backgroundColor = backgroundColor,
-          )
+          .addSchedule(bean)
           .getOrThrow()
       }.map {
-        ScheduleBean(
-          id = it,
-          title = title,
-          description = description,
-          startTime = startTime,
-          minuteDuration = minuteDuration,
-          repeat = repeat,
-          textColor = textColor,
-          backgroundColor = backgroundColor,
-        )
+        bean.copy(id = it)
       }
-      val bean = result.getOrElse {
+      val newBean = result.getOrElse {
         ScheduleLocalAddRepository.addSchedule(
           num = num,
-          title = title,
-          description = description,
-          startTime = startTime,
-          minuteDuration = minuteDuration,
-          repeat = repeat,
-          textColor = textColor,
-          backgroundColor = backgroundColor,
+          bean = bean,
         )
       }
       getScheduleBeansFlow(num).let { flow ->
-        flow.value = flow.value.add(bean)
+        flow.value = flow.value.add(newBean)
       }
     }
   }

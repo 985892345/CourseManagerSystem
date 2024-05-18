@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
+import com.course.components.base.ui.toast.toast
 import com.course.components.utils.compose.clickableCardIndicator
 import com.course.components.utils.compose.derivedStateOfStructure
 import com.course.components.utils.compose.dialog.showChooseDialog
@@ -31,9 +32,15 @@ import com.course.components.utils.compose.rememberDerivedStateOfStructure
 import com.course.components.utils.navigator.BaseScreen
 import com.course.components.utils.preferences.createSettings
 import com.course.components.utils.provider.Provider
+import com.course.components.utils.result.tryThrowCancellationException
 import com.course.components.utils.serializable.ObjectSerializable
+import com.course.components.utils.source.Source
+import com.course.components.utils.source.getOrThrow
 import com.course.pages.main.api.IMainPage
+import com.course.source.app.account.AccountApi
 import com.russhwolf.settings.boolean
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -129,11 +136,12 @@ class MainScreen : BaseScreen() {
             Provider.implOrNull(BaseScreen::class, "login")
           }
           if (loginScreen != null) {
+            val coroutineScope = rememberCoroutineScope()
             Icon(
               modifier = Modifier.align(Alignment.TopEnd)
                 .size(22.dp)
                 .clickableCardIndicator(4.dp) {
-                  showLogoutDialog(navigator, loginScreen)
+                  showLogoutDialog(coroutineScope, navigator, loginScreen)
                 }.padding(4.dp),
               imageVector = Icons.AutoMirrored.Rounded.Logout,
               contentDescription = null,
@@ -144,12 +152,26 @@ class MainScreen : BaseScreen() {
     }
   }
 
-  private fun showLogoutDialog(navigator: Navigator?, loginScreen: BaseScreen) {
+  private fun showLogoutDialog(
+    coroutineScope: CoroutineScope,
+    navigator: Navigator?,
+    loginScreen: BaseScreen,
+  ) {
     showChooseDialog(
       onClickPositiveBtn = {
-        sHasLogin = false
-        navigator?.replaceAll(loginScreen)
-        hide()
+        coroutineScope.launch(Dispatchers.IO) {
+          runCatching {
+            Source.api(AccountApi::class)
+              .logout()
+              .getOrThrow()
+          }.tryThrowCancellationException().onSuccess {
+            sHasLogin = false
+            navigator?.replaceAll(loginScreen)
+            hide()
+          }.onFailure {
+            toast("退出登录失败")
+          }
+        }
       }
     ) {
       Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

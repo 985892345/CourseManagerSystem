@@ -34,16 +34,18 @@ import com.course.components.base.account.Account
 import com.course.components.base.theme.LocalAppColors
 import com.course.components.base.ui.toast.toast
 import com.course.components.utils.compose.clickableCardIndicator
+import com.course.components.utils.debug.logg
 import com.course.components.utils.navigator.BaseScreen
 import com.course.components.utils.result.tryThrowCancellationException
 import com.course.components.utils.serializable.ObjectSerializable
 import com.course.components.utils.serializable.StringStateSerializable
 import com.course.components.utils.source.ResponseException
 import com.course.components.utils.source.Source
-import com.course.components.utils.source.getOrThrow
+import com.course.components.utils.source.onFailure
+import com.course.components.utils.source.onSuccess
 import com.course.pages.main.MainScreen
 import com.course.pages.main.sHasLogin
-import com.course.source.app.login.LoginApi
+import com.course.source.app.account.AccountApi
 import com.g985892345.provider.api.annotation.ImplProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -244,21 +246,26 @@ class LoginScreen : BaseScreen() {
   ) {
     coroutineScope.launch(Dispatchers.IO) {
       runCatching {
-        Source.api(LoginApi::class)
+        Source.api(AccountApi::class)
           .login(username.value, password.value)
-          .getOrThrow()
-      }.tryThrowCancellationException().onSuccess {
-        if (!Account.refreshAccount()) {
-          toast("用户信息刷新失败")
-        } else {
-          sHasLogin = true
+      }.tryThrowCancellationException().onSuccess { wrapper ->
+        wrapper.onSuccess {
+          if (!Account.refreshAccount()) {
+            toast("用户信息刷新失败")
+          } else {
+            sHasLogin = true
+          }
+          onSuccess.invoke()
+        }.onFailure {
+          onFailure.invoke()
+          toast(it.info)
         }
-        onSuccess.invoke()
       }.onFailure {
         onFailure.invoke()
         if (it is ResponseException) {
           toast(it.response.info)
         } else {
+          logg(it.stackTraceToString())
           toast("网络异常")
         }
       }

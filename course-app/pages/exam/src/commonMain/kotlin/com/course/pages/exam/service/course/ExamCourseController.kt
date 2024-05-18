@@ -1,18 +1,7 @@
 package com.course.pages.exam.service.course
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Text
@@ -83,8 +72,8 @@ class ExamCourseController(
           .flowOn(Dispatchers.IO)
           .collect { termBean ->
             resetData(
-              termBean.flatMap { term ->
-                term.exams.map { ExamItemData(account, term, it) }
+              termBean.exams.map {
+                ExamItemData(account, termBean, it)
               }
             )
           }
@@ -136,7 +125,7 @@ class ExamCourseController(
           clickItem()
         }) {
           TopBottomText(
-            top = bean.course,
+            top = bean.courseName,
             topColor = Color(0xFF904EF5),
             bottom = bean.classroom,
             bottomColor = Color(0xFF904EF5),
@@ -176,7 +165,7 @@ class ExamCourseController(
               )
               Text(
                 modifier = Modifier.align(Alignment.CenterVertically).basicMarquee(),
-                text = bean.course,
+                text = bean.courseName,
                 fontSize = 22.sp,
                 color = LocalAppColors.current.tvLv2,
                 fontWeight = FontWeight.Bold,
@@ -221,7 +210,7 @@ class ExamCourseController(
               )
               Text(
                 modifier = Modifier.align(Alignment.TopEnd),
-                text = bean.type,
+                text = bean.examType,
                 fontSize = 15.sp,
                 color = LocalAppColors.current.tvLv2,
                 fontWeight = FontWeight.Bold,

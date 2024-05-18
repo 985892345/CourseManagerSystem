@@ -1,30 +1,10 @@
 package com.course.pages.team.ui.course
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -33,14 +13,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -53,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.zIndex
+import com.course.components.base.account.Account
 import com.course.components.base.theme.LocalAppColors
 import com.course.components.base.ui.toast.toast
 import com.course.components.utils.compose.clickableCardIndicator
@@ -64,6 +38,7 @@ import com.course.components.utils.provider.Provider
 import com.course.components.utils.result.tryThrowCancellationException
 import com.course.components.utils.source.Source
 import com.course.components.utils.source.getOrThrow
+import com.course.components.utils.source.onFailure
 import com.course.components.view.edit.EditTextCompose
 import com.course.components.view.option.OptionSelectBackground
 import com.course.components.view.option.OptionSelectCompose
@@ -80,8 +55,8 @@ import com.course.pages.team.ui.course.base.MemberCourseItemData
 import com.course.shared.time.Date
 import com.course.shared.time.MinuteTime
 import com.course.shared.time.MinuteTimeDate
-import com.course.source.app.team.ClassApi
-import com.course.source.app.team.ClassMember
+import com.course.source.app.account.AccountType
+import com.course.source.app.course.*
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
@@ -98,13 +73,13 @@ import kotlinx.datetime.DayOfWeek
  */
 class ClassCourseBottomSheet(
   val data: LessonItemData,
-  members: List<ClassMember>
+  members: List<ClassMember>,
 ) : BottomSheetCourseController(
   members = members.map {
     MemberCourseItemData.Member(
       name = it.name,
       num = it.num,
-      type = it.type
+      type = AccountType.Student,
     )
   },
   excludeCourseNum = setOf(data.lesson.courseNum),
@@ -134,12 +109,11 @@ class ClassCourseBottomSheet(
     Spacer(modifier = Modifier.fillMaxSize().zIndex(-99999F).pointerInput(Unit) {
       detectTapGestures {
         val beginLesson = getBeginLesson(timeline, it, size.height)
-        logg("beginLesson = $beginLesson")
         if (beginLesson > 0) {
           addLesson.value = AddLesson(
             date = weekBeginDate.plusDays((it.x / (size.width / 7)).toInt()),
             beginLesson = beginLesson,
-            length = data.lesson.length,
+            length = data.period.length,
           )
         } else {
           addLesson.value = null
@@ -161,14 +135,15 @@ class ClassCourseBottomSheet(
       if (offset.y in sumHeight..sumHeight + height) {
         if (it is LessonTimelineData) {
           val touch = it.lesson
-          if (data.lesson.length == 4) {
+          val length = data.period.length
+          if (length == 4) {
             return (touch - 1) / 4 * 4 + 1
-          } else if (data.lesson.length == 3) {
+          } else if (length == 3) {
             return (touch - 1) / 4 * 4 + 1 + if (touch % 4 == 0) 1 else 0
-          } else if (data.lesson.length == 2) {
+          } else if (length == 2) {
             val start = (touch - 1) / 4 * 4 + 1
             return if (touch <= start + 1) start else start + 2
-          } else if (data.lesson.length == 1) {
+          } else if (length == 1) {
             return touch
           } else return -1
         }
@@ -229,7 +204,7 @@ class ClassCourseBottomSheet(
       Column(modifier = Modifier.weight(1F)) {
         Text(
           modifier = Modifier.basicMarquee(),
-          text = data.lesson.course,
+          text = data.lesson.courseName,
           fontSize = 22.sp,
           color = LocalAppColors.current.tvLv2,
           fontWeight = FontWeight.Bold,
@@ -250,13 +225,13 @@ class ClassCourseBottomSheet(
           )
           Text(
             modifier = Modifier,
-            text = data.lesson.teacher,
+            text = data.period.teacher,
             fontSize = 13.sp,
             color = LocalAppColors.current.tvLv2,
           )
         }
       }
-      if (lesson.lesson.isNewlyAddedCourse) {
+      if (lesson.periodDate.isNewly) {
         val coroutineScope = rememberCoroutineScope()
         Box(
           modifier = Modifier.padding(start = 8.dp)
@@ -453,13 +428,10 @@ class ClassCourseBottomSheet(
       onClickPositiveBtn = {
         coroutineScope.launch(Dispatchers.IO) {
           runCatching {
-            Source.api(ClassApi::class)
-              .deleteCourse(
-                courseNum = data.lesson.courseNum,
-                week = lesson.week,
-                dayOfWeek = lesson.lesson.dayOfWeek,
-                beginLesson = lesson.lesson.beginLesson,
-              ).getOrThrow()
+            Source.api(CourseApi::class)
+              .deleteCourse(data.periodDate.classPlanId)
+              .onFailure { logg(it.info) }
+              .getOrThrow()
           }.tryThrowCancellationException().onSuccess {
             toast("删除成功")
             nowLessonList = nowLessonList.remove(lesson)
@@ -510,11 +482,10 @@ class ClassCourseBottomSheet(
   ) {
     coroutineScope.launch(Dispatchers.IO) {
       runCatching {
-        Source.api(ClassApi::class)
+        Source.api(CourseApi::class)
           .createCourse(
-            courseNum = editor.lesson.lesson.courseNum,
-            week = editor.week,
-            dayOfWeek = editor.dayOfWeek,
+            classNum = editor.lesson.lesson.classNum,
+            date = editor.date.toString(),
             beginLesson = editor.beginLesson,
             length = editor.length,
             classroom = editor.editClassroom.value,
@@ -524,7 +495,7 @@ class ClassCourseBottomSheet(
         createLessons.remove(editor.lesson)
         nowLessonList = nowLessonList.builder().apply {
           remove(editor.lesson)
-          add(editor.createLessonItemDate(true))
+          add(editor.createLessonItemDate(it, true))
         }.build()
         lessonItemGroup.resetData(nowLessonList)
         Provider.impl(ICourseService::class).forceRefreshMainCourse()
@@ -546,16 +517,10 @@ class ClassCourseBottomSheet(
     }
     coroutineScope.launch(Dispatchers.IO) {
       runCatching {
-        Source.api(ClassApi::class)
+        Source.api(CourseApi::class)
           .changeCourse(
-            courseNum = editor.lesson.lesson.courseNum,
-            oldWeek = editor.lesson.week,
-            oldDayOfWeek = editor.lesson.lesson.dayOfWeek,
-            oldBeginLesson = editor.lesson.lesson.beginLesson,
-            oldLength = editor.lesson.lesson.length,
-            oldClassroom = editor.lesson.lesson.classroom,
-            newWeek = editor.week,
-            newDayOfWeek = editor.dayOfWeek,
+            classPlanId = editor.lesson.periodDate.classPlanId,
+            newDate = editor.date.toString(),
             newBeginLesson = editor.beginLesson,
             newLength = editor.length,
             newClassroom = editor.editClassroom.value,
@@ -564,7 +529,7 @@ class ClassCourseBottomSheet(
         toast("修改成功")
         nowLessonList = nowLessonList.builder().apply {
           remove(editor.lesson)
-          add(editor.createLessonItemDate(editor.lesson.lesson.isNewlyAddedCourse))
+          add(editor.createLessonItemDate(editor.lesson.periodDate.classPlanId, editor.lesson.periodDate.isNewly))
         }.build()
         lessonItemGroup.resetData(nowLessonList)
         Provider.impl(ICourseService::class).forceRefreshMainCourse()
@@ -578,7 +543,7 @@ class ClassCourseBottomSheet(
   private inner class CourseEditor(
     val lesson: LessonItemData
   ) {
-    val editClassroom = mutableStateOf(lesson.lesson.classroom)
+    val editClassroom = mutableStateOf(lesson.period.classroom)
     val weekLines = List(20) { "${it + 1}" }.toImmutableList()
     val weekLine = Animatable(
       initialValue = (lesson.week - 1).toFloat()
@@ -587,28 +552,30 @@ class ClassCourseBottomSheet(
 
     val dayOfWeekLines = persistentListOf("一", "二", "三", "四", "五", "六", "日")
     val dayOfWeekLine = Animatable(
-      initialValue = lesson.lesson.dayOfWeek.ordinal.toFloat()
+      initialValue = lesson.periodDate.date.dayOfWeek.ordinal.toFloat()
     )
     val dayOfWeek: DayOfWeek get() = DayOfWeek.entries[dayOfWeekLine.value.toInt()]
 
-    val lessonLines = List(12) { "${it + 1}" }.toImmutableList()
+    val lessonLines = List(12 - lesson.period.length + 1) { "${it + 1}" }.toImmutableList()
     val beginLessonLine = Animatable(
-      initialValue = (lesson.lesson.beginLesson - 1).toFloat()
+      initialValue = (lesson.period.beginLesson - 1).toFloat()
     )
     val beginLesson: Int get() = beginLessonLine.value.toInt() + 1
 
     val finalLessonLine = Animatable(
-      initialValue = (lesson.lesson.beginLesson + lesson.lesson.length - 2).toFloat()
+      initialValue = (lesson.period.beginLesson + lesson.period.length - 2).toFloat()
     )
     val finalLesson: Int get() = finalLessonLine.value.toInt() + 1
     val length: Int get() = finalLesson - beginLesson + 1
 
+    val date: Date
+      get() = lesson.courseBean.beginDate.plusWeeks(week - 1).plusDays(dayOfWeek.ordinal)
+
     fun hasChanged(): Boolean {
       return lesson.week != week ||
-          lesson.lesson.dayOfWeek != dayOfWeek ||
-          lesson.lesson.beginLesson != beginLesson ||
-          lesson.lesson.length != length ||
-          lesson.lesson.classroom != editClassroom.value
+          lesson.periodDate.date.dayOfWeek != dayOfWeek ||
+          lesson.period.beginLesson != beginLesson ||
+          lesson.period.classroom != editClassroom.value
     }
 
     fun isValid(): Boolean {
@@ -623,9 +590,9 @@ class ClassCourseBottomSheet(
           toast("教室不能为空")
         } else {
           for (it in nowLessonList) {
-            if (it.week == week && it.lesson.dayOfWeek == dayOfWeek && it !== lesson) {
-              val s1 = it.lesson.beginLesson
-              val e1 = s1 + it.lesson.length - 1
+            if (it.week == week && it.periodDate.date.dayOfWeek == dayOfWeek && it !== lesson) {
+              val s1 = it.period.beginLesson
+              val e1 = s1 + it.period.length - 1
               if (s1 in beginLesson..finalLesson ||
                 e1 in beginLesson..finalLesson ||
                 beginLesson in s1..e1 ||
@@ -642,15 +609,14 @@ class ClassCourseBottomSheet(
       return false
     }
 
-    fun createLessonItemDate(isNewlyAddedCourse: Boolean): LessonItemData {
-      return lesson.lesson.copy(
-        weeks = listOf(week),
-        dayOfWeek = dayOfWeek,
-        classroom = editClassroom.value,
+    fun createLessonItemDate(periodId: Int, isNewlyAdded: Boolean): LessonItemData {
+      return LessonPeriod(
         beginLesson = beginLesson,
         length = length,
-        isNewlyAddedCourse = isNewlyAddedCourse,
-      ).toLessonItemBean(lesson.courseBean).first()
+        classroom = editClassroom.value,
+        teacher = lesson.period.teacher,
+        dateList = listOf(LessonPeriodDate(periodId, date, isNewlyAdded))
+      ).toLessonItemBean(lesson.courseBean, lesson.lesson).first()
     }
   }
 
@@ -660,9 +626,9 @@ class ClassCourseBottomSheet(
     val length: Int,
   ) {
     val startTime: MinuteTime
-      get() = LessonItemData.getStartMinuteTime(beginLesson)
+      get() = getStartMinuteTime(beginLesson)
     val minuteDuration: Int
-      get() = LessonItemData.getEndMinuteTime(beginLesson + length - 1).minuteOfDay - startTime.minuteOfDay
+      get() = getEndMinuteTime(beginLesson + length - 1).minuteOfDay - startTime.minuteOfDay
 
     @Composable
     fun Content(weekBeginDate: Date, timeline: CourseTimeline) {
@@ -682,13 +648,13 @@ class ClassCourseBottomSheet(
         var isClicked by remember { mutableStateOf(false) }
         Box(modifier = Modifier.clickable {
           isClicked = true
-          val lessonData = data.lesson.copy(
-            weeks = listOf(data.courseBean.beginDate.daysUntil(date) / 7 + 1),
-            dayOfWeek = date.dayOfWeek,
+          val lessonData = LessonPeriod(
             beginLesson = beginLesson,
             length = length,
-            isNewlyAddedCourse = true,
-          ).toLessonItemBean(data.courseBean).first()
+            classroom = data.period.classroom,
+            teacher = Account.value?.name ?: "",
+            dateList = listOf(LessonPeriodDate(classPlanId = 0, date = date, isNewly = true)),
+          ).toLessonItemBean(data.courseBean, data.lesson).first()
           nowLessonList = nowLessonList.add(lessonData)
           createLessons.add(lessonData)
           lessonItemGroup.resetData(nowLessonList)
@@ -705,9 +671,9 @@ class ClassCourseBottomSheet(
             exit = fadeOut() + scaleOut(),
           ) {
             TopBottomText(
-              top = data.lesson.course,
+              top = data.lesson.courseName,
               topColor = textColor,
-              bottom = data.lesson.classroomSimplify,
+              bottom = data.period.classroom,
               bottomColor = textColor,
             )
           }

@@ -40,14 +40,15 @@ class ExamMainPage : IMainPage {
 
   override val visibility: Boolean
     get() = Account.observeAccount().value?.type == AccountType.Student
-//    get() = false // tab 过多，暂时不显示
 
   @Composable
   override fun Content(appBarHeight: Dp) {
-    val account by Account.observeAccount().collectAsState()
-    account?.let {
-      if (it.type == AccountType.Student) {
-        ExamScreen(it.num, false).Content()
+    Box(modifier = Modifier.padding(bottom = appBarHeight)) {
+      val account by Account.observeAccount().collectAsState()
+      account?.let {
+        if (it.type == AccountType.Student) {
+          ExamScreen(it.num, false).Content()
+        }
       }
     }
   }

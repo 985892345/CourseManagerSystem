@@ -10,6 +10,8 @@ import com.course.pages.course.api.controller.CourseController
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.shared.time.Date
 import com.course.source.app.account.AccountBean
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -30,27 +32,22 @@ class SourceCourseController(
 
   private var requestJob: Job? = null
 
-  override fun onChangedTermIndex(termIndex: Int, startDate: Date) {
-    super.onChangedTermIndex(termIndex, startDate)
-    if (termIndex < 0 && requestJob == null) {
-      // 只请求当前学期的数据
-      requestJob = coroutineScope.launch {
-        runCatching {
-          CourseApiImpl.courseRequestGroup.request(
-            false,
-            true,
-            account?.num ?: "",
-            startDate.toString(),
-          )
-        }.onFailure {
-          requestJob = null
-        }.tryThrowCancellationException().onSuccess { map ->
-          resetData(
-            map.flatMap { entry ->
-              entry.value.map { it.copy(id = "${entry.key.key}-${it.id}") }
-            }
-          )
-        }
+  override fun onComposeInit(coroutineScope: CoroutineScope) {
+    coroutineScope.launch(Dispatchers.IO) {
+      runCatching {
+        CourseApiImpl.courseRequestGroup.request(
+          false,
+          true,
+          account?.num ?: "",
+        )
+      }.onFailure {
+        requestJob = null
+      }.tryThrowCancellationException().onSuccess { map ->
+        resetData(
+          map.flatMap { entry ->
+            entry.value.map { it.copy(id = "${entry.key.key}-${it.id}") }
+          }
+        )
       }
     }
   }

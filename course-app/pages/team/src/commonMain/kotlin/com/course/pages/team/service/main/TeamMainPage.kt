@@ -34,7 +34,10 @@ class TeamMainPage : IMainPage {
   override val priority: Int
     get() = 100
 
-  private val teamListScreen = TeamListScreen(backable = false)
+  override val visibility: Boolean
+    get() = false
+
+  private val teamListScreen by lazy { TeamListScreen(backable = false) }
 
   @Composable
   override fun Content(appBarHeight: Dp) {

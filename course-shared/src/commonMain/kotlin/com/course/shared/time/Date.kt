@@ -1,9 +1,6 @@
 package com.course.shared.time
 
-import kotlinx.datetime.DayOfWeek
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.Month
-import kotlinx.datetime.isoDayNumber
+import kotlinx.datetime.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -163,8 +160,12 @@ value class Date(
   }
 
   override fun toString(): String {
-    return "${year}-" +
-        "${monthNumber.toString().padStart(2, '0')}-" +
+    return "${year}-" + toStringMonthDay()
+
+  }
+
+  fun toStringMonthDay(): String {
+    return "${monthNumber.toString().padStart(2, '0')}-" +
         dayOfMonth.toString().padStart(2, '0')
   }
 
@@ -256,6 +257,10 @@ value class Date(
 
       return Date(yearEst, month, dom)
     }
+
+    fun now(): Date {
+      return Clock.System.todayIn(TimeZone.currentSystemDefault()).toDate()
+    }
   }
 
   override fun compareTo(other: Date): Int {
@@ -278,4 +283,17 @@ object DateSerializer : KSerializer<Date> {
     .let { Date(it[0].toInt(), it[1].toInt(), it[2].toInt()) }
 
   fun serialize(date: Date): String = date.toString()
+}
+
+
+fun DayOfWeek.toChinese(prefix: String = "周"): String {
+  return prefix + when (this) {
+    java.time.DayOfWeek.MONDAY -> "一"
+    java.time.DayOfWeek.TUESDAY -> "二"
+    java.time.DayOfWeek.WEDNESDAY -> "三"
+    java.time.DayOfWeek.THURSDAY -> "四"
+    java.time.DayOfWeek.FRIDAY -> "五"
+    java.time.DayOfWeek.SATURDAY -> "六"
+    java.time.DayOfWeek.SUNDAY -> "日"
+  }
 }

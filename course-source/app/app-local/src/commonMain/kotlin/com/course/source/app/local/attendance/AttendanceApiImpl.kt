@@ -36,19 +36,19 @@ object AttendanceApiImpl : AttendanceApi {
           week = 1,
           time = MinuteTimeDate(2023, 5, 6, 10),
           status = AttendanceStatus.Attendance,
-          classroomSimplify = "1111"
+          classroom = "1111"
         ),
         AttendanceHistory(
           week = 2,
           time = MinuteTimeDate(2023, 5, 13, 10),
           status = AttendanceStatus.Attendance,
-          classroomSimplify = "2222"
+          classroom = "2222"
         ),
         AttendanceHistory(
           week = 3,
           time = MinuteTimeDate(2023, 5, 20, 10),
           status = AttendanceStatus.AskForLeave,
-          classroomSimplify = "3333"
+          classroom = "3333"
         ),
       )
     )
@@ -64,7 +64,7 @@ object AttendanceApiImpl : AttendanceApi {
           beginLesson = 9,
           length = 4,
           status = AskForLeaveStatus.Pending,
-          description = "123kfjsadjfasfdsfasdfasdfdasfasdfasdfsdafja123kfjsadjfasfdsfasdfasdfdasfasdfasdfsdafjalfjlfj"
+          reason = "123kfjsadjfasfdsfasdfasdfdasfasdfasdfsdafja123kfjsadjfasfdsfasdfasdfdasfasdfasdfsdafjalfjlfj"
         ),
         AskForLeaveHistory(
           week = 2,
@@ -72,7 +72,7 @@ object AttendanceApiImpl : AttendanceApi {
           beginLesson = 5,
           length = 3,
           status = AskForLeaveStatus.Approved,
-          description = "123kfjsadjfasfdsfasdfasdfdasfasdfas123kfjsadjfasfdsfasdfasdfdasfasdfasdfsdafjalfjdfsdafjalfj"
+          reason = "123kfjsadjfasfdsfasdfasdfdasfasdfas123kfjsadjfasfdsfasdfasdfdasfasdfasdfsdafjalfjdfsdafjalfj"
         ),
         AskForLeaveHistory(
           week = 1,
@@ -80,7 +80,7 @@ object AttendanceApiImpl : AttendanceApi {
           beginLesson = 1,
           length = 2,
           status = AskForLeaveStatus.Rejected,
-          description = "123kfjsadjfasfdsfas123kfjsadjfasfdsfasdfasdfdasfasdfasdfsdafjalfjdfasdfdasfasdfasdfsdafjalfj"
+          reason = "123kfjsadjfasfdsfas123kfjsadjfasfdsfasdfasdfdasfasdfasdfsdafjalfjdfasdfdasfasdfasdfsdafjalfj"
         ),
       )
     )

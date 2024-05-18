@@ -11,6 +11,10 @@ import kotlinx.serialization.Serializable
  */
 interface AccountApi {
 
+  suspend fun login(username: String, password: String): ResponseWrapper<String>
+
+  suspend fun logout(): ResponseWrapper<Unit>
+
   suspend fun getAccount(): ResponseWrapper<AccountBean>
 }
 

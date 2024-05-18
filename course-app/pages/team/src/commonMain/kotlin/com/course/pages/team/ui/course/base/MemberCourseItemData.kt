@@ -1,9 +1,10 @@
 package com.course.pages.team.ui.course.base
 
-import com.course.pages.course.api.item.lesson.LessonItemData
 import com.course.shared.time.Date
 import com.course.shared.time.MinuteTimeDate
 import com.course.source.app.account.AccountType
+import com.course.source.app.course.getEndMinuteTime
+import com.course.source.app.course.getStartMinuteTime
 
 /**
  * .
@@ -17,8 +18,8 @@ data class MemberCourseItemData(
   val node: List<Node>,
 ) {
 
-  val startTime = MinuteTimeDate(date, LessonItemData.getStartMinuteTime(beginLesson))
-  val minuteDuration = LessonItemData.getEndMinuteTime(beginLesson + node.size - 1)
+  val startTime = MinuteTimeDate(date, getStartMinuteTime(beginLesson))
+  val minuteDuration = getEndMinuteTime(beginLesson + node.size - 1)
     .minuteOfDay - startTime.minuteOfDay
 
   class Node(

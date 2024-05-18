@@ -1,9 +1,7 @@
 package com.course.pages.schedule.model
 
 import com.course.components.utils.preferences.createSettings
-import com.course.shared.time.MinuteTimeDate
 import com.course.source.app.schedule.ScheduleBean
-import com.course.source.app.schedule.ScheduleRepeat
 import com.russhwolf.settings.string
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -34,23 +32,9 @@ object ScheduleLocalAddRepository {
 
   fun addSchedule(
     num: String,
-    title: String,
-    description: String,
-    startTime: MinuteTimeDate,
-    minuteDuration: Int,
-    repeat: ScheduleRepeat,
-    textColor: String,
-    backgroundColor: String,
+    bean: ScheduleBean,
   ): ScheduleBean {
-    return getLocalAdd(num).add(
-      title = title,
-      description = description,
-      startTime = startTime,
-      minuteDuration = minuteDuration,
-      repeat = repeat,
-      textColor = textColor,
-      backgroundColor = backgroundColor,
-    )
+    return getLocalAdd(num).add(bean)
   }
 
   fun updateAddSchedule(
@@ -90,30 +74,15 @@ object ScheduleLocalAddRepository {
     )
 
     fun add(
-      title: String,
-      description: String,
-      startTime: MinuteTimeDate,
-      minuteDuration: Int,
-      repeat: ScheduleRepeat,
-      textColor: String,
-      backgroundColor: String,
+      bean: ScheduleBean
     ): ScheduleBean {
       // 本地日程 id 以负数进行递减
       val id = flow.value.lastOrNull()?.id ?: -1
-      val bean = ScheduleBean(
-        id = id - 1,
-        title = title,
-        description = description,
-        startTime = startTime,
-        minuteDuration = minuteDuration,
-        repeat = repeat,
-        textColor = textColor,
-        backgroundColor = backgroundColor,
-      )
-      val new = flow.value.add(bean)
+      val newBean = bean.copy(id = id - 1)
+      val new = flow.value.add(newBean)
       localScheduleBeansStr = Json.encodeToString<List<ScheduleBean>>(new)
       flow.value = new
-      return bean
+      return newBean
     }
 
     fun update(

@@ -21,7 +21,7 @@ kotlin {
       implementationModules("components", courseAppFile.resolve("components"))
       implementationModules("functions", courseAppFile.resolve("functions"))
       implementationModules("pages", courseAppFile.resolve("pages"))
-      implementation(projects.courseSource.app.appLocal)
+      implementation(projects.courseSource.app.appServer)
     }
   }
 }

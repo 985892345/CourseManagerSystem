@@ -39,7 +39,7 @@ object NotificationApiImpl : NotificationApi {
             positiveText = "已同意",
             negativeText = "已拒绝",
             negativeDialog = "确定取消加入该团队吗？",
-            agreeOrNot = null,
+            isAgree = null,
           ),
         ),
         Notification(

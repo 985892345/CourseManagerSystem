@@ -35,23 +35,20 @@ object CourseApiImpl : SourceRequest(), CourseApi, IMainCourseController {
       {
         {
           term: String // 学期
-          termIndex: Int // 学期索引，大一上为0，不能返回负数
           beginDate: String // 学期开始日期, 格式为: 2024-04-01
           lessons: [
             {
-              course: String, // 课程名
-              classroom: String, // 教室
-              classroomSimplify: String, // 教室简写，用于 item 显示
-              teacher: String, // 老师名字
               courseNum: String, // 课程号
-              weeks: List<Int>, // 在哪几周上课
-              dayOfWeek: String, // 星期数，英文单词，如：MONDAY
-              beginLesson: Int, // 开始节数，如：1、2 节课以 1 开始
-              length: Int, // 课的长度
-              showOptions: [ // 点击后课程详细的展示选项
+              courseName: String, // 课程名
+              teacher: String, // 老师名字
+              type: String, // 课程类型，选修或必修
+              period: [
                 {
-                  first: String,
-                  second: String,
+                  periodId: Int,
+                  date: String, // 上课时间，格式为: 2024-04-01 09:00:00
+                  beginLesson: Int, // 开始节数，如：1、2 节课以 1 开始
+                  length: Int, // 课的长度
+                  classroom: String, // 教室
                 }
               ]
             }
@@ -67,7 +64,6 @@ object CourseApiImpl : SourceRequest(), CourseApi, IMainCourseController {
     name = "自定义课表",
     linkedMapOf(
       "stuNum" to "学号，若无学号则为空串",
-      "beginDate" to "当前学期的开始日期，格式为 2024-04-01",
     ),
     """
       // 只加载当前学期
@@ -96,28 +92,12 @@ object CourseApiImpl : SourceRequest(), CourseApi, IMainCourseController {
     """.trimIndent()
   )
 
-  private val settings = createSettings("SourceRequest-course")
-
-  override suspend fun getCourseBean(
-    stuNum: String,
-    termIndex: Int,
-  ): ResponseWrapper<CourseBean> {
-    if (termIndex >= 0) {
-      // 只加载当前学期的课程，对大于 0 的进行判断是否为当前学期
-      val nowTermIndex = settings.getInt(stuNum, -1)
-      if (termIndex != nowTermIndex) {
-        return ResponseWrapper.failure(-2, "数据源只被允许加载当前学期数据")
-      }
-    }
+  override suspend fun getCourseBean(num: String): ResponseWrapper<CourseBean> {
     if (courseBeanRequest.requestUnits.isEmpty()) {
       // 如果未设置请求体，则挂起直到设置后才返回
       snapshotFlow { courseBeanRequest.requestUnits.toList() }.first { it.isNotEmpty() }
     }
-    val data = courseBeanRequest.request(false, true, stuNum)
-    if (data != null && termIndex < 0) {
-      // 更新当前学期数
-      settings.putInt(stuNum, data.termIndex)
-    }
+    val data = courseBeanRequest.request(false, true, num)
     return if (data != null) ResponseWrapper.success(data) else ResponseWrapper.failure(
       -1,
       "数据源无数据"

@@ -13,8 +13,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
-import com.course.pages.course.api.item.lesson.LessonItemData
 import com.course.shared.time.MinuteTime
+import com.course.source.app.course.getEndMinuteTime
+import com.course.source.app.course.getStartMinuteTime
 import kotlinx.serialization.Serializable
 
 /**
@@ -31,9 +32,9 @@ data class LessonTimelineData(
 
   override val optionText: String = "第${lesson}节"
 
-  override val startTime: MinuteTime = LessonItemData.getStartMinuteTime(lesson)
+  override val startTime: MinuteTime = getStartMinuteTime(lesson)
 
-  override val endTime: MinuteTime = LessonItemData.getEndMinuteTime(lesson)
+  override val endTime: MinuteTime = getEndMinuteTime(lesson)
 
   override val fontSize: TextUnit
     get() = 12.sp

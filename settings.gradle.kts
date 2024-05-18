@@ -34,6 +34,7 @@ dependencyResolutionManagement {
 
 // 需要删除模块时写这里面，将不再进行 include，直接写模块名即可
 val excludeList: List<String> = listOf(
+  "app-local"
 )
 
 fun includeModule(topName: String, file: File) {
@@ -62,7 +63,6 @@ fun includeModule(topName: String, file: File) {
 }
 
 includeModule("course-app", rootDir.resolve("course-app"))
-includeModule("course-backend", rootDir.resolve("course-backend"))
 includeModule("course-server", rootDir.resolve("course-server"))
 includeModule("course-shared", rootDir.resolve("course-shared"))
 includeModule("course-source", rootDir.resolve("course-source"))

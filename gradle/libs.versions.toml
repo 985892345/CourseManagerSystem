@@ -86,8 +86,7 @@ ktor-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = 
 ktor-engines-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-engines-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 androidWheel-extensions-android = { module = "io.github.985892345:extensions-android", version.ref = "androidWheel" }
-ktor-fit-annotation = { module = "io.github.qdsfdhvh:ktor-fit-annotation", version.ref = "ktor-fit" }
-ktor-fit-ksp = { module = "io.github.qdsfdhvh:ktor-fit-ksp", version.ref = "ktor-fit" }
+
 multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatformSettings" }
 multiplatform-settingsNoArg = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatformSettings" }
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
@@ -104,12 +103,18 @@ constraintLayout = { module = "tech.annexflow.compose:constraintlayout-compose-m
 kotlinx-collections = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinx-collections" }
 kotlinpoet = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }
 
+ktor-fit-annotation = { module = "io.github.qdsfdhvh:ktor-fit-annotation", version.ref = "ktor-fit" }
+ktor-fit-ksp = { module = "io.github.qdsfdhvh:ktor-fit-ksp", version.ref = "ktor-fit" }
+ktor-fit-gradlePlugin = { module = "io.github.qdsfdhvh:ktor-fit-gradle-plugin", version.ref = "ktor-fit" }
+
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "spring-boot" }
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "spring-boot" }
 spring-boot-druid = { module = "com.alibaba:druid-spring-boot-starter", version.ref = "druid" }
 mysql-connection = { module = "com.mysql:mysql-connector-j", version.ref = "mysql" }
 mybatisPlus = { module = "com.baomidou:mybatis-plus-spring-boot3-starter", version.ref = "mybatisPlus" }
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
 jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -121,6 +126,7 @@ kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref =
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 ktProvider = { id = "io.github.985892345.KtProvider", version.ref = "ktProvider" }
+ktorfit = { id = "io.github.qdsfdhvh.ktor-fit-plugin", version.ref = "ktor-fit" }
 
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }

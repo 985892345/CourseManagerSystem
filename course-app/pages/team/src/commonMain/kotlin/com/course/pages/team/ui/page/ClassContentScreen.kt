@@ -3,18 +3,7 @@ package com.course.pages.team.ui.page
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
@@ -22,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -38,7 +26,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEach
 import cafe.adriel.voyager.navigator.LocalNavigator
 import com.course.components.base.theme.LocalAppColors
 import com.course.components.utils.compose.clickableCardIndicator
@@ -50,9 +37,8 @@ import com.course.components.utils.source.getOrThrow
 import com.course.pages.course.api.item.lesson.LessonItemData
 import com.course.pages.team.ui.course.ClassCourseBottomSheet
 import com.course.pages.team.utils.ClassMemberStateSerializer
-import com.course.source.app.account.AccountType
-import com.course.source.app.team.ClassApi
-import com.course.source.app.team.ClassMember
+import com.course.source.app.course.ClassMember
+import com.course.source.app.course.CourseApi
 import kotlinx.serialization.Serializable
 
 /**
@@ -86,8 +72,8 @@ class ClassContentScreen(
   private fun requestMembers() {
     LaunchedEffect(Unit) {
       runCatching {
-        Source.api(ClassApi::class)
-          .getClassMembers(data.lesson.courseNum)
+        Source.api(CourseApi::class)
+          .getClassMembers(data.lesson.classNum)
           .getOrThrow()
       }.tryThrowCancellationException().onSuccess {
         members.value = it
@@ -101,7 +87,7 @@ class ClassContentScreen(
     Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
       Text(
         modifier = Modifier.align(Alignment.Center),
-        text = data.lesson.course,
+        text = data.lesson.courseName,
         fontSize = 21.sp,
         fontWeight = FontWeight.Bold,
         color = LocalAppColors.current.tvLv2
@@ -129,7 +115,6 @@ class ClassContentScreen(
     }
   }
 
-  @OptIn(ExperimentalFoundationApi::class)
   @Composable
   private fun MemberListCompose() {
     LazyColumn(
@@ -138,42 +123,10 @@ class ClassContentScreen(
         .clip(RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)),
       verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-      val teachers = mutableListOf<ClassMember>()
-      val students = mutableListOf<ClassMember>()
-      members.value.fastForEach {
-        when (it.type) {
-          AccountType.Student -> students.add(it)
-          AccountType.Teacher -> teachers.add(it)
-        }
-      }
-      if (teachers.isNotEmpty()) {
-        stickyHeader(key = "teacher header", contentType = "header") {
-          ListHeaderCompose("教师")
-        }
-        items(teachers, key = { it.num }, contentType = { "content" }) {
-          ListContentCompose(it)
-        }
-      }
-      if (students.isNotEmpty()) {
-        stickyHeader(key = "manager header", contentType = "header") {
-          ListHeaderCompose("学生")
-        }
-        items(students, key = { it.num }, contentType = { "content" }) {
-          ListContentCompose(it)
-        }
+      items(members.value) {
+        ListContentCompose(it)
       }
     }
-  }
-
-  @OptIn(ExperimentalFoundationApi::class)
-  @Composable
-  private fun LazyItemScope.ListHeaderCompose(text: String) {
-    Text(
-      modifier = Modifier.fillMaxWidth().animateItemPlacement()
-        .background(MaterialTheme.colors.background),
-      text = text,
-      fontSize = 14.sp,
-    )
   }
 
   @OptIn(ExperimentalFoundationApi::class)

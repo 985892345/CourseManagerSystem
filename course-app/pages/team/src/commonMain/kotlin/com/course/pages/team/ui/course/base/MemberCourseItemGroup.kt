@@ -2,13 +2,7 @@ package com.course.pages.team.ui.course.base
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -34,6 +28,8 @@ import com.course.shared.time.Date
 import com.course.shared.time.MinuteTime
 import com.course.source.app.course.CourseBean
 import com.course.source.app.course.LessonBean
+import com.course.source.app.course.LessonPeriod
+import com.course.source.app.course.LessonPeriodDate
 
 /**
  * .
@@ -51,11 +47,13 @@ class MemberCourseItemGroup(
     data.fastForEach { (member, bean) ->
       members.add(member)
       bean.lessons.fastForEach { lesson ->
-        lesson.weeks.fastForEach { week ->
-          val weekBeginDate = bean.beginDate.plusWeeks(week - 1)
-          map.getOrPut(weekBeginDate) {
-            WeekData(weekBeginDate)
-          }.lesson.add(member to lesson)
+        lesson.period.fastForEach { period ->
+          period.dateList.fastForEach { periodDate ->
+            val weekBeginDate = periodDate.date.weekBeginDate
+            map.getOrPut(weekBeginDate) {
+              WeekData(weekBeginDate)
+            }.lesson.add(LessonData(member, bean, lesson, period, periodDate))
+          }
         }
       }
     }
@@ -66,11 +64,22 @@ class MemberCourseItemGroup(
   private val membersState = mutableStateOf(emptyList<MemberCourseItemData.Member>())
   private val dataMapState = mutableStateOf(emptyMap<Date, WeekData>())
 
+  class LessonData(
+    val member: MemberCourseItemData.Member,
+    val course: CourseBean,
+    val lesson: LessonBean,
+    val period: LessonPeriod,
+    val periodDate: LessonPeriodDate,
+  ) {
+    val week: Int
+      get() = course.beginDate.daysUntil(periodDate.date) / 7 + 1
+  }
+
   private inner class WeekData(
     val weekBeginDate: Date,
   ) {
 
-    val lesson = mutableListOf<Pair<MemberCourseItemData.Member, LessonBean>>()
+    val lesson = mutableListOf<LessonData>()
 
     private var data: List<MemberCourseItemData>? = null
 
@@ -79,7 +88,7 @@ class MemberCourseItemGroup(
     }
 
     private fun collectData(): List<MemberCourseItemData> {
-      return lesson.groupBy { it.second.dayOfWeek }
+      return lesson.groupBy { it.periodDate.date.dayOfWeek }
         .map { collectDayData(weekBeginDate.plusDays(it.key.ordinal), it.value) }
         .flatten()
         .also { data = it }
@@ -87,13 +96,13 @@ class MemberCourseItemGroup(
 
     private fun collectDayData(
       date: Date,
-      data: List<Pair<MemberCourseItemData.Member, LessonBean>>,
+      data: List<LessonData>,
     ): List<MemberCourseItemData> {
-      val positionArray = Array<MutableList<Pair<MemberCourseItemData.Member, LessonBean>>>(12) { mutableListOf() }
+      val positionArray = Array<MutableList<LessonData>>(12) { mutableListOf() }
       data.fastForEach {
-        if (it.second.courseNum !in excludeCourseNum) {
-          repeat(it.second.length) { position ->
-            positionArray[position + it.second.beginLesson - 1].add(it)
+        if (it.lesson.courseNum !in excludeCourseNum) {
+          repeat(it.period.length) { position ->
+            positionArray[position + it.period.beginLesson - 1].add(it)
           }
         }
       }
@@ -110,7 +119,7 @@ class MemberCourseItemGroup(
                   node = List(i * 4 + j - start) { k ->
                     val list = positionArray[start + k]
                     MemberCourseItemData.Node(
-                      member = list.map { it.first }.toSet()
+                      member = list.map { it.member }.toSet()
                     )
                   },
                 )
@@ -127,7 +136,7 @@ class MemberCourseItemGroup(
               node = List((i + 1) * 4 - start) { k ->
                 val list = positionArray[start + k]
                 MemberCourseItemData.Node(
-                  member = list.map { it.first }.toSet()
+                  member = list.map { it.member }.toSet()
                 )
               },
             )
@@ -214,7 +223,7 @@ class MemberCourseItemGroup(
             Text(
               modifier = Modifier.padding(top = 16.dp),
               text = "空闲：${
-                if (node.member.size == membersState.value.size) "无" 
+                if (node.member.size == membersState.value.size) "无"
                 else "${membersState.value.size - node.member.size}人"
               }",
               fontSize = 14.sp,

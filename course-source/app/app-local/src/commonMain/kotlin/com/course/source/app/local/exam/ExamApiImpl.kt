@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.first
 @ImplProvider(clazz = SourceRequest::class, name = "ExamApiImpl")
 object ExamApiImpl : SourceRequest(), ExamApi {
 
-  private val examTermBeansRequest by requestContent<List<ExamTermBean>>(
+  private val examTermBeansRequest by requestContent<ExamTermBean>(
     key = "exam",
     name = "考试",
     linkedMapOf(
@@ -30,13 +30,12 @@ object ExamApiImpl : SourceRequest(), ExamApi {
       [
         {
           term: String, // 学期
-          termIndex: Int, // 学期索引，从 0 开始
           beginDate: String, // 学期开始日期, 格式为: 2024-04-01
           exams: [
             {
               startTime: String // 开始时间，格式为: 2024-04-01 08:00
               minuteDuration: Int, // 持续时间，单位为分钟
-              course: String, // 课程名称
+              courseName: String, // 课程名称
               courseNum: String, // 课程编号
               classroom: String, // 教室（缩写）
               type: String, // 考试类型
@@ -49,7 +48,7 @@ object ExamApiImpl : SourceRequest(), ExamApi {
     """.trimIndent()
   )
 
-  override suspend fun getExam(stuNum: String): ResponseWrapper<List<ExamTermBean>> {
+  override suspend fun getExam(stuNum: String): ResponseWrapper<ExamTermBean> {
     if (examTermBeansRequest.requestUnits.isEmpty()) {
       // 如果未设置请求体，则挂起直到设置后才返回
       snapshotFlow { examTermBeansRequest.requestUnits.toList() }.first { it.isNotEmpty() }

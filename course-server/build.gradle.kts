@@ -12,18 +12,23 @@ group = "com.course.server"
 version = "1.0.0"
 
 application {
-  mainClass.set("com.course.server.ApplicationKt")
+  mainClass.set("com.course.server.Application")
 }
 
 dependencies {
   implementation(libs.spring.boot.starter)
+  implementation(libs.spring.boot.starter.web)
   implementation(libs.spring.boot.druid)
   implementation(libs.mysql.connection)
   implementation(libs.mybatisPlus)
   implementation(libs.jjwt.api)
   runtimeOnly(libs.jjwt.impl)
+  implementation(libs.jjwt.jackson)
+
+  implementation(libs.kotlinx.serialization)
 
   implementation(projects.courseShared)
+  implementation(projects.courseSource.app)
 }
 
 tasks.withType<KotlinCompile> {

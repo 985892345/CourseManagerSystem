@@ -1,25 +1,13 @@
 package com.course.pages.notification.ui.type
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,8 +20,11 @@ import com.course.components.utils.compose.clickableCardIndicator
 import com.course.components.utils.compose.dialog.showChooseDialog
 import com.course.components.utils.result.tryThrowCancellationException
 import com.course.components.utils.source.Source
+import com.course.components.utils.source.onFailure
+import com.course.components.utils.source.onSuccess
+import com.course.source.app.notification.DecisionBtn
+import com.course.source.app.notification.NotificationApi
 import com.course.source.app.notification.NotificationContent
-import com.course.source.app.team.TeamApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,7 +36,7 @@ import kotlinx.coroutines.launch
  * 2024/5/11 11:03
  */
 @Composable
-fun DecisionNotificationCompose(content: NotificationContent.Decision) {
+fun DecisionNotificationCompose(notificationId: Int, content: NotificationContent.Decision) {
   Column(modifier = Modifier.fillMaxWidth()) {
     Text(
       modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp),
@@ -59,22 +50,67 @@ fun DecisionNotificationCompose(content: NotificationContent.Decision) {
       fontSize = 13.sp,
       color = Color.Gray,
     )
-    var agreeOrNot by remember { mutableStateOf(content.agreeOrNot) }
+    var btn by remember { mutableStateOf(content.btn) }
     AnimatedContent(
-      targetState = agreeOrNot,
+      targetState = btn,
     ) {
       when (it) {
-        null -> Row(
+        is DecisionBtn.Agree -> {
+          Box(
+            modifier = Modifier.fillMaxWidth().height(40.dp),
+            contentAlignment = Alignment.Center,
+          ) {
+            Text(
+              text = it.positiveText,
+              color = LocalAppColors.current.green,
+              fontSize = 14.sp,
+            )
+          }
+        }
+        is DecisionBtn.Disagree -> {
+          Box(
+            modifier = Modifier.fillMaxWidth().height(40.dp),
+            contentAlignment = Alignment.Center,
+          ) {
+            Text(
+              text = it.negativeText,
+              color = LocalAppColors.current.red,
+              fontSize = 14.sp,
+            )
+          }
+        }
+        is DecisionBtn.Expired -> {
+          Box(
+            modifier = Modifier.fillMaxWidth().height(40.dp),
+            contentAlignment = Alignment.Center,
+          ) {
+            Text(
+              text = it.text,
+              color = Color.Gray,
+              fontSize = 14.sp,
+            )
+          }
+        }
+        is DecisionBtn.Pending -> Row(
           modifier = Modifier.fillMaxWidth(),
           horizontalArrangement = Arrangement.SpaceAround
         ) {
           val coroutineScope = rememberCoroutineScope()
           Box(
             modifier = Modifier.weight(1F).height(40.dp).clickableCardIndicator(12.dp) {
-              showRefuseDecisionDialog(coroutineScope, content) {
-                content.agreeOrNot = false
-                agreeOrNot = false
-              }
+              showRefuseDecisionDialog(
+                coroutineScope,
+                notificationId,
+                it.negativeDialog,
+                onRefuseSuccess = {
+                  btn = DecisionBtn.Disagree(it.negativeText)
+                  content.btn = btn
+                },
+                onExpired = { expired ->
+                  btn = expired
+                  content.btn = btn
+                }
+              )
             },
             contentAlignment = Alignment.Center,
           ) {
@@ -86,10 +122,18 @@ fun DecisionNotificationCompose(content: NotificationContent.Decision) {
           }
           Box(
             modifier = Modifier.weight(1F).height(40.dp).clickableCardIndicator(12.dp) {
-              submitAcceptDecision(coroutineScope, content) {
-                content.agreeOrNot = true
-                agreeOrNot = true
-              }
+              submitAcceptDecision(
+                coroutineScope,
+                notificationId,
+                onSuccess = {
+                  btn = DecisionBtn.Agree(it.positiveText)
+                  content.btn = btn
+                },
+                onExpired = { expired ->
+                  btn = expired
+                  content.btn = btn
+                }
+              )
             },
             contentAlignment = Alignment.Center,
           ) {
@@ -100,17 +144,6 @@ fun DecisionNotificationCompose(content: NotificationContent.Decision) {
             )
           }
         }
-
-        true, false -> Box(
-          modifier = Modifier.fillMaxWidth().height(40.dp),
-          contentAlignment = Alignment.Center,
-        ) {
-          Text(
-            text = if (it) content.positiveText else content.negativeText,
-            color = if (it) LocalAppColors.current.green else LocalAppColors.current.red,
-            fontSize = 14.sp,
-          )
-        }
       }
     }
   }
@@ -118,16 +151,25 @@ fun DecisionNotificationCompose(content: NotificationContent.Decision) {
 
 private fun showRefuseDecisionDialog(
   coroutineScope: CoroutineScope,
-  content: NotificationContent.Decision,
+  notificationId: Int,
+  text: String,
   onRefuseSuccess: () -> Unit,
+  onExpired: (DecisionBtn.Expired) -> Unit,
 ) {
   showChooseDialog(onClickPositiveBtn = {
     coroutineScope.launch(Dispatchers.IO) {
       runCatching {
-        Source.api(TeamApi::class)
-          .refuseDecision(content.id)
-      }.tryThrowCancellationException().onSuccess {
-        onRefuseSuccess.invoke()
+        Source.api(NotificationApi::class)
+          .decision(notificationId, false)
+      }.tryThrowCancellationException().onSuccess { wrapper ->
+        wrapper.onSuccess {
+          onRefuseSuccess.invoke()
+        }.onFailure {
+          if (it.code == 11000) {
+            toast("已过期")
+            onExpired.invoke(DecisionBtn.Expired(it.info))
+          }
+        }
         hide()
       }.onFailure {
         toast("网络异常")
@@ -135,22 +177,30 @@ private fun showRefuseDecisionDialog(
     }
   }) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-      Text(text = content.negativeDialog)
+      Text(text = text)
     }
   }
 }
 
 private fun submitAcceptDecision(
   coroutineScope: CoroutineScope,
-  content: NotificationContent.Decision,
-  onSuccess: () -> Unit
+  notificationId: Int,
+  onSuccess: () -> Unit,
+  onExpired: (DecisionBtn.Expired) -> Unit,
 ) {
   coroutineScope.launch(Dispatchers.IO) {
     runCatching {
-      Source.api(TeamApi::class)
-        .acceptDecision(content.id)
-    }.tryThrowCancellationException().onSuccess {
-      onSuccess.invoke()
+      Source.api(NotificationApi::class)
+        .decision(notificationId, true)
+    }.tryThrowCancellationException().onSuccess { wrapper ->
+      wrapper.onSuccess {
+        onSuccess.invoke()
+      }.onFailure {
+        if (it.code == 11000) {
+          toast("已过期")
+          onExpired.invoke(DecisionBtn.Expired(it.info))
+        }
+      }
     }.onFailure {
       toast("网络异常")
     }

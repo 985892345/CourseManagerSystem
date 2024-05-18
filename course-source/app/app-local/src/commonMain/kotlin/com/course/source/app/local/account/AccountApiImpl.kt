@@ -38,6 +38,15 @@ object AccountApiImpl : SourceRequest(), AccountApi {
     """.trimIndent()
   )
 
+  override suspend fun login(username: String, password: String): ResponseWrapper<String> {
+    injectorAccount(username)
+    return ResponseWrapper.success("")
+  }
+
+  override suspend fun logout(): ResponseWrapper<Unit> {
+    return ResponseWrapper.success(Unit)
+  }
+
   override suspend fun getAccount(): ResponseWrapper<AccountBean> {
     val data = accountBeanRequest.request(isForce = true, cacheable = false)
     return if (data != null) {
@@ -47,7 +56,7 @@ object AccountApiImpl : SourceRequest(), AccountApi {
     }
   }
 
-  fun injectorAccount(num: String) {
+  private fun injectorAccount(num: String) {
     val first = accountBeanRequest.requestUnits.firstOrNull { it.title.value == "用户信息-来自登录" }
     if (first == null) {
       accountBeanRequest.requestUnits.add(

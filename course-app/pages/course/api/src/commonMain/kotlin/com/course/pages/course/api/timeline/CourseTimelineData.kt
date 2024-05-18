@@ -6,10 +6,11 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
-import com.course.pages.course.api.item.lesson.LessonItemData
 import com.course.shared.time.Date
 import com.course.shared.time.MinuteTime
 import com.course.shared.time.MinuteTimeDate
+import com.course.source.app.course.getEndMinuteTime
+import com.course.source.app.course.getStartMinuteTime
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.serialization.Serializable
@@ -89,8 +90,8 @@ private val Timeline = persistentListOf(
   FixedTimelineData(
     text = "",
     optionText = "课间",
-    startTime = LessonItemData.getEndMinuteTime(1),
-    endTime = LessonItemData.getStartMinuteTime(2),
+    startTime = getEndMinuteTime(1),
+    endTime = getStartMinuteTime(2),
     weight = 0.01F,
     hasTomorrow = false
   ),
@@ -109,8 +110,8 @@ private val Timeline = persistentListOf(
   FixedTimelineData(
     text = "",
     optionText = "课间",
-    startTime = LessonItemData.getEndMinuteTime(3),
-    endTime = LessonItemData.getStartMinuteTime(4),
+    startTime = getEndMinuteTime(3),
+    endTime = getStartMinuteTime(4),
     weight = 0.01F,
     hasTomorrow = false
   ),
@@ -130,8 +131,8 @@ private val Timeline = persistentListOf(
   FixedTimelineData(
     text = "",
     optionText = "课间",
-    startTime = LessonItemData.getEndMinuteTime(5),
-    endTime = LessonItemData.getStartMinuteTime(6),
+    startTime = getEndMinuteTime(5),
+    endTime = getStartMinuteTime(6),
     weight = 0.01F,
     hasTomorrow = false
   ),
@@ -150,8 +151,8 @@ private val Timeline = persistentListOf(
   FixedTimelineData(
     text = "",
     optionText = "课间",
-    startTime = LessonItemData.getEndMinuteTime(7),
-    endTime = LessonItemData.getStartMinuteTime(8),
+    startTime = getEndMinuteTime(7),
+    endTime = getStartMinuteTime(8),
     weight = 0.01F,
     hasTomorrow = false
   ),
@@ -171,8 +172,8 @@ private val Timeline = persistentListOf(
   FixedTimelineData(
     text = "",
     optionText = "课间",
-    startTime = LessonItemData.getEndMinuteTime(9),
-    endTime = LessonItemData.getStartMinuteTime(10),
+    startTime = getEndMinuteTime(9),
+    endTime = getStartMinuteTime(10),
     weight = 0.01F,
     hasTomorrow = false
   ),
@@ -180,8 +181,8 @@ private val Timeline = persistentListOf(
   FixedTimelineData(
     text = "",
     optionText = "课间",
-    startTime = LessonItemData.getEndMinuteTime(10),
-    endTime = LessonItemData.getStartMinuteTime(11),
+    startTime = getEndMinuteTime(10),
+    endTime = getStartMinuteTime(11),
     weight = 0.01F,
     hasTomorrow = false
   ),
@@ -189,8 +190,8 @@ private val Timeline = persistentListOf(
   FixedTimelineData(
     text = "",
     optionText = "课间",
-    startTime = LessonItemData.getEndMinuteTime(11),
-    endTime = LessonItemData.getStartMinuteTime(12),
+    startTime = getEndMinuteTime(11),
+    endTime = getStartMinuteTime(12),
     weight = 0.01F,
     hasTomorrow = false
   ),

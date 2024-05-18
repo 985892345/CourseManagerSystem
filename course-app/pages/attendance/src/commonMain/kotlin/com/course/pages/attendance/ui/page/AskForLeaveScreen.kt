@@ -2,15 +2,7 @@ package com.course.pages.attendance.ui.page
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
@@ -41,9 +33,9 @@ import com.course.components.utils.serializable.ObjectSerializable
 import com.course.components.utils.serializable.StringStateSerializable
 import com.course.components.utils.source.Source
 import com.course.components.utils.source.getOrThrow
-import com.course.components.utils.time.Num2CN
 import com.course.components.view.edit.EditTextCompose
 import com.course.pages.course.api.item.lesson.LessonItemData
+import com.course.shared.utils.Num2CN
 import com.course.source.app.attendance.AttendanceApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -58,7 +50,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 @ObjectSerializable
 class AskForLeaveScreen(
-  val date: LessonItemData,
+  val data: LessonItemData,
 ) : BaseScreen() {
 
   @Serializable(StringStateSerializable::class)
@@ -104,7 +96,7 @@ class AskForLeaveScreen(
           .padding(end = 12.dp)
           .size(32.dp)
           .clickableCardIndicator {
-            navigator?.push(AskForLeaveHistoryScreen(date))
+            navigator?.push(AskForLeaveHistoryScreen(data))
           },
         contentAlignment = Alignment.Center,
       ) {
@@ -133,7 +125,7 @@ class AskForLeaveScreen(
           fontWeight = FontWeight.Bold,
         )
         Text(
-          text = date.lesson.course,
+          text = data.lesson.courseName,
           fontSize = 16.sp,
         )
       }
@@ -147,7 +139,7 @@ class AskForLeaveScreen(
           fontWeight = FontWeight.Bold,
         )
         Text(
-          text = date.lesson.teacher,
+          text = data.period.teacher,
           fontSize = 16.sp,
         )
       }
@@ -162,11 +154,11 @@ class AskForLeaveScreen(
         )
         Text(
           text = buildAnnotatedString {
-            val period = List(date.lesson.length) { Num2CN.transform(date.lesson.beginLesson + it) }
+            val period = List(data.period.length) { Num2CN.transform(data.period.beginLesson + it) }
               .joinToString("", postfix = "节")
             append(AnnotatedString(period, SpanStyle(fontSize = 16.sp)))
             val time =
-              "（${date.startTime.time}-${date.startTime.time.plusMinutes(date.minuteDuration)}）"
+              "（${data.startTime.time}-${data.startTime.time.plusMinutes(data.minuteDuration)}）"
             append(AnnotatedString(time, SpanStyle(fontSize = 13.sp)))
           },
         )
@@ -213,11 +205,8 @@ class AskForLeaveScreen(
                 runCatching {
                   Source.api(AttendanceApi::class)
                     .postAskForLeave(
-                      courseNum = date.lesson.courseNum,
-                      week = date.week,
-                      dayOfWeek = date.startTime.date.dayOfWeek,
-                      beginLesson = date.lesson.beginLesson,
-                      description = editDescription.value,
+                      classPlanId = data.periodDate.classPlanId,
+                      reason = editDescription.value,
                     ).getOrThrow()
                 }.tryThrowCancellationException().onSuccess {
                   toast("提交成功")

@@ -18,13 +18,12 @@ interface ExamApi {
    */
   suspend fun getExam(
     stuNum: String,
-  ): ResponseWrapper<List<ExamTermBean>>
+  ): ResponseWrapper<ExamTermBean>
 }
 
 @Serializable
 data class ExamTermBean(
   val term: String,
-  val termIndex: Int,
   val beginDate: Date,
   val exams: List<ExamBean>,
 )
@@ -33,9 +32,8 @@ data class ExamTermBean(
 data class ExamBean(
   val startTime: MinuteTimeDate,
   val minuteDuration: Int,
-  val course: String,
-  val courseNum: String,
+  val courseName: String,
   val classroom: String,
-  val type: String,
+  val examType: String,
   val seat: String,
 )

@@ -2,15 +2,7 @@ package com.course.pages.team.ui.course.base
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -35,11 +27,7 @@ import com.course.pages.course.api.controller.CourseDetail
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.shared.time.Date
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 /**
  * .
@@ -133,7 +121,7 @@ abstract class BottomSheetCourseController(
     }) {
       members.map {
         it to async(Dispatchers.IO) {
-          courseService.requestCourseBean(it.num, it.type, -1)
+          courseService.requestCourseBean(it.num, it.type)
         }
       }.map {
         val bean = it.second.await()

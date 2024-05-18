@@ -1,9 +1,6 @@
 package com.course.shared.time
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -91,6 +88,12 @@ value class MinuteTimeDate(val value: Int) : Comparable<MinuteTimeDate> {
 
   fun minusYears(years: Int): MinuteTimeDate {
     return plusYears(-years)
+  }
+
+  fun toEpochMilliseconds(): Long {
+    return LocalDateTime(date.year, date.month, date.dayOfMonth, time.hour, time.minute)
+      .toInstant(TimeZone.currentSystemDefault())
+      .toEpochMilliseconds()
   }
 
   override fun compareTo(other: MinuteTimeDate): Int {

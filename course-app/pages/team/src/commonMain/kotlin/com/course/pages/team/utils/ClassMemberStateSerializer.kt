@@ -2,7 +2,7 @@ package com.course.pages.team.utils
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import com.course.source.app.team.ClassMember
+import com.course.source.app.course.ClassMember
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor

@@ -22,7 +22,6 @@ import com.course.pages.schedule.api.IScheduleService
 import com.course.pages.schedule.api.item.showAddScheduleBottomSheet
 import com.course.shared.time.Date
 import com.course.source.app.account.AccountBean
-import com.course.source.app.account.AccountType
 import com.course.source.app.schedule.ScheduleBean
 import com.course.source.app.team.TeamApi
 import com.course.source.app.team.TeamScheduleBean
@@ -40,10 +39,11 @@ import kotlinx.coroutines.launch
 @ImplProvider(clazz = IMainCourseController::class, name = "MainCourseController")
 class TeamMainCourseController : IMainCourseController {
   override fun createCourseController(account: AccountBean?): List<CourseController> {
-    return when (account?.type) {
-      AccountType.Student, AccountType.Teacher -> listOf(TeamCourseController(account))
-      null -> emptyList()
-    }
+//    return when (account?.type) {
+//      AccountType.Student, AccountType.Teacher -> listOf(TeamCourseController(account))
+//      null -> emptyList()
+//    }
+    return emptyList()
   }
 }
 

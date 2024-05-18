@@ -3,7 +3,6 @@ package com.course.components.utils.time
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.TwoWayConverter
 import com.course.shared.time.MinuteTime
-import kotlinx.datetime.DayOfWeek
 
 /**
  * .
@@ -22,15 +21,3 @@ private val MinuteTimeVectorConverter = TwoWayConverter<MinuteTime, AnimationVec
     }
   }
 )
-
-fun DayOfWeek.toChinese(prefix: String = "周"): String {
-  return prefix + when (this) {
-    java.time.DayOfWeek.MONDAY -> "一"
-    java.time.DayOfWeek.TUESDAY -> "二"
-    java.time.DayOfWeek.WEDNESDAY -> "三"
-    java.time.DayOfWeek.THURSDAY -> "四"
-    java.time.DayOfWeek.FRIDAY -> "五"
-    java.time.DayOfWeek.SATURDAY -> "六"
-    java.time.DayOfWeek.SUNDAY -> "日"
-  }
-}

@@ -30,6 +30,7 @@ import com.course.pages.course.api.item.TopBottomText
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.shared.time.Date
 import com.course.shared.time.MinuteTime
+import com.course.shared.time.toChinese
 
 /**
  * .
@@ -91,9 +92,9 @@ class LessonItemGroup(
             else -> Color(0xFF4066EA)
           }
           TopBottomText(
-            it.lesson.course,
+            it.lesson.courseName,
             textColor,
-            it.lesson.classroomSimplify,
+            it.period.classroom.replace('/', '\n'),
             textColor
           )
         }
@@ -117,7 +118,7 @@ class LessonItemGroup(
         ) {
           Text(
             modifier = Modifier.basicMarquee(),
-            text = data.lesson.course,
+            text = data.lesson.courseName,
             fontSize = 22.sp,
             color = LocalAppColors.current.tvLv2,
             fontWeight = FontWeight.Bold,
@@ -126,7 +127,7 @@ class LessonItemGroup(
             content = {
               Text(
                 modifier = Modifier.basicMarquee(),
-                text = data.lesson.classroom,
+                text = data.period.classroom,
                 fontSize = 13.sp,
                 color = LocalAppColors.current.tvLv2,
               )
@@ -137,7 +138,7 @@ class LessonItemGroup(
               )
               Text(
                 modifier = Modifier,
-                text = data.lesson.teacher,
+                text = data.period.teacher,
                 fontSize = 13.sp,
                 color = LocalAppColors.current.tvLv2,
               )
@@ -164,22 +165,54 @@ class LessonItemGroup(
               }
             }
           )
-          data.lesson.showOptions.fastForEach {
-            Box(modifier = Modifier.fillMaxWidth().padding(top = 24.dp)) {
-              Text(
-                modifier = Modifier.align(Alignment.TopStart),
-                text = it.first,
-                fontSize = 15.sp,
-                color = LocalAppColors.current.tvLv2,
-              )
-              Text(
-                modifier = Modifier.align(Alignment.TopEnd),
-                text = it.second,
-                fontSize = 15.sp,
-                color = LocalAppColors.current.tvLv2,
-                fontWeight = FontWeight.Bold,
-              )
-            }
+          Box(modifier = Modifier.fillMaxWidth().padding(top = 24.dp)) {
+            Text(
+              modifier = Modifier.align(Alignment.TopStart),
+              text = "周期",
+              fontSize = 15.sp,
+              color = LocalAppColors.current.tvLv2,
+            )
+            Text(
+              modifier = Modifier.align(Alignment.TopEnd),
+              text = getCycle(data),
+              fontSize = 15.sp,
+              color = LocalAppColors.current.tvLv2,
+              fontWeight = FontWeight.Bold,
+            )
+          }
+          Box(modifier = Modifier.fillMaxWidth().padding(top = 24.dp)) {
+            Text(
+              modifier = Modifier.align(Alignment.TopStart),
+              text = "时间",
+              fontSize = 15.sp,
+              color = LocalAppColors.current.tvLv2,
+            )
+            Text(
+              modifier = Modifier.align(Alignment.TopEnd),
+              text = "${data.periodDate.date.dayOfWeek.toChinese()} ${data.startTime.time}-${
+                data.startTime.time.plusMinutes(
+                  data.minuteDuration
+                )
+              }",
+              fontSize = 15.sp,
+              color = LocalAppColors.current.tvLv2,
+              fontWeight = FontWeight.Bold,
+            )
+          }
+          Box(modifier = Modifier.fillMaxWidth().padding(top = 24.dp)) {
+            Text(
+              modifier = Modifier.align(Alignment.TopStart),
+              text = "课程类型",
+              fontSize = 15.sp,
+              color = LocalAppColors.current.tvLv2,
+            )
+            Text(
+              modifier = Modifier.align(Alignment.TopEnd),
+              text = data.lesson.type,
+              fontSize = 15.sp,
+              color = LocalAppColors.current.tvLv2,
+              fontWeight = FontWeight.Bold,
+            )
           }
           val showPopBottoms by derivedStateOfStructure {
             AllPopBottom.filter { it.visibility }.sortedBy {
@@ -201,6 +234,33 @@ class LessonItemGroup(
           }
         }
       }
+    }
+  }
+
+  private fun getCycle(data: LessonItemData): String {
+    val rangeList = mutableListOf<IntRange>()
+    var min = -1
+    var now = -1
+    data.period.dateList.forEach {
+      val week = data.courseBean.beginDate.daysUntil(it.date) / 7 + 1
+      if (min == -1) {
+        min = week
+        now = week
+      } else {
+        if (week == now + 1) {
+          now++
+        } else {
+          rangeList.add(min..now)
+          min = week
+          now = week
+        }
+      }
+    }
+    rangeList.add(min..now)
+    return rangeList.joinToString("，") {
+      if (it.first == it.last) {
+        "第${it.first}周"
+      } else "第${it.first}-${it.last}周"
     }
   }
 

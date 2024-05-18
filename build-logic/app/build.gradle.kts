@@ -10,4 +10,5 @@ dependencies {
   implementation(libs.ksp.gradlePlugin)
   implementation(libs.ktProvider.gradlePlugin)
   implementation(libs.kotlinx.serialization.gradlePlugin)
+  implementation(libs.ktor.fit.gradlePlugin)
 }

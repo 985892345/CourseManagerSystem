@@ -33,11 +33,6 @@ abstract class CourseDetail(
     controllers.forEach { it.onChangedClickDate(date) }
   }
 
-  override fun onRequestTerm(termIndex: Int) {
-    super.onRequestTerm(termIndex)
-    controllers.forEach { it.onRequestTerm(termIndex) }
-  }
-
   override fun onComposeInit(coroutineScope: CoroutineScope) {
     super.onComposeInit(coroutineScope)
     controllers.forEach { it.onComposeInit(coroutineScope) }

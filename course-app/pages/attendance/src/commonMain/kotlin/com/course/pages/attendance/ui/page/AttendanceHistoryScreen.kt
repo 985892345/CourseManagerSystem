@@ -1,9 +1,7 @@
 package com.course.pages.attendance.ui.page
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
@@ -31,18 +29,25 @@ import com.course.components.utils.result.tryThrowCancellationException
 import com.course.components.utils.serializable.ObjectSerializable
 import com.course.components.utils.source.Source
 import com.course.components.utils.source.onSuccess
-import com.course.components.utils.time.toChinese
 import com.course.components.view.fan.FanDiagramData
 import com.course.pages.course.api.item.lesson.LessonItemData
+import com.course.shared.time.Date
 import com.course.shared.time.MinuteTimeDate
+import com.course.shared.time.toChinese
+import com.course.shared.time.toMinuteTimeDate
+import com.course.shared.utils.Num2CN
 import com.course.source.app.attendance.AttendanceApi
 import com.course.source.app.attendance.AttendanceHistory
 import com.course.source.app.attendance.AttendanceStatus
+import com.course.source.app.course.getStartMinuteTime
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 
 /**
@@ -55,6 +60,7 @@ import kotlinx.serialization.Serializable
 @ObjectSerializable
 class AttendanceHistoryScreen(
   val data: LessonItemData,
+  val stuNum: String,
 ) : BaseScreen() {
 
   private var oldHistory: List<AttendanceHistory>? = null
@@ -85,7 +91,7 @@ class AttendanceHistoryScreen(
         withContext(Dispatchers.IO) {
           runCatching {
             Source.api(AttendanceApi::class)
-              .getAttendanceHistory(data.lesson.courseNum)
+              .getAttendanceHistory(data.lesson.classNum, stuNum)
           }.tryThrowCancellationException().onSuccess { wrapper ->
             wrapper.onSuccess {
               history = it.toImmutableList()
@@ -193,14 +199,14 @@ class AttendanceHistoryScreen(
   ) {
     Column(modifier) {
       Text(
-        text = data.lesson.course,
+        text = data.lesson.courseName,
         fontSize = 16.sp,
         fontWeight = FontWeight.Bold,
         color = LocalAppColors.current.tvLv2,
       )
       Text(
         modifier = Modifier.padding(top = 3.dp),
-        text = data.lesson.teacher,
+        text = data.period.teacher,
         fontSize = 14.sp,
         color = LocalAppColors.current.tvLv2,
       )
@@ -224,19 +230,14 @@ class AttendanceHistoryScreen(
     var already = 0
     var remain = 0
     val nowTimeDate = MinuteTimeDate.now()
-    data.courseBean.lessons.fastForEach { bean ->
-      if (bean.courseNum == data.lesson.courseNum) {
-        val startTime = LessonItemData.getStartMinuteTime(bean.beginLesson)
-        bean.weeks.fastForEach { week ->
-          val startTimeDate = MinuteTimeDate(
-            data.courseBean.beginDate.plusWeeks(week - 1).plusDays(bean.dayOfWeek.ordinal),
-            startTime
-          )
-          if (startTimeDate < nowTimeDate) {
-            already++
-          } else {
-            remain++
-          }
+    data.lesson.period.forEach { period ->
+      val startTime = getStartMinuteTime(period.beginLesson)
+      period.dateList.forEach { periodDate ->
+        val startTimeDate = MinuteTimeDate(periodDate.date, startTime)
+        if (startTimeDate < nowTimeDate) {
+          already++
+        } else {
+          remain++
         }
       }
     }
@@ -311,41 +312,36 @@ class AttendanceHistoryScreen(
       modifier = modifier.verticalScroll(state = rememberScrollState()),
       verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-      history.sortedByDescending { it.time }.fastForEach {
+      history.sortedByDescending { it.publishTimestamp }.fastForEach {
         Card(
           modifier = Modifier,
           elevation = 0.5.dp
         ) {
           Box(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp)) {
+              val publishTime = Instant.fromEpochMilliseconds(it.publishTimestamp)
+                .toLocalDateTime(TimeZone.currentSystemDefault())
+                .toMinuteTimeDate()
+              val time = Instant.fromEpochMilliseconds(it.timestamp)
+                .toLocalDateTime(TimeZone.currentSystemDefault())
+                .toMinuteTimeDate()
               Text(
-                text = "第${it.week}周  ${it.time.date.dayOfWeek.toChinese()}  ${it.time.time}",
+                text = getTitle(it.date, it.beginLesson, it.length),
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp,
                 color = LocalAppColors.current.tvLv2,
               )
-              Row(
+              Text(
                 modifier = Modifier.padding(top = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-              ) {
-                Text(
-                  modifier = Modifier,
-                  text = "${it.time.date.monthNumber}月${it.time.date.dayOfMonth}号",
-                  fontSize = 12.sp,
-                  color = Color(0xFF666666),
-                )
-                Spacer(
-                  modifier = Modifier.padding(horizontal = 6.dp)
-                    .size(3.dp, 3.dp)
-                    .background(Color(0xFF666666), CircleShape)
-                )
-                Text(
-                  modifier = Modifier,
-                  text = it.classroomSimplify,
-                  fontSize = 12.sp,
-                  color = Color(0xFF666666),
-                )
-              }
+                text = when (it.status) {
+                  AttendanceStatus.Attendance -> "发布时间：$publishTime\n${if (it.isModified) "由老师修改" else "签到时间：$time"}"
+                  AttendanceStatus.Absent -> "发布时间：$publishTime"
+                  AttendanceStatus.Late -> "发布时间：$publishTime\n${if (it.isModified) "由老师修改" else "签到时间：$time"}"
+                  AttendanceStatus.AskForLeave -> "请假时间：$time"
+                },
+                fontSize = 12.sp,
+                color = Color(0xFF666666),
+              )
             }
             Text(
               modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp),
@@ -366,5 +362,14 @@ class AttendanceHistoryScreen(
         }
       }
     }
+  }
+
+  private fun getTitle(date: Date, beginLesson: Int, length: Int): String {
+    val week = data.courseBean.beginDate.daysUntil(date) / 7 + 1
+    val weekStr = "第${Num2CN.transform(week)}周"
+    val dayOfWeek = date.dayOfWeek.toChinese()
+    val period = List(length) { Num2CN.transform(beginLesson + it) }
+      .joinToString("", postfix = "节")
+    return "$weekStr  $dayOfWeek  $period"
   }
 }

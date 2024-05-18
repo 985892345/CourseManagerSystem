@@ -24,14 +24,12 @@ interface ICourseService {
     num: String,
     type: AccountType,
     controllers: ImmutableList<CourseController> = persistentListOf(),
-    onlyOneTerm: Boolean = false,
     onClickItem: ((LessonItemData) -> Unit)? = null,
   ): CourseDetail
 
   suspend fun requestCourseBean(
     num: String,
     type: AccountType,
-    termIndex: Int = -1,
   ): CourseBean
 
   /**

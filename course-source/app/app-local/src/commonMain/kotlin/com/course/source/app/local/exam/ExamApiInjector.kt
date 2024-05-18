@@ -15,7 +15,7 @@ import kotlinx.serialization.json.Json
  */
 object ExamApiInjector {
 
-  fun init(requestContent: RequestContent<List<ExamTermBean>>) {
+  fun init(requestContent: RequestContent<ExamTermBean>) {
     if (requestContent.requestUnits.isEmpty()) {
       requestContent.requestUnits.add(
         RequestUnit.create(
@@ -52,7 +52,7 @@ object ExamApiInjector {
                     startTimeMinute: startTimeMinute,
                     dayOfWeekNumber: array[7],
                     minuteDuration: minuteDuration,
-                    course: array[5],
+                    courseName: array[5],
                     courseNum: array[4],
                     classroom: array[9],
                     type: array[3],

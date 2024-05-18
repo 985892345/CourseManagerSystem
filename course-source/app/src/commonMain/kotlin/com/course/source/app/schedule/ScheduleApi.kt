@@ -13,19 +13,11 @@ import kotlinx.serialization.Serializable
 interface ScheduleApi {
 
   suspend fun getSchedule(
-    addBeans: List<ScheduleBean> = emptyList(),
-    updateBeans: List<ScheduleBean> = emptyList(),
-    removeIds: Set<Int> = emptySet(),
+    body: LocalScheduleBody
   ): ResponseWrapper<List<ScheduleBean>>
 
   suspend fun addSchedule(
-    title: String,
-    description: String,
-    startTime: MinuteTimeDate,
-    minuteDuration: Int,
-    repeat: ScheduleRepeat,
-    textColor: String,
-    backgroundColor: String,
+    bean: ScheduleBean
   ): ResponseWrapper<Int>
 
   suspend fun updateSchedule(bean: ScheduleBean): ResponseWrapper<Unit>
@@ -43,5 +35,12 @@ data class ScheduleBean(
   val repeat: ScheduleRepeat,
   val textColor: String,
   val backgroundColor: String,
+)
+
+@Serializable
+data class LocalScheduleBody(
+  val addBeans: List<ScheduleBean> = emptyList(),
+  val updateBeans: List<ScheduleBean> = emptyList(),
+  val removeIds: Set<Int> = emptySet(),
 )
 

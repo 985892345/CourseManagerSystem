@@ -37,10 +37,6 @@ interface TeamApi {
 
   suspend fun searchMember(key: String): ResponseWrapper<List<SearchMember>>
 
-  suspend fun refuseDecision(teamId: Int): ResponseWrapper<Unit>
-
-  suspend fun acceptDecision(teamId: Int): ResponseWrapper<Unit>
-
   suspend fun sendNotification(
     teamId: Int,
     title: String,
