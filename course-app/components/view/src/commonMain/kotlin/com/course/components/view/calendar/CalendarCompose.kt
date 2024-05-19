@@ -273,7 +273,7 @@ private fun CalendarDateRestCompose(
 ) {
   Text(
     modifier = Modifier,
-    text = "休",
+    text = "",
     color = when {
       date == Today && show == CalendarDateShowValue.Clicked -> Color.White
       else -> LocalAppColors.current.green

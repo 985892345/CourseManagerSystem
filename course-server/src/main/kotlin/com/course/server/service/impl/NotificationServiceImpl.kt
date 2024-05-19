@@ -1,15 +1,20 @@
 package com.course.server.service.impl
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper
 import com.baomidou.mybatisplus.extension.kotlin.KtQueryWrapper
 import com.baomidou.mybatisplus.extension.kotlin.KtUpdateWrapper
+import com.course.server.entity.AttendanceLeaveEntity
 import com.course.server.entity.NotificationEntity
 import com.course.server.entity.NotificationServerContent
 import com.course.server.entity.NotificationStatusEntity
+import com.course.server.mapper.AttendanceLeaveMapper
 import com.course.server.mapper.NotificationMapper
 import com.course.server.mapper.NotificationStatusMapper
+import com.course.server.service.AttendanceService
 import com.course.server.service.NotificationService
 import com.course.server.utils.ResponseException
 import com.course.shared.time.MinuteTimeDate
+import com.course.source.app.attendance.AskForLeaveStatus
 import com.course.source.app.notification.DecisionBtn
 import com.course.source.app.notification.Notification
 import com.course.source.app.notification.NotificationContent
@@ -27,6 +32,7 @@ import org.springframework.stereotype.Service
 class NotificationServiceImpl(
   private val notificationMapper: NotificationMapper,
   private val notificationStatusMapper: NotificationStatusMapper,
+  private val attendanceLeaveMapper: AttendanceLeaveMapper,
 ) : NotificationService {
 
   override fun getNotifications(userId: Int): List<Notification> {
@@ -48,16 +54,16 @@ class NotificationServiceImpl(
     return notificationStatusMapper.selectById(userId)?.hasNew ?: false
   }
 
-  override fun addNotification(userId: Int, time: MinuteTimeDate, content: NotificationServerContent) {
-    notificationMapper.insert(
-      NotificationEntity(
-        notificationId = 0,
-        userId = userId,
-        time = time,
-        contentStr = Json.encodeToString<NotificationServerContent>(content),
-      )
+  override fun addNotification(userId: Int, time: MinuteTimeDate, content: NotificationServerContent): Int {
+    val entity = NotificationEntity(
+      notificationId = 0,
+      userId = userId,
+      time = time,
+      contentStr = Json.encodeToString<NotificationServerContent>(content),
     )
+    notificationMapper.insert(entity)
     setNotificationStatusHasNew(userId, true)
+    return entity.notificationId
   }
 
   override fun decision(userId: Int, notificationId: Int, isAgree: Boolean) {
@@ -100,6 +106,14 @@ class NotificationServiceImpl(
       time = MinuteTimeDate.now(),
       content = if (isAgree) content.positiveResponse else content.negativeResponse,
     )
+    // 暂时以这种 trick 的方式解决请假申请
+    if (content.clientContent.title == "学生请假申请") {
+      attendanceLeaveMapper.update(
+        KtUpdateWrapper(AttendanceLeaveEntity::class.java)
+          .eq(AttendanceLeaveEntity::notificationId, notificationId)
+          .set(AttendanceLeaveEntity::status, if (isAgree) AskForLeaveStatus.Approved else AskForLeaveStatus.Rejected)
+      )
+    }
   }
 
   private fun checkNotificationDecisionExpired(

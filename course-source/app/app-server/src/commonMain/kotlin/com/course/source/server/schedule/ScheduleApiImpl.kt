@@ -7,13 +7,7 @@ import com.course.source.app.schedule.ScheduleBean
 import com.course.source.server.AppHttpClient
 import com.g985892345.provider.api.annotation.ImplProvider
 import io.github.seiko.ktorfit.annotation.generator.GenerateApi
-import io.github.seiko.ktorfit.annotation.http.Body
-import io.github.seiko.ktorfit.annotation.http.Field
-import io.github.seiko.ktorfit.annotation.http.POST
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
-import io.ktor.http.*
+import io.github.seiko.ktorfit.annotation.http.*
 
 /**
  * .
@@ -30,7 +24,7 @@ interface ScheduleApiProxy : ScheduleApi {
   @POST("/schedule/get")
   override suspend fun getSchedule(
     @Body
-    body: LocalScheduleBody
+    body: LocalScheduleBody,
   ): ResponseWrapper<List<ScheduleBean>>
 
   @POST("/schedule/add")
@@ -45,20 +39,10 @@ interface ScheduleApiProxy : ScheduleApi {
     bean: ScheduleBean,
   ): ResponseWrapper<Unit>
 
-//  @POST("/schedule/remove")
-//  @FormUrlEncoded
+  @POST("/schedule/remove")
+  @FormUrlEncoded
   override suspend fun removeSchedule(
     @Field("id")
     id: Int,
-  ): ResponseWrapper<Unit> {
-    val result = AppHttpClient.request {
-      method = HttpMethod.parse("POST")
-      url("/schedule/remove")
-      val parameters = Parameters.build {
-        append("id", id.toString())
-      }
-      setBody(FormDataContent(parameters))
-    }
-    return result.body()
-  }
+  ): ResponseWrapper<Unit>
 }

@@ -40,12 +40,12 @@ import kotlin.math.roundToInt
  * @author 985892345
  * 2024/5/5 17:24
  */
-class PlaceholderScheduleItemGroup(
+class AddScheduleItem(
   colorData: ScheduleColorData,
   weekBeginDate: Date,
   columnIndex: Int,
   val initialTimeInt: Int,
-  val deleteCallback: (PlaceholderScheduleItemGroup) -> Unit,
+  val deleteCallback: (AddScheduleItem) -> Unit,
   val successCallback: suspend (ScheduleBean) -> Unit,
   val onClick: (
     item: BottomSheetScheduleItem,
@@ -233,14 +233,14 @@ class PlaceholderScheduleItemGroup(
           backgroundColor = ColorArgbSerializable.colorToArgbStr(backgroundColor),
         )
       )
-      deleteCallback.invoke(this@PlaceholderScheduleItemGroup)
+      deleteCallback.invoke(this@AddScheduleItem)
       dismiss.invoke()
     }
   }
 
   override fun delete(coroutineScope: CoroutineScope, dismiss: () -> Unit) {
     coroutineScope.launch {
-      deleteCallback.invoke(this@PlaceholderScheduleItemGroup)
+      deleteCallback.invoke(this@AddScheduleItem)
       dismiss.invoke()
       cancelShow()
     }
@@ -288,7 +288,7 @@ class PlaceholderScheduleItemGroup(
     ) {
       Box(modifier = Modifier.fillMaxSize().clickable {
         onClick(
-          this@PlaceholderScheduleItemGroup,
+          this@AddScheduleItem,
           item.repeatCurrent,
           weekBeginDate,
           timeline,

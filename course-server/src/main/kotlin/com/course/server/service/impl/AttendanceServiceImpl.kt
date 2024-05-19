@@ -13,6 +13,9 @@ import com.course.source.app.attendance.*
 import com.course.source.app.course.getStartMinuteTime
 import com.course.source.app.notification.DecisionBtn
 import com.course.source.app.notification.NotificationContent
+import kotlinx.serialization.Serializable
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 
 /**
@@ -369,15 +372,6 @@ class AttendanceServiceImpl(
     if (now >= expiredTimestamp) {
       throw ResponseException("无法请假已上或正在上的课程")
     }
-    attendanceLeaveMapper.insert(
-      AttendanceLeaveEntity(
-        classPlanId = classPlanId,
-        stuNum = stuNum,
-        reason = reason,
-        timestamp = System.currentTimeMillis(),
-        status = AskForLeaveStatus.Pending.name,
-      )
-    )
     val courseClass = courseClassMapper.selectById(classPlan.classNum)
     val course = courseMapper.selectById(courseClass.courseNum)
     val teacher = teacherMapper.selectById(classPlan.teaNum)
@@ -388,7 +382,7 @@ class AttendanceServiceImpl(
       length = classPlan.length,
       courseName = course.courseName,
     )
-    notificationService.addNotification(
+    val notificationId = notificationService.addNotification(
       userId = teacher.userId,
       time = MinuteTimeDate.now(),
       content = NotificationServerContent.Decision(
@@ -415,6 +409,16 @@ class AttendanceServiceImpl(
         expiredText = "已过期",
         expiredTimestamp = expiredTimestamp,
       ),
+    )
+    attendanceLeaveMapper.insert(
+      AttendanceLeaveEntity(
+        classPlanId = classPlanId,
+        stuNum = stuNum,
+        reason = reason,
+        timestamp = System.currentTimeMillis(),
+        status = AskForLeaveStatus.Pending.name,
+        notificationId = notificationId,
+      )
     )
   }
 }

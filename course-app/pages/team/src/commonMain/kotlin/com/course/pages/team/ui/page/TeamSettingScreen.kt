@@ -40,6 +40,7 @@ import com.course.source.app.team.TeamMember
 import com.course.source.app.team.TeamRank
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient

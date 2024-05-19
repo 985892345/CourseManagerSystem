@@ -15,12 +15,12 @@ object Num2CN {
      * 单位
      */
     private var CN_UNITS = arrayOf("个", "十", "百", "千", "万", "十",
-            "百", "千", "亿", "十", "百", "千", "万")
+        "百", "千", "亿", "十", "百", "千", "万")
     /**
      * 汉字
      */
     private var CN_CHARS = arrayOf("零", "一", "二", "三", "四",
-            "五", "六", "七", "八", "九")
+        "五", "六", "七", "八", "九")
 
     /**
      * 数值转换为中文字符串(口语化)
@@ -31,13 +31,13 @@ object Num2CN {
      */
     fun transform(num: Long, isColloquial: Boolean = true): String {
         val result = convert(num, isColloquial)
-        val strB = StringBuffer(32)
+        val strB = StringBuilder(32)
         for (str in result) {
             strB.append(str)
         }
         return strB.toString()
     }
-    
+
     fun transform(num: Int, isColloquial: Boolean = true): String {
         return transform(num.toLong(), isColloquial)
     }
@@ -51,16 +51,16 @@ object Num2CN {
      * 是否口语化。例如12转换为'十二'而不是'一十二'。
      * @return
      */
-    private fun convert(num: Long, isColloquial: Boolean): Array<String> {
+    private fun convert(num: Long, isColloquial: Boolean): List<String> {
         if (num < 10) { // 10以下直接返回对应汉字
-            return arrayOf(CN_CHARS[num.toInt()]) // ASCII2int
+            return listOf(CN_CHARS[num.toInt()]) // ASCII2int
         }
         val chars = num.toString().toCharArray()
         if (chars.size > CN_UNITS.size) { // 超过单位表示范围的返回空
-            return arrayOf()
+            return emptyList()
         }
         var isLastUnitStep = false // 记录上次单位进位
-        val cnChars = ArrayList<String?>(chars.size * 2) // 创建数组，将数字填入单位对应的位置
+        val cnChars = ArrayList<String>(chars.size * 2) // 创建数组，将数字填入单位对应的位置
         for (pos in chars.indices.reversed()) { // 从低位向高位循环
             val ch = chars[pos]
             val cnChar = CN_CHARS[ch - '0'] // ascii2int 汉字
@@ -101,6 +101,6 @@ object Num2CN {
                 cnChars.removeAt(0)
             }
         }
-        return cnChars.toArray(arrayOf())
+        return cnChars
     }
 }

@@ -49,6 +49,7 @@ import com.course.source.app.account.AccountApi
 import com.g985892345.provider.api.annotation.ImplProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -219,7 +220,11 @@ class LoginScreen : BaseScreen() {
                   login(
                     coroutineScope = coroutineScope,
                     onSuccess = {
-                      navigator?.replace(MainScreen())
+                      try {
+                        navigator?.replace(MainScreen())
+                      } catch (e: Throwable) {
+                        logg("e: ${e.message}")
+                      }
                     },
                     onFailure = {
                       isClicked.value = false

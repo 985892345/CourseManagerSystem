@@ -10,4 +10,5 @@ import kotlinx.coroutines.MainScope
  * @date 2024/2/19 13:45
  */
 
-actual val AppCoroutineScope: CoroutineScope = MainScope()
+actual val AppCoroutineScope: CoroutineScope
+  get() = AppComposeCoroutineScope

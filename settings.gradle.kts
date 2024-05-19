@@ -69,3 +69,5 @@ includeModule("course-source", rootDir.resolve("course-source"))
 /**
  * 如果你使用 AS 自带的模块模版，他会自动添加 include()，请删除掉，因为上面会自动读取
  */
+
+include(":composeApp")

@@ -19,6 +19,9 @@ import kotlinx.serialization.json.Json
 var Token by Settings.nullableString("token")
 
 val AppHttpClient = HttpClient {
+  defaultRequest {
+    url("http://192.168.5.228:8080")
+  }
   install(ContentNegotiation) {
     json(Json {
       isLenient = true
@@ -27,9 +30,6 @@ val AppHttpClient = HttpClient {
       @OptIn(ExperimentalSerializationApi::class)
       explicitNulls = false
     })
-  }
-  defaultRequest {
-    url("http://127.0.0.1:8080")
   }
 }.apply {
   plugin(HttpSend).intercept { request ->

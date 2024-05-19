@@ -25,13 +25,12 @@ data class ScheduleEntity(
   @TableField(value = "start_time")
   val startTimeStr: String,
   val minuteDuration: Int,
-  @TableField(value = "repeat")
-  val repeatStr: String,
+  val repeatContent: String,
   val textColor: String,
   val backgroundColor: String,
 ) {
   @TableField(exist = false)
   val startTime: MinuteTimeDate = MinuteTimeDateSerializer.deserialize(startTimeStr)
   @TableField(exist = false)
-  val repeat: ScheduleRepeat = Json.decodeFromString(repeatStr)
+  val scheduleRepeat: ScheduleRepeat = Json.decodeFromString(repeatContent)
 }

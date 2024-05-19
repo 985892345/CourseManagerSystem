@@ -16,7 +16,7 @@ interface NotificationService {
 
   fun hasNewNotification(userId: Int): Boolean
 
-  fun addNotification(userId: Int, time: MinuteTimeDate, content: NotificationServerContent)
+  fun addNotification(userId: Int, time: MinuteTimeDate, content: NotificationServerContent): Int
 
   fun decision(userId: Int, notificationId: Int, isAgree: Boolean)
 }

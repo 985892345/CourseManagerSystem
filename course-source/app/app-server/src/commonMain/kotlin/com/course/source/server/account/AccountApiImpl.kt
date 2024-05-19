@@ -57,10 +57,8 @@ interface AccountApiProxy : AccountApi {
   ): ResponseWrapper<String>
 
   @POST("/account/logout")
-  @FormUrlEncoded
   override suspend fun logout(): ResponseWrapper<Unit>
 
   @GET("/account/get")
-  @FormUrlEncoded
   override suspend fun getAccount(): ResponseWrapper<AccountBean>
 }

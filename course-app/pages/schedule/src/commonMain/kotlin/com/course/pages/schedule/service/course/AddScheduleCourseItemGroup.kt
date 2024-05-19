@@ -20,7 +20,7 @@ import com.course.pages.course.api.item.ICourseItemGroup
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.pages.schedule.api.item.BottomSheetScheduleItem
 import com.course.pages.schedule.api.item.edit.ScheduleColorData
-import com.course.pages.schedule.ui.item.PlaceholderScheduleItemGroup
+import com.course.pages.schedule.ui.item.AddScheduleItem
 import com.course.shared.time.Date
 import com.course.source.app.schedule.ScheduleBean
 import kotlinx.coroutines.joinAll
@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
  * @author 985892345
  * 2024/4/28 15:42
  */
-class PlaceholderScheduleCourseItemGroup(
+class AddScheduleCourseItemGroup(
   val colorData: ScheduleColorData,
   val onCreate: suspend (ScheduleBean) -> Unit,
   val onClick: (
@@ -43,7 +43,7 @@ class PlaceholderScheduleCourseItemGroup(
   ) -> Unit,
 ) : ICourseItemGroup {
 
-  private val placeholderScheduleItemGroups = SnapshotStateList<PlaceholderScheduleItemGroup>()
+  private val addScheduleItems = SnapshotStateList<AddScheduleItem>()
 
   @Composable
   override fun Content(weekBeginDate: Date, timeline: CourseTimeline, scrollState: ScrollState) {
@@ -65,25 +65,25 @@ class PlaceholderScheduleCourseItemGroup(
         val longPressPointer = awaitLongPressOrCancellation(down.id)
         if (longPressPointer == null) {
           // 在空白区域非长按时抬起就取消添加的 Item
-          val cancelItems = placeholderScheduleItemGroups.toList()
+          val cancelItems = addScheduleItems.toList()
           coroutineScope.launch {
             cancelItems.map {
               launch { it.cancelShow() }
             }.joinAll()
-            placeholderScheduleItemGroups.removeAll(cancelItems)
+            addScheduleItems.removeAll(cancelItems)
           }
           return@awaitEachGesture
         }
         longPressPointer.consume()
         val columnIndex = (longPressPointer.position.x / (size.width / 7)).toInt()
-        val initialTime = PlaceholderScheduleItemGroup
+        val initialTime = AddScheduleItem
           .getMinuteTimeByOffset(timeline, size.height, longPressPointer.position.y)
         val item = createPlaceholderScheduleItem(
           weekBeginDate = weekBeginDate,
           columnIndex = columnIndex,
           initialTime = initialTime,
         )
-        placeholderScheduleItemGroups.add(item)
+        addScheduleItems.add(item)
         item.offsetForScrollOuter.floatValue = longPressPointer.position.y - scrollState.value
         while (true) {
           val event = awaitPointerEvent(pass = PointerEventPass.Initial)
@@ -106,7 +106,7 @@ class PlaceholderScheduleCourseItemGroup(
     timeline: CourseTimeline,
     scrollState: ScrollState,
   ) {
-    placeholderScheduleItemGroups.fastForEach {
+    addScheduleItems.fastForEach {
       with(it) {
         ItemGroupContent(
           weekBeginDate = weekBeginDate,
@@ -121,8 +121,8 @@ class PlaceholderScheduleCourseItemGroup(
     weekBeginDate: Date,
     columnIndex: Int,
     initialTime: Int,
-  ): PlaceholderScheduleItemGroup {
-    return PlaceholderScheduleItemGroup(
+  ): AddScheduleItem {
+    return AddScheduleItem(
       colorData = colorData,
       weekBeginDate = weekBeginDate,
       columnIndex = columnIndex,
@@ -130,7 +130,7 @@ class PlaceholderScheduleCourseItemGroup(
       onClick = onClick,
       successCallback = onCreate,
       deleteCallback = {
-        placeholderScheduleItemGroups.remove(it)
+        addScheduleItems.remove(it)
       },
     )
   }

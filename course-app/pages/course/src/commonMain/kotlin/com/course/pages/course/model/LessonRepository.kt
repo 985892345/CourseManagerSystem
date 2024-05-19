@@ -9,6 +9,7 @@ import com.course.components.utils.source.onSuccess
 import com.course.source.app.course.CourseApi
 import com.course.source.app.course.CourseBean
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
@@ -77,8 +78,7 @@ object LessonRepository {
     return withContext(Dispatchers.IO) {
       Source.api(CourseApi::class).getCourseBean(stuNum)
         .onSuccess {
-//          logg("requestCourseBean onSuccess: it = $it")
-//          setCourseBeanToCache(stuNum, it)
+          setCourseBeanToCache(stuNum, it)
         }.getOrThrow()
     }
   }

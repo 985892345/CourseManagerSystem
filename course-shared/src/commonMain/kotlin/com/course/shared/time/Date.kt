@@ -18,7 +18,7 @@ import kotlinx.serialization.encoding.Encoder
  * @author 985892345
  * @date 2024/2/25 15:17
  */
-@JvmInline
+@kotlin.jvm.JvmInline
 @Serializable(DateSerializer::class)
 value class Date(
   val value: Int,
@@ -288,12 +288,13 @@ object DateSerializer : KSerializer<Date> {
 
 fun DayOfWeek.toChinese(prefix: String = "周"): String {
   return prefix + when (this) {
-    java.time.DayOfWeek.MONDAY -> "一"
-    java.time.DayOfWeek.TUESDAY -> "二"
-    java.time.DayOfWeek.WEDNESDAY -> "三"
-    java.time.DayOfWeek.THURSDAY -> "四"
-    java.time.DayOfWeek.FRIDAY -> "五"
-    java.time.DayOfWeek.SATURDAY -> "六"
-    java.time.DayOfWeek.SUNDAY -> "日"
+    DayOfWeek.MONDAY -> "一"
+    DayOfWeek.TUESDAY -> "二"
+    DayOfWeek.WEDNESDAY -> "三"
+    DayOfWeek.THURSDAY -> "四"
+    DayOfWeek.FRIDAY -> "五"
+    DayOfWeek.SATURDAY -> "六"
+    DayOfWeek.SUNDAY -> "日"
+    else -> error("")
   }
 }

@@ -1,10 +1,10 @@
 import SwiftUI
-import ApplicationsPro
+import AppApplicationsPro
 
 @main
 struct iOSApp: App {
     init() {
-        ProAppKt.shared.initApp()
+        ProApp.shared.doInitApp()
     }
 	var body: some Scene {
 		WindowGroup {

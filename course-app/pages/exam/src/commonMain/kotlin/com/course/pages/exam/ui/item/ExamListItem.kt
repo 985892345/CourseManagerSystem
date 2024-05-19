@@ -26,9 +26,9 @@ import com.course.source.app.exam.ExamBean
 import com.course.source.app.exam.ExamTermBean
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
+import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import java.time.DayOfWeek
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -185,6 +185,7 @@ data class ExamListItem(
       DayOfWeek.FRIDAY -> "五"
       DayOfWeek.SATURDAY -> "六"
       DayOfWeek.SUNDAY -> "七"
+      else -> error("")
     }
     return if (week < 10) {
       "第" + Num2CN.transform(week.toLong()) + "周周$weekNum"

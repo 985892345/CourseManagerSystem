@@ -38,6 +38,7 @@ import com.course.pages.course.api.item.lesson.LessonItemData
 import com.course.shared.utils.Num2CN
 import com.course.source.app.attendance.AttendanceApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 

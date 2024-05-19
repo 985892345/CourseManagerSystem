@@ -66,7 +66,7 @@ class ScheduleServiceImpl(
       description = description,
       startTimeStr = startTime.toString(),
       minuteDuration = minuteDuration,
-      repeatStr = Json.encodeToString(repeat),
+      repeatContent = Json.encodeToString(repeat),
       textColor = textColor,
       backgroundColor = backgroundColor,
     )
@@ -79,7 +79,7 @@ class ScheduleServiceImpl(
       description = description,
       startTime = startTime,
       minuteDuration = minuteDuration,
-      repeat = repeat,
+      repeat = scheduleRepeat,
       textColor = textColor,
       backgroundColor = backgroundColor,
     )

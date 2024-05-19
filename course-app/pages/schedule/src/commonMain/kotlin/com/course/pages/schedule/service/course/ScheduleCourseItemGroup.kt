@@ -9,7 +9,7 @@ import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.pages.schedule.api.item.BottomSheetScheduleItem
 import com.course.pages.schedule.api.item.IScheduleCourseItemGroup
 import com.course.pages.schedule.api.item.edit.ScheduleColorData
-import com.course.pages.schedule.ui.item.ScheduleItemGroup
+import com.course.pages.schedule.ui.item.ScheduleItem
 import com.course.shared.time.Date
 import com.course.source.app.schedule.ScheduleBean
 
@@ -32,10 +32,10 @@ class ScheduleCourseItemGroup(
   ) -> Unit,
 ) : IScheduleCourseItemGroup {
 
-  private val scheduleItemGroups = mutableStateOf(mutableMapOf<Int, ScheduleItemGroup>())
+  private val scheduleItemGroups = mutableStateOf(mutableMapOf<Int, ScheduleItem>())
 
-  private val placeholderScheduleCourseItemGroup by lazy {
-    PlaceholderScheduleCourseItemGroup(
+  private val addScheduleCourseItemGroup by lazy {
+    AddScheduleCourseItemGroup(
       colorData = colorData ?: ScheduleColorData(Color(0xFF546E7A), Color(0xFFCFD8DC)),
       onCreate = { onCreate?.invoke(it) },
       onClick = onClick,
@@ -44,14 +44,14 @@ class ScheduleCourseItemGroup(
 
   override fun resetData(data: Collection<ScheduleBean>) {
     val oldMap = scheduleItemGroups.value
-    val newMap = mutableMapOf<Int, ScheduleItemGroup>()
+    val newMap = mutableMapOf<Int, ScheduleItem>()
     data.forEach {
       val oldItemGroup = oldMap[it.id]
       if (oldItemGroup != null) {
         oldItemGroup.changeBean(it)
         newMap[it.id] = oldItemGroup
       } else {
-        newMap[it.id] = ScheduleItemGroup(
+        newMap[it.id] = ScheduleItem(
           bean = it,
           onUpdate = onUpdate,
           onDelete = onDelete,
@@ -69,7 +69,7 @@ class ScheduleCourseItemGroup(
     scrollState: ScrollState,
   ) {
     if (onCreate != null) {
-      placeholderScheduleCourseItemGroup.Content(weekBeginDate, timeline, scrollState)
+      addScheduleCourseItemGroup.Content(weekBeginDate, timeline, scrollState)
     }
     scheduleItemGroups.value.forEach {
       key(it.key) {

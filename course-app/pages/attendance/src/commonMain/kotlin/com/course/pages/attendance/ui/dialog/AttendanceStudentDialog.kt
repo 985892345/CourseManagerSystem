@@ -36,6 +36,7 @@ import com.course.shared.time.MinuteTimeDate
 import com.course.source.app.attendance.AttendanceApi
 import com.course.source.app.attendance.AttendanceCodeStatus
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 
 /**

@@ -15,7 +15,7 @@ import kotlinx.serialization.json.Json
  * @author 985892345
  * 2024/5/4 16:44
  */
-object ScheduleLocalRemoveRepository {
+object ScheduleLocalRemoveRecorder {
 
   private val flowByNum = mutableMapOf<String, ScheduleLocalRemove>()
 

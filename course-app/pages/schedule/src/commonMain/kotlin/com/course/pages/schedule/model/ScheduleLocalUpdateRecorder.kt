@@ -16,7 +16,7 @@ import kotlinx.serialization.json.Json
  * @author 985892345
  * 2024/5/4 16:43
  */
-object ScheduleLocalUpdateRepository {
+object ScheduleLocalUpdateRecorder {
 
   private val localUpdateByNum = mutableMapOf<String, ScheduleLocalUpdate>()
 

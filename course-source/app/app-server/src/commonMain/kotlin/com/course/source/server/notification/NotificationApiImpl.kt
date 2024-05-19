@@ -7,12 +7,9 @@ import com.course.source.server.AppHttpClient
 import com.g985892345.provider.api.annotation.ImplProvider
 import io.github.seiko.ktorfit.annotation.generator.GenerateApi
 import io.github.seiko.ktorfit.annotation.http.Field
+import io.github.seiko.ktorfit.annotation.http.FormUrlEncoded
 import io.github.seiko.ktorfit.annotation.http.GET
 import io.github.seiko.ktorfit.annotation.http.POST
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
-import io.ktor.http.*
 
 /**
  * .
@@ -32,23 +29,12 @@ interface NotificationApiProxy : NotificationApi {
   @POST("/notification/hasNew")
   override suspend fun hasNewNotification(): ResponseWrapper<Boolean>
 
-//  @POST("/notification/decision")
-//  @FormUrlEncoded
+  @POST("/notification/decision")
+  @FormUrlEncoded
   override suspend fun decision(
     @Field("notificationId")
     notificationId: Int,
     @Field("isAgree")
     isAgree: Boolean,
-  ): ResponseWrapper<Unit> {
-    val result = AppHttpClient.request {
-      method = HttpMethod.parse("POST")
-      url("/notification/decision")
-      val parameters = Parameters.build {
-        append("notificationId", notificationId.toString())
-        append("isAgree", isAgree.toString())
-      }
-      setBody(FormDataContent(parameters))
-    }
-    return result.body()
-  }
+  ): ResponseWrapper<Unit>
 }

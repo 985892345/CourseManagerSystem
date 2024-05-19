@@ -8,6 +8,7 @@ import com.course.components.utils.source.onSuccess
 import com.course.source.app.exam.ExamApi
 import com.course.source.app.exam.ExamTermBean
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow

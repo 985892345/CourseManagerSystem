@@ -15,6 +15,7 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -55,17 +56,17 @@ object ScheduleRepository {
     val settings = createSettings("Schedule-${num}")
     val json = settings.getStringOrNull("data")
     if (json == null) {
-      return ScheduleLocalAddRepository.getAddSchedule(num).toPersistentList()
+      return ScheduleLocalAddRecorder.getAddSchedule(num).toPersistentList()
     } else {
       return try {
-        val update = ScheduleLocalUpdateRepository.getUpdateSchedule(num).associateBy { it.id }
-        val remove = ScheduleLocalRemoveRepository.getRemoveScheduleIds(num)
+        val update = ScheduleLocalUpdateRecorder.getUpdateSchedule(num).associateBy { it.id }
+        val remove = ScheduleLocalRemoveRecorder.getRemoveScheduleIds(num)
         Json.decodeFromString<List<ScheduleBean>>(json).map {
           update[it.id] ?: it
         }.filter {
           it.id !in remove
         }.toPersistentList()
-          .addAll(ScheduleLocalAddRepository.getAddSchedule(num))
+          .addAll(ScheduleLocalAddRecorder.getAddSchedule(num))
       } catch (e: SerializationException) {
         settings.remove("data")
         null
@@ -87,14 +88,14 @@ object ScheduleRepository {
       Source.api(ScheduleApi::class)
         .getSchedule(
           LocalScheduleBody(
-            addBeans = ScheduleLocalAddRepository.getAddSchedule(num),
-            updateBeans = ScheduleLocalUpdateRepository.getUpdateSchedule(num),
-            removeIds = ScheduleLocalRemoveRepository.getRemoveScheduleIds(num),
+            addBeans = ScheduleLocalAddRecorder.getAddSchedule(num),
+            updateBeans = ScheduleLocalUpdateRecorder.getUpdateSchedule(num),
+            removeIds = ScheduleLocalRemoveRecorder.getRemoveScheduleIds(num),
           )
         ).onSuccess {
-          ScheduleLocalAddRepository.clearAddSchedule(num)
-          ScheduleLocalUpdateRepository.clearUpdateSchedule(num)
-          ScheduleLocalRemoveRepository.clearRemoveSchedule(num)
+          ScheduleLocalAddRecorder.clearAddSchedule(num)
+          ScheduleLocalUpdateRecorder.clearUpdateSchedule(num)
+          ScheduleLocalRemoveRecorder.clearRemoveSchedule(num)
           setScheduleBeanToCache(num, it)
           getScheduleBeansFlow(num).value = it.toPersistentList()
         }.getOrThrow()
@@ -130,7 +131,7 @@ object ScheduleRepository {
         bean.copy(id = it)
       }
       val newBean = result.getOrElse {
-        ScheduleLocalAddRepository.addSchedule(
+        ScheduleLocalAddRecorder.addSchedule(
           num = num,
           bean = bean,
         )
@@ -143,7 +144,7 @@ object ScheduleRepository {
 
   fun updateSchedule(bean: ScheduleBean) {
     val num = Account.value?.num ?: return
-    val localUpdateIsSuccess = ScheduleLocalAddRepository.updateAddSchedule(num, bean)
+    val localUpdateIsSuccess = ScheduleLocalAddRecorder.updateAddSchedule(num, bean)
     if (localUpdateIsSuccess) {
       getScheduleBeansFlow(num).let { flow ->
         flow.value = flow.value.set(
@@ -159,7 +160,7 @@ object ScheduleRepository {
           .updateSchedule(bean)
           .getOrThrow()
       }.onFailure {
-        ScheduleLocalUpdateRepository.addUpdateSchedule(num, bean)
+        ScheduleLocalUpdateRecorder.addUpdateSchedule(num, bean)
       }
       getScheduleBeansFlow(num).let { flow ->
         flow.value = flow.value.set(
@@ -172,7 +173,7 @@ object ScheduleRepository {
 
   fun removeSchedule(id: Int) {
     val num = Account.value?.num ?: return
-    val localRemoveIsSuccess = ScheduleLocalAddRepository.removeAddSchedule(num, id)
+    val localRemoveIsSuccess = ScheduleLocalAddRecorder.removeAddSchedule(num, id)
     if (localRemoveIsSuccess) {
       getScheduleBeansFlow(num).let { flow ->
         flow.value = flow.value.removeAt(
@@ -181,14 +182,14 @@ object ScheduleRepository {
       }
       return
     }
-    ScheduleLocalUpdateRepository.removeUpdateSchedule(num, id)
+    ScheduleLocalUpdateRecorder.removeUpdateSchedule(num, id)
     AppCoroutineScope.launch(Dispatchers.IO) {
       runCatching {
         Source.api(ScheduleApi::class)
           .removeSchedule(id)
           .getOrThrow()
       }.onFailure {
-        ScheduleLocalRemoveRepository.addRemoveSchedule(num, id)
+        ScheduleLocalRemoveRecorder.addRemoveSchedule(num, id)
       }
       getScheduleBeansFlow(num).let { flow ->
         flow.value = flow.value.removeAt(

@@ -7,14 +7,7 @@ import com.course.source.app.response.ResponseWrapper
 import com.course.source.server.AppHttpClient
 import com.g985892345.provider.api.annotation.ImplProvider
 import io.github.seiko.ktorfit.annotation.generator.GenerateApi
-import io.github.seiko.ktorfit.annotation.http.Field
-import io.github.seiko.ktorfit.annotation.http.GET
-import io.github.seiko.ktorfit.annotation.http.POST
-import io.github.seiko.ktorfit.annotation.http.Query
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
-import io.ktor.http.*
+import io.github.seiko.ktorfit.annotation.http.*
 
 /**
  * .
@@ -46,8 +39,8 @@ interface CourseApiProxy : CourseApi {
     classPlanId: Int,
   ): ResponseWrapper<Unit>
 
-//  @POST("/course/change")
-//  @FormUrlEncoded
+  @POST("/course/change")
+  @FormUrlEncoded
   override suspend fun changeCourse(
     @Field("classPlanId")
     classPlanId: Int,
@@ -59,24 +52,10 @@ interface CourseApiProxy : CourseApi {
     newLength: Int,
     @Field("newClassroom")
     newClassroom: String,
-  ): ResponseWrapper<Unit> {
-    val result = AppHttpClient.request {
-      method = HttpMethod.parse("POST")
-      url("/course/change")
-      val parameters = Parameters.build {
-        append("classPlanId", newDate)
-        append("newDate", newDate)
-        append("newBeginLesson", newBeginLesson.toString())
-        append("newLength", newLength.toString())
-        append("newClassroom", newClassroom)
-      }
-      setBody(FormDataContent(parameters))
-    }
-    return result.body()
-  }
+  ): ResponseWrapper<Unit>
 
-//  @POST("/course/create")
-//  @FormUrlEncoded
+  @POST("/course/create")
+  @FormUrlEncoded
   override suspend fun createCourse(
     @Field("classNum")
     classNum: String,
@@ -88,19 +67,5 @@ interface CourseApiProxy : CourseApi {
     length: Int,
     @Field("classroom")
     classroom: String,
-  ): ResponseWrapper<Int> {
-    val result = AppHttpClient.request {
-      method = HttpMethod.parse("POST")
-      url("/course/create")
-      val parameters = Parameters.build {
-        append("classNum", classNum)
-        append("date", date)
-        append("beginLesson", beginLesson.toString())
-        append("length", length.toString())
-        append("classroom", classroom)
-      }
-      setBody(FormDataContent(parameters))
-    }
-    return result.body()
-  }
+  ): ResponseWrapper<Int>
 }

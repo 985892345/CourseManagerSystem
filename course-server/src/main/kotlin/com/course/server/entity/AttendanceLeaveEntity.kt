@@ -17,6 +17,7 @@ data class AttendanceLeaveEntity(
   val timestamp: Long,
   val reason: String,
   val status: String,
+  val notificationId: Int,
 ) {
   @TableField(exist = false)
   val askForLeaveStatus: AskForLeaveStatus = AskForLeaveStatus.valueOf(status)

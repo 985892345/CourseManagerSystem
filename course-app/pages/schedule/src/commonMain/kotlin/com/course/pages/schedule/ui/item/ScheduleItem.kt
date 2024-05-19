@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
  * @author 985892345
  * 2024/5/5 15:51
  */
-class ScheduleItemGroup(
+class ScheduleItem(
   var bean: ScheduleBean,
   val onUpdate: (suspend (ScheduleBean) -> Unit)?,
   val onDelete: (suspend (ScheduleBean) -> Unit)?,
@@ -271,7 +271,7 @@ class ScheduleItemGroup(
       TopBottomText(
         modifier = Modifier.clickable {
           onClick(
-            this@ScheduleItemGroup,
+            this@ScheduleItem,
             item.repeatCurrent,
             weekBeginDate,
             timeline,

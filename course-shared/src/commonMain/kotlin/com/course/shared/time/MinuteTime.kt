@@ -17,7 +17,7 @@ import kotlinx.serialization.encoding.Encoder
  * @author 985892345
  * 2024/3/9 15:30
  */
-@JvmInline
+@kotlin.jvm.JvmInline
 @Serializable(MinuteTimeSerializer::class)
 value class MinuteTime(val value: Int) : Comparable<MinuteTime> {
 

@@ -15,7 +15,6 @@ import kotlinx.coroutines.launch
 
 private var LogJob: Job? = null
 
-@OptIn(DelicateCoroutinesApi::class)
 actual fun log(msg: String) {
   android.util.Log.d("ggg", "(${Exception().stackTrace[2].run { "$fileName:$lineNumber" }}) -> " +
       msg)
