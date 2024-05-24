@@ -22,8 +22,8 @@ import com.course.pages.exam.ui.ExamScreen
 import com.course.pages.main.api.IMainPage
 import com.course.source.app.account.AccountType
 import com.g985892345.provider.api.annotation.ImplProvider
-import coursemanagersystem.course_app.pages.exam.generated.resources.Res
-import coursemanagersystem.course_app.pages.exam.generated.resources.ic_exam_bottom_bar
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
 /**
@@ -53,6 +53,7 @@ class ExamMainPage : IMainPage {
     }
   }
 
+  @OptIn(ExperimentalResourceApi::class)
   @Composable
   override fun BoxScope.BottomAppBarItem(selected: State<Boolean>, selectToPosition: () -> Unit) {
     Box(
@@ -61,7 +62,7 @@ class ExamMainPage : IMainPage {
     ) {
       Icon(
         modifier = Modifier.padding(top = 1.dp, start = 1.dp).size(18.dp),
-        painter = painterResource(Res.drawable.ic_exam_bottom_bar),
+        painter = painterResource(DrawableResource("drawable/ic_exam_bottom_bar.xml")),
         contentDescription = null,
         tint = if (selected.value) Color.Black else LocalContentColor.current.copy(alpha = LocalContentAlpha.current)
       )

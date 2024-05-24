@@ -113,8 +113,8 @@ class NotificationScreen(
         Source.api(NotificationApi::class)
           .getNotifications()
           .getOrThrow()
-      }.tryThrowCancellationException().onSuccess {
-        list = it
+      }.tryThrowCancellationException().onSuccess { notificationList ->
+        list = notificationList
       }.onFailure {
         toast("网络异常")
       }
@@ -138,7 +138,6 @@ class NotificationScreen(
       ) {
         when (val content = notification.content) {
           is NotificationContent.Normal -> NormalNotificationCompose(content)
-          is NotificationContent.AddSchedule -> AddScheduleNotificationCompose(content)
           is NotificationContent.Decision -> DecisionNotificationCompose(notification.notificationId, content)
         }
       }

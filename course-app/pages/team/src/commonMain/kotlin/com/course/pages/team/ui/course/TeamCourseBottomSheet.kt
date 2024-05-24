@@ -22,7 +22,6 @@ import com.course.source.app.team.TeamMember
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -70,7 +69,7 @@ class TeamCourseBottomSheet(
           scheduleBeansMap[it.id] = ScheduleBean(
             id = it.id,
             title = it.title,
-            description = it.description,
+            description = it.content,
             startTime = it.startTime,
             minuteDuration = it.minuteDuration,
             repeat = it.repeat,
@@ -90,7 +89,7 @@ class TeamCourseBottomSheet(
           .createTeamSchedule(
             teamId = teamBean.teamId,
             title = bean.title,
-            description = bean.description,
+            content = bean.description,
             startTime = bean.startTime,
             minuteDuration = bean.minuteDuration,
             repeat = bean.repeat,
@@ -114,7 +113,7 @@ class TeamCourseBottomSheet(
           .updateTeamSchedule(
             id = bean.id,
             title = bean.title,
-            description = bean.description,
+            content = bean.description,
             startTime = bean.startTime,
             minuteDuration = bean.minuteDuration,
             repeat = bean.repeat,

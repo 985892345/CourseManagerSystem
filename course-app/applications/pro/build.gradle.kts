@@ -1,79 +1,51 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 
 plugins {
-  alias(libs.plugins.kotlinMultiplatform)
-  alias(libs.plugins.androidApplication)
-  alias(libs.plugins.jetbrainsCompose)
+  id("app.base.application")
+  id("app.function.provider") // 启动模块使用 KSP 会出现 bug，有时候不会生成产物，已给官方提 issue
+  id("app.function.navigator")
+}
+
+composeApplication {
+  config(
+    versionCode = 1,
+    versionName = "1.0.0",
+    desktopMainClass = "MainKt",
+  )
 }
 
 kotlin {
-  androidTarget {
-    compilations.all {
-      kotlinOptions {
-        jvmTarget = "11"
-      }
-    }
-  }
-
-  listOf(
-    iosX64(),
-    iosArm64(),
-    iosSimulatorArm64()
-  ).forEach { iosTarget ->
-    iosTarget.binaries.framework {
-      baseName = "ComposeApp"
-      isStatic = true
-    }
-  }
-
   sourceSets {
-
-    androidMain.dependencies {
-      implementation(libs.compose.ui.tooling.preview)
-      implementation(libs.androidx.activity.compose)
-    }
     commonMain.dependencies {
-      implementation(compose.runtime)
-      implementation(compose.foundation)
-      implementation(compose.material)
-      implementation(compose.ui)
-      implementation(compose.components.resources)
-      implementation(compose.components.uiToolingPreview)
+      val courseAppFile = rootDir.resolve("course-app")
+      implementationModules("components", courseAppFile.resolve("components"))
+      implementationModules("functions", courseAppFile.resolve("functions"))
+      implementationModules("pages", courseAppFile.resolve("pages"))
+      implementation(projects.courseSource.app.appServer)
     }
   }
 }
 
-android {
-  namespace = "com.system.course"
-  compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-  sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-  sourceSets["main"].res.srcDirs("src/androidMain/res")
-  sourceSets["main"].resources.srcDirs("src/commonMain/resources")
-
-  defaultConfig {
-    applicationId = "com.system.course"
-    minSdk = libs.versions.android.minSdk.get().toInt()
-    targetSdk = libs.versions.android.targetSdk.get().toInt()
-    versionCode = 1
-    versionName = "1.0"
-  }
-  packaging {
-    resources {
-      excludes += "/META-INF/{AL2.0,LGPL2.1}"
+fun KotlinDependencyHandler.implementationModules(topName: String, file: File) {
+  if (!file.resolve("settings.gradle.kts").exists()) {
+    if (file.resolve("build.gradle.kts").exists()) {
+      var path = ""
+      var nowFile = file
+      while (nowFile.name != topName) {
+        path = ":${nowFile.name}$path"
+        nowFile = nowFile.parentFile
+      }
+      path = "course-app:${topName}$path"
+      rootProject.findProject(path)?.let { implementation(it) }
     }
   }
-  buildTypes {
-    getByName("release") {
-      isMinifyEnabled = false
-    }
-  }
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-  }
-  dependencies {
-    debugImplementation(libs.compose.ui.tooling)
+  // 递归寻找所有子模块
+  file.listFiles()?.filter {
+    it.name != "src" // 去掉 src 文件夹
+        && it.name != "build"
+        && it.name != "iosApp"
+        && !it.resolve("settings.gradle.kts").exists() // 去掉独立的项目模块，比如 build-logic
+  }?.forEach {
+    implementationModules(topName, it)
   }
 }
-

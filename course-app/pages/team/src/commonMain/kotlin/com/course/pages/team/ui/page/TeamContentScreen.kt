@@ -10,27 +10,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ForwardToInbox
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -39,11 +24,7 @@ import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.CalendarMonth
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -75,14 +56,9 @@ import com.course.components.view.edit.EditTextCompose
 import com.course.pages.team.ui.course.TeamCourseBottomSheet
 import com.course.pages.team.utils.TeamDetailStateSerializer
 import com.course.pages.team.utils.TeamMemberStateSerializer
-import com.course.source.app.team.TeamApi
-import com.course.source.app.team.TeamBean
-import com.course.source.app.team.TeamDetail
-import com.course.source.app.team.TeamMember
-import com.course.source.app.team.TeamRank
+import com.course.source.app.team.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -145,10 +121,10 @@ class TeamContentScreen(
           val manager = mutableListOf<TeamMember>()
           val member = mutableListOf<TeamMember>()
           detail.members.fastForEach {
-            when (it.rank) {
-              TeamRank.Administrator -> admin.add(it)
-              TeamRank.Manager -> manager.add(it)
-              TeamRank.Member -> member.add(it)
+            when (it.role) {
+              TeamRole.Administrator -> admin.add(it)
+              TeamRole.Manager -> manager.add(it)
+              TeamRole.Member -> member.add(it)
             }
           }
           adminList.value = admin
@@ -204,20 +180,20 @@ class TeamContentScreen(
       ) {
         Box(
           modifier = Modifier.clickableCardIndicator {
-            when (teamBean.rank) {
-              TeamRank.Administrator -> navigator?.push(
+            when (teamBean.role) {
+              TeamRole.Administrator -> navigator?.push(
                 TeamSettingScreen(teamBean, managerList.value, memberList.value)
               )
 
-              TeamRank.Manager, TeamRank.Member -> showExitDialog(coroutineScope, navigator)
+              TeamRole.Manager, TeamRole.Member -> showExitDialog(coroutineScope, navigator)
             }
           },
           contentAlignment = Alignment.Center,
         ) {
           Icon(
-            imageVector = when (teamBean.rank) {
-              TeamRank.Administrator -> Icons.Outlined.Settings
-              TeamRank.Manager, TeamRank.Member -> Icons.AutoMirrored.Rounded.ExitToApp
+            imageVector = when (teamBean.role) {
+              TeamRole.Administrator -> Icons.Outlined.Settings
+              TeamRole.Manager, TeamRole.Member -> Icons.AutoMirrored.Rounded.ExitToApp
             },
             contentDescription = null,
           )
@@ -300,7 +276,7 @@ class TeamContentScreen(
             )
             if (!member.isConfirmed) {
               Text(
-                modifier = Modifier.padding(start = 8.dp),
+                modifier = Modifier,
                 text = "（未回复邀请）",
                 fontSize = 12.sp,
                 color = Color(0xFF666666),
@@ -452,7 +428,7 @@ class TeamContentScreen(
         coroutineScope.launch(Dispatchers.IO) {
           runCatching {
             Source.api(TeamApi::class)
-              .sendNotification(teamBean.teamId, editTitle.value, editDescription.value)
+              .sendTeamNotification(teamBean.teamId, editTitle.value, editDescription.value)
               .getOrThrow()
           }.tryThrowCancellationException().onSuccess {
             toast("发送成功")

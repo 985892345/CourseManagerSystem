@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.course.components.base.account.Account
 import com.course.components.base.theme.LocalAppColors
 import com.course.components.base.ui.toast.toast
 import com.course.components.utils.compose.clickableCardIndicator
@@ -52,7 +53,7 @@ import com.course.source.app.account.AccountType
 import com.course.source.app.team.SearchMember
 import com.course.source.app.team.TeamApi
 import com.course.source.app.team.TeamMember
-import com.course.source.app.team.TeamRank
+import com.course.source.app.team.TeamRole
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -236,6 +237,7 @@ class TeamDetailEditPage(
           screen.showSearchWindow {
             val member = MemberData(
               name = it.name,
+              userId = it.userId,
               num = it.num,
               type = it.type,
             )
@@ -452,8 +454,8 @@ class TeamDetailEditPage(
         if (receive.length > 1) {
           runCatching {
             Source.api(TeamApi::class).searchMember(receive).getOrThrow()
-          }.tryThrowCancellationException().onSuccess {
-            searchResult.value = it
+          }.tryThrowCancellationException().onSuccess { members ->
+            searchResult.value = members.filter { it.num != Account.value?.num }
           }
         } else {
           searchResult.value = emptyList()
@@ -492,19 +494,21 @@ class TeamDetailEditPage(
   @Serializable
   data class MemberData(
     val name: String,
+    val userId: Int,
     val num: String,
     val type: AccountType,
   ) {
     @Serializable(StringStateSerializable::class)
     val identity = mutableStateOf("")
 
-    fun toMember(rank: TeamRank): TeamMember {
+    fun toMember(role: TeamRole): TeamMember {
       return TeamMember(
+        userId = userId,
         name = name,
         num = num,
         identity = identity.value,
-        rank = rank,
         type = type,
+        role = role,
         isConfirmed = true, // 该字段由 server 控制
       )
     }

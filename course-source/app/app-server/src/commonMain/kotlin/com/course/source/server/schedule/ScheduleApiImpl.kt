@@ -7,7 +7,12 @@ import com.course.source.app.schedule.ScheduleBean
 import com.course.source.server.AppHttpClient
 import com.g985892345.provider.api.annotation.ImplProvider
 import io.github.seiko.ktorfit.annotation.generator.GenerateApi
-import io.github.seiko.ktorfit.annotation.http.*
+import io.github.seiko.ktorfit.annotation.http.Body
+import io.github.seiko.ktorfit.annotation.http.Field
+import io.github.seiko.ktorfit.annotation.http.FormUrlEncoded
+import io.github.seiko.ktorfit.annotation.http.POST
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * .
@@ -21,22 +26,40 @@ object ScheduleApiImpl : ScheduleApi by ScheduleApiProxy.create(AppHttpClient)
 @GenerateApi
 interface ScheduleApiProxy : ScheduleApi {
 
-  @POST("/schedule/get")
   override suspend fun getSchedule(
-    @Body
     body: LocalScheduleBody,
+  ): ResponseWrapper<List<ScheduleBean>> {
+    return getSchedule(Json.encodeToString(body))
+  }
+
+  @POST("/schedule/get")
+  suspend fun getSchedule(
+    @Body
+    body: String,
   ): ResponseWrapper<List<ScheduleBean>>
 
-  @POST("/schedule/add")
   override suspend fun addSchedule(
-    @Body
     bean: ScheduleBean,
+  ): ResponseWrapper<Int> {
+    return addSchedule(Json.encodeToString(bean))
+  }
+
+  @POST("/schedule/add")
+  suspend fun addSchedule(
+    @Body
+    bean: String,
   ): ResponseWrapper<Int>
 
-  @POST("/schedule/update")
   override suspend fun updateSchedule(
-    @Body
     bean: ScheduleBean,
+  ): ResponseWrapper<Unit> {
+    return updateSchedule(Json.encodeToString(bean))
+  }
+
+  @POST("/schedule/update")
+  suspend fun updateSchedule(
+    @Body
+    bean: String,
   ): ResponseWrapper<Unit>
 
   @POST("/schedule/remove")

@@ -1,15 +1,7 @@
 package com.course.pages.team.ui.page
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -37,10 +29,9 @@ import com.course.components.utils.source.getOrThrow
 import com.course.source.app.team.TeamApi
 import com.course.source.app.team.TeamBean
 import com.course.source.app.team.TeamMember
-import com.course.source.app.team.TeamRank
+import com.course.source.app.team.TeamRole
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -65,6 +56,7 @@ class TeamSettingScreen(
     initialDescription = teamBean.description,
     initialManagerList = managerList.map { member ->
       TeamDetailEditPage.MemberData(
+        userId = member.userId,
         name = member.name,
         num = member.num,
         type = member.type,
@@ -72,6 +64,7 @@ class TeamSettingScreen(
     },
     initialMemberList = memberList.map { member ->
       TeamDetailEditPage.MemberData(
+        userId = member.userId,
         name = member.name,
         num = member.num,
         type = member.type,
@@ -126,7 +119,7 @@ class TeamSettingScreen(
           .fillMaxWidth()
           .height(1.dp)
       )
-      if (teamBean.dissolvable) {
+      if (teamBean.role == TeamRole.Administrator) {
         Box(
           modifier = Modifier.align(Alignment.CenterEnd)
             .padding(end = 12.dp)
@@ -158,9 +151,9 @@ class TeamSettingScreen(
             identity = detailEditPage.editIdentity.value,
             description = detailEditPage.editDescription.value,
             members = detailEditPage.managerList.value.map {
-              it.toMember(TeamRank.Manager)
+              it.toMember(TeamRole.Manager)
             } + detailEditPage.memberList.value.map {
-              it.toMember(TeamRank.Member)
+              it.toMember(TeamRole.Member)
             },
           ).getOrThrow()
         }.tryThrowCancellationException().onSuccess {

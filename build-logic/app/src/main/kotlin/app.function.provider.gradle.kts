@@ -7,7 +7,7 @@ plugins {
 }
 
 dependencies {
-  kspMultiplatform(ktProvider.ksp)
+  kspMultiplatform(project, ktProvider.ksp)
 }
 
 ktProvider.setLogEnable(true)

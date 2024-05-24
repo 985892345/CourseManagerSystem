@@ -1,16 +1,12 @@
 package com.course.server.service.impl
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper
 import com.baomidou.mybatisplus.extension.kotlin.KtQueryWrapper
 import com.baomidou.mybatisplus.extension.kotlin.KtUpdateWrapper
-import com.course.server.entity.AttendanceLeaveEntity
-import com.course.server.entity.NotificationEntity
-import com.course.server.entity.NotificationServerContent
-import com.course.server.entity.NotificationStatusEntity
+import com.course.server.entity.*
 import com.course.server.mapper.AttendanceLeaveMapper
 import com.course.server.mapper.NotificationMapper
 import com.course.server.mapper.NotificationStatusMapper
-import com.course.server.service.AttendanceService
+import com.course.server.mapper.TeamMemberMapper
 import com.course.server.service.NotificationService
 import com.course.server.utils.ResponseException
 import com.course.shared.time.MinuteTimeDate
@@ -33,6 +29,7 @@ class NotificationServiceImpl(
   private val notificationMapper: NotificationMapper,
   private val notificationStatusMapper: NotificationStatusMapper,
   private val attendanceLeaveMapper: AttendanceLeaveMapper,
+  private val teamMemberMapper: TeamMemberMapper,
 ) : NotificationService {
 
   override fun getNotifications(userId: Int): List<Notification> {
@@ -47,7 +44,7 @@ class NotificationServiceImpl(
         time = it.time,
         content = checkNotificationDecisionExpired(it, now)?.clientContent ?: it.serverContent.clientContent,
       )
-    }
+    }.asReversed()
   }
 
   override fun hasNewNotification(userId: Int): Boolean {
@@ -66,6 +63,33 @@ class NotificationServiceImpl(
     return entity.notificationId
   }
 
+  override fun removeNotification(notificationId: Int) {
+    notificationMapper.deleteById(notificationId)
+  }
+
+  override fun changeNotificationExpired(notificationId: Int, expiredTimestamp: Long, expiredText: String?) {
+    val notification = notificationMapper.selectById(notificationId) ?: throw ResponseException("不存在该通知")
+    val serverContent = notification.serverContent
+    if (serverContent is NotificationServerContent.Decision) {
+      notificationMapper.update(
+        KtUpdateWrapper(NotificationEntity::class.java)
+          .eq(NotificationEntity::notificationId, notificationId)
+          .set(
+            NotificationEntity::contentStr,
+            Json.encodeToString<NotificationServerContent>(
+              serverContent.copy(
+                expiredTimestamp = expiredTimestamp,
+                expiredText = expiredText ?: serverContent.expiredText,
+              )
+            )
+          )
+      )
+      // 对于 client content 会在拉取数据时修改
+    } else {
+      throw ResponseException("该通知不是决策通知")
+    }
+  }
+
   override fun decision(userId: Int, notificationId: Int, isAgree: Boolean) {
     val notification = notificationMapper.selectOne(
       KtQueryWrapper(NotificationEntity::class.java)
@@ -74,7 +98,7 @@ class NotificationServiceImpl(
     )
     if (notification == null) throw ResponseException("不存在该通知")
     val content = notification.serverContent
-    if (content !is NotificationServerContent.Decision) throw ResponseException("该通知不为决议通知")
+    if (content !is NotificationServerContent.Decision) throw ResponseException("该通知不为决策通知")
     val clientContentBtn = content.clientContent.btn
     if (clientContentBtn is DecisionBtn.Expired) throw ResponseException("该通知已经过期")
     if (clientContentBtn !is DecisionBtn.Pending) throw ResponseException("该通知已经处理")
@@ -106,13 +130,35 @@ class NotificationServiceImpl(
       time = MinuteTimeDate.now(),
       content = if (isAgree) content.positiveResponse else content.negativeResponse,
     )
-    // 暂时以这种 trick 的方式解决请假申请
-    if (content.clientContent.title == "学生请假申请") {
-      attendanceLeaveMapper.update(
-        KtUpdateWrapper(AttendanceLeaveEntity::class.java)
-          .eq(AttendanceLeaveEntity::notificationId, notificationId)
-          .set(AttendanceLeaveEntity::status, if (isAgree) AskForLeaveStatus.Approved else AskForLeaveStatus.Rejected)
-      )
+    // 暂时以这种 trick 的方式解决
+    when (content.decisionType) {
+      is DecisionType.AskForLeave -> {
+        attendanceLeaveMapper.update(
+          KtUpdateWrapper(AttendanceLeaveEntity::class.java)
+            .eq(AttendanceLeaveEntity::leaveId, content.decisionType.leaveId)
+            .set(
+              AttendanceLeaveEntity::statusStr,
+              if (isAgree) AskForLeaveStatus.Approved.name else AskForLeaveStatus.Rejected.name
+            )
+        )
+      }
+
+      is DecisionType.TeamInvite -> {
+        if (isAgree) {
+          teamMemberMapper.update(
+            KtUpdateWrapper(TeamMemberEntity::class.java)
+              .eq(TeamMemberEntity::teamId, content.decisionType.teamId)
+              .eq(TeamMemberEntity::userId, content.decisionType.userId)
+              .set(TeamMemberEntity::isConfirmed, true)
+          )
+        } else {
+          teamMemberMapper.delete(
+            KtUpdateWrapper(TeamMemberEntity::class.java)
+              .eq(TeamMemberEntity::teamId, content.decisionType.teamId)
+              .eq(TeamMemberEntity::userId, content.decisionType.userId)
+          )
+        }
+      }
     }
   }
 

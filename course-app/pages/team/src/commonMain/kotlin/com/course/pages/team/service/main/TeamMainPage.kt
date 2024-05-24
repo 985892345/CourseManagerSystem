@@ -9,6 +9,7 @@ import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,8 +19,9 @@ import com.course.components.utils.compose.clickableCardIndicator
 import com.course.pages.main.api.IMainPage
 import com.course.pages.team.ui.page.TeamListScreen
 import com.g985892345.provider.api.annotation.ImplProvider
-import coursemanagersystem.course_app.pages.team.generated.resources.Res
-import coursemanagersystem.course_app.pages.team.generated.resources.ic_team_bottom_bar
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
 /**
@@ -34,8 +36,8 @@ class TeamMainPage : IMainPage {
   override val priority: Int
     get() = 100
 
-  override val visibility: Boolean
-    get() = false
+//  override val visibility: Boolean
+//    get() = false
 
   private val teamListScreen by lazy { TeamListScreen(backable = false) }
 
@@ -46,15 +48,22 @@ class TeamMainPage : IMainPage {
     }
   }
 
+  @OptIn(ExperimentalResourceApi::class)
   @Composable
   override fun BoxScope.BottomAppBarItem(selected: State<Boolean>, selectToPosition: () -> Unit) {
+    val coroutineScope = rememberCoroutineScope()
     Box(
-      modifier = Modifier.size(32.dp).clickableCardIndicator { selectToPosition() },
+      modifier = Modifier.size(32.dp).clickableCardIndicator {
+        coroutineScope.launch {
+          teamListScreen.requestTeamList()
+        }
+        selectToPosition()
+      },
       contentAlignment = Alignment.Center,
     ) {
       Icon(
         modifier = Modifier.size(24.dp),
-        painter = painterResource(Res.drawable.ic_team_bottom_bar),
+        painter = painterResource(DrawableResource("drawable/ic_team_bottom_bar.xml")),
         contentDescription = null,
         tint = if (selected.value) Color.Black else LocalContentColor.current.copy(alpha = LocalContentAlpha.current)
       )

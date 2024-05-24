@@ -17,9 +17,10 @@ data class UserEntity(
   @TableId(type = IdType.AUTO)
   var userId: Int,
   val password: String,
-  val type: String,
+  @TableField(value = "type")
+  val typeStr: String,
   val token: String?,
 ) {
   @TableField(exist = false)
-  val accountType: AccountType = AccountType.valueOf(type)
+  val type: AccountType = AccountType.valueOf(typeStr)
 }

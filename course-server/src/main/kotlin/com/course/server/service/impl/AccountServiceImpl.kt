@@ -77,7 +77,7 @@ class AccountServiceImpl(
       val user = UserEntity(
         userId = 0,
         password = sha(password),
-        type = AccountType.Student.name,
+        typeStr = AccountType.Student.name,
         token = null,
       )
       userMapper.insert(user)
@@ -96,7 +96,7 @@ class AccountServiceImpl(
       val user = UserEntity(
         userId = 0,
         password = sha(password),
-        type = AccountType.Teacher.name,
+        typeStr = AccountType.Teacher.name,
         token = null,
       )
       userMapper.insert(user)

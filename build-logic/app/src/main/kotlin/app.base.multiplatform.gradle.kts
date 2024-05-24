@@ -10,14 +10,16 @@ kotlin {
   jvmToolchain(17)
 
   // 暂时注释，导入 iOS 后会导致 commonMain 源集无法使用 kotlin-stdlib 依赖
-  listOf(
-    iosX64(),
-    iosArm64(),
-    iosSimulatorArm64()
-  ).forEach { iosTarget ->
-    iosTarget.binaries.framework {
-      baseName = Config.getBaseName(project)
-      isStatic = true
+  if (project.properties["sourceSets.ios"].toString().toBooleanStrictOrNull() == true) {
+    listOf(
+      iosX64(),
+      iosArm64(),
+      iosSimulatorArm64()
+    ).forEach { iosTarget ->
+      iosTarget.binaries.framework {
+        baseName = Config.getBaseName(project)
+        isStatic = true
+      }
     }
   }
   androidTarget {

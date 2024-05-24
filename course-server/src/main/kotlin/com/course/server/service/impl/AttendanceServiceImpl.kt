@@ -13,9 +13,6 @@ import com.course.source.app.attendance.*
 import com.course.source.app.course.getStartMinuteTime
 import com.course.source.app.notification.DecisionBtn
 import com.course.source.app.notification.NotificationContent
-import kotlinx.serialization.Serializable
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 
 /**
@@ -92,7 +89,7 @@ class AttendanceServiceImpl(
       attendanceLeaveMapper.selectList(
         KtQueryWrapper(AttendanceLeaveEntity::class.java)
           .eq(AttendanceLeaveEntity::classPlanId, classPlanId)
-          .eq(AttendanceLeaveEntity::status, AskForLeaveStatus.Approved.name)
+          .eq(AttendanceLeaveEntity::statusStr, AskForLeaveStatus.Approved.name)
       ).forEach {
         stuNumSet.add(it.stuNum)
         askForLeave.add(
@@ -173,7 +170,7 @@ class AttendanceServiceImpl(
         KtQueryWrapper(AttendanceLeaveEntity::class.java)
           .eq(AttendanceLeaveEntity::classPlanId, classPlanId)
           .eq(AttendanceLeaveEntity::stuNum, stuNum)
-          .eq(AttendanceLeaveEntity::status, AskForLeaveStatus.Approved.name)
+          .eq(AttendanceLeaveEntity::statusStr, AskForLeaveStatus.Approved.name)
       ) != null
     ) {
       throw ResponseException("该学生已经请假，不能进行修改")
@@ -238,7 +235,7 @@ class AttendanceServiceImpl(
         KtQueryWrapper(AttendanceLeaveEntity::class.java)
           .eq(AttendanceLeaveEntity::classPlanId, classPlanId)
           .eq(AttendanceLeaveEntity::stuNum, stuNum)
-      )?.askForLeaveStatus == AskForLeaveStatus.Approved
+      )?.status == AskForLeaveStatus.Approved
     ) {
       throw ResponseException("当前课程已请假，无法签到")
     }
@@ -284,7 +281,7 @@ class AttendanceServiceImpl(
           .eq(AttendanceLeaveEntity::stuNum, stuNum)
       )
       // 检查是否已请假
-      if (attendanceLeave?.askForLeaveStatus == AskForLeaveStatus.Approved) {
+      if (attendanceLeave?.status == AskForLeaveStatus.Approved) {
         list.add(
           AttendanceHistory(
             date = classPlan.date,
@@ -356,7 +353,7 @@ class AttendanceServiceImpl(
           beginLesson = classPlan.beginLesson,
           length = classPlan.length,
           reason = it.reason,
-          status = it.askForLeaveStatus,
+          status = it.status,
         )
       }
     }
@@ -372,6 +369,17 @@ class AttendanceServiceImpl(
     if (now >= expiredTimestamp) {
       throw ResponseException("无法请假已上或正在上的课程")
     }
+    val old = attendanceLeaveMapper.selectList(
+      KtQueryWrapper(AttendanceLeaveEntity::class.java)
+        .eq(AttendanceLeaveEntity::classPlanId, classPlanId)
+        .eq(AttendanceLeaveEntity::stuNum, stuNum)
+    )
+    if (old.any { it.status == AskForLeaveStatus.Pending }) {
+      throw ResponseException("已存在相同请假申请")
+    }
+    if (old.any { it.status == AskForLeaveStatus.Approved }) {
+      throw ResponseException("该课程已请假成功")
+    }
     val courseClass = courseClassMapper.selectById(classPlan.classNum)
     val course = courseMapper.selectById(courseClass.courseNum)
     val teacher = teacherMapper.selectById(classPlan.teaNum)
@@ -382,7 +390,19 @@ class AttendanceServiceImpl(
       length = classPlan.length,
       courseName = course.courseName,
     )
-    val notificationId = notificationService.addNotification(
+
+    val attendanceLeave = AttendanceLeaveEntity(
+      leaveId = 0,
+      classPlanId = classPlanId,
+      stuNum = stuNum,
+      reason = reason,
+      timestamp = System.currentTimeMillis(),
+      statusStr = AskForLeaveStatus.Pending.name,
+    )
+    attendanceLeaveMapper.insert(attendanceLeave)
+
+    // 发送通知
+    notificationService.addNotification(
       userId = teacher.userId,
       time = MinuteTimeDate.now(),
       content = NotificationServerContent.Decision(
@@ -408,17 +428,10 @@ class AttendanceServiceImpl(
         ),
         expiredText = "已过期",
         expiredTimestamp = expiredTimestamp,
+        decisionType = DecisionType.AskForLeave(
+          leaveId = attendanceLeave.leaveId
+        ),
       ),
-    )
-    attendanceLeaveMapper.insert(
-      AttendanceLeaveEntity(
-        classPlanId = classPlanId,
-        stuNum = stuNum,
-        reason = reason,
-        timestamp = System.currentTimeMillis(),
-        status = AskForLeaveStatus.Pending.name,
-        notificationId = notificationId,
-      )
     )
   }
 }

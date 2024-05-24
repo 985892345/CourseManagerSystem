@@ -34,5 +34,5 @@ dependencies {
 //  val ktorfitKsp2 = libsLibrary("ktorfit-ksp")
 //  kspMultiplatform(ktorfitKsp2)
   val ktorfitKsp = libsLibrary("ktor-fit-ksp")
-  kspMultiplatform(ktorfitKsp)
+  kspMultiplatform(project, ktorfitKsp)
 }

@@ -97,7 +97,7 @@ object Num2CN {
         if (isColloquial) {
             val chFirst = cnChars[0]
             val chSecond = cnChars[1]
-            if (chFirst == CN_CHARS[1] && chSecond!!.startsWith(CN_UNITS[1])) { // 是否以'一'开头，紧跟'十'
+            if (chFirst == CN_CHARS[1] && chSecond.startsWith(CN_UNITS[1])) { // 是否以'一'开头，紧跟'十'
                 cnChars.removeAt(0)
             }
         }

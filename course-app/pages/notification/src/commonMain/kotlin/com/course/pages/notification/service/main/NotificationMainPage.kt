@@ -1,18 +1,10 @@
 package com.course.pages.notification.service.main
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.LocalContentColor
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -29,8 +21,8 @@ import com.course.pages.main.api.IMainPage
 import com.course.pages.notification.ui.NotificationScreen
 import com.course.source.app.notification.NotificationApi
 import com.g985892345.provider.api.annotation.ImplProvider
-import coursemanagersystem.course_app.pages.notification.generated.resources.Res
-import coursemanagersystem.course_app.pages.notification.generated.resources.ic_notification_bottom_bar
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
 /**
@@ -54,6 +46,7 @@ class NotificationMainPage : IMainPage {
     }
   }
 
+  @OptIn(ExperimentalResourceApi::class)
   @Composable
   override fun BoxScope.BottomAppBarItem(selected: State<Boolean>, selectToPosition: () -> Unit) {
     val hasNewNotification = remember { mutableStateOf(false) }
@@ -88,7 +81,7 @@ class NotificationMainPage : IMainPage {
     ) {
       Icon(
         modifier = Modifier.padding(top = 2.dp),
-        painter = painterResource(Res.drawable.ic_notification_bottom_bar),
+        painter = painterResource(DrawableResource("drawable/ic_notification_bottom_bar.xml")),
         contentDescription = null,
         tint = if (selected.value) Color.Black else LocalContentColor.current.copy(alpha = LocalContentAlpha.current)
       )

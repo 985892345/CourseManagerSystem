@@ -33,7 +33,12 @@ sealed interface NotificationServerContent {
   val clientContent: NotificationContent
   @Serializable
   data class Normal(override val clientContent: NotificationContent.Normal) : NotificationServerContent {
-    constructor(title: String, content: String): this(NotificationContent.Normal(title, content))
+    constructor(
+      title: String,
+      content: String,
+      subtitle: String? = null,
+      bottomEnd: String? = null,
+    ): this(NotificationContent.Normal(title, content, subtitle, bottomEnd))
   }
 
   @Serializable
@@ -44,5 +49,20 @@ sealed interface NotificationServerContent {
     val negativeResponse: Normal,
     val expiredText: String,
     val expiredTimestamp: Long,
+    val decisionType: DecisionType,
   ) : NotificationServerContent
+}
+
+@Serializable
+sealed interface DecisionType {
+  @Serializable
+  data class AskForLeave(
+    val leaveId: Int,
+  ): DecisionType
+
+  @Serializable
+  data class TeamInvite(
+    val teamId: Int,
+    val userId: Int,
+  ): DecisionType
 }

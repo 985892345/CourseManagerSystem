@@ -18,5 +18,9 @@ interface NotificationService {
 
   fun addNotification(userId: Int, time: MinuteTimeDate, content: NotificationServerContent): Int
 
+  fun removeNotification(notificationId: Int)
+
+  fun changeNotificationExpired(notificationId: Int, expiredTimestamp: Long, expiredText: String? = null)
+
   fun decision(userId: Int, notificationId: Int, isAgree: Boolean)
 }

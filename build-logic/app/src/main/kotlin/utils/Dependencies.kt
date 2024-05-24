@@ -1,5 +1,6 @@
 package utils
 
+import org.gradle.api.Project
 import org.gradle.kotlin.dsl.DependencyHandlerScope
 
 /**
@@ -10,6 +11,7 @@ import org.gradle.kotlin.dsl.DependencyHandlerScope
  */
 
 fun DependencyHandlerScope.kspMultiplatform(
+  project: Project,
   dependencyNotation: Any,
   isNeedKspCommonMainMetadata: Boolean = true,
 ) {
@@ -19,10 +21,11 @@ fun DependencyHandlerScope.kspMultiplatform(
   add("kspAndroid", dependencyNotation)
   add("kspDesktop", dependencyNotation)
 
-  // 暂时注释，导入 iOS 后会导致 commonMain 源集无法使用 kotlin-stdlib 依赖
-  add("kspIosX64", dependencyNotation)
-  add("kspIosArm64", dependencyNotation)
-  add("kspIosSimulatorArm64", dependencyNotation)
+  if (project.properties["sourceSets.ios"].toString().toBooleanStrictOrNull() == true) {
+    add("kspIosX64", dependencyNotation)
+    add("kspIosArm64", dependencyNotation)
+    add("kspIosSimulatorArm64", dependencyNotation)
+  }
 
   // wasm 等待第三方依赖完善
 //  add("kspWasmJs", dependencyNotation)

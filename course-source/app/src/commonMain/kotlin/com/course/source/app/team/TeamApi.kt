@@ -37,7 +37,7 @@ interface TeamApi {
 
   suspend fun searchMember(key: String): ResponseWrapper<List<SearchMember>>
 
-  suspend fun sendNotification(
+  suspend fun sendTeamNotification(
     teamId: Int,
     title: String,
     content: String,
@@ -50,7 +50,7 @@ interface TeamApi {
   suspend fun createTeamSchedule(
     teamId: Int,
     title: String,
-    description: String,
+    content: String,
     startTime: MinuteTimeDate,
     minuteDuration: Int,
     repeat: ScheduleRepeat,
@@ -61,7 +61,7 @@ interface TeamApi {
   suspend fun updateTeamSchedule(
     id: Int,
     title: String,
-    description: String,
+    content: String,
     startTime: MinuteTimeDate,
     minuteDuration: Int,
     repeat: ScheduleRepeat,
@@ -78,8 +78,7 @@ data class TeamBean(
   val name: String,
   val identity: String,
   val description: String,
-  val rank: TeamRank,
-  val dissolvable: Boolean,
+  val role: TeamRole,
 )
 
 @Serializable
@@ -91,23 +90,25 @@ data class TeamDetail(
 
 @Serializable
 data class TeamMember(
+  val userId: Int,
   val name: String,
   val num: String,
   val identity: String,
   val type: AccountType,
-  val rank: TeamRank,
+  val role: TeamRole,
   val isConfirmed: Boolean,
 )
 
 @Serializable
 data class SearchMember(
+  val userId: Int,
   val name: String,
   val num: String,
   val major: String,
   val type: AccountType,
 )
 
-enum class TeamRank {
+enum class TeamRole {
   Administrator,
   Manager,
   Member,
@@ -120,7 +121,7 @@ data class TeamScheduleBean(
   val teamName: String,
   val id: Int,
   val title: String,
-  val description: String,
+  val content: String,
   val startTime: MinuteTimeDate,
   val minuteDuration: Int,
   val repeat: ScheduleRepeat,

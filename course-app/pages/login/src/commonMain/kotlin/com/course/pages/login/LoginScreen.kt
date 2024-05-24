@@ -23,13 +23,11 @@ import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.Navigator
 import com.course.components.base.account.Account
 import com.course.components.base.theme.LocalAppColors
 import com.course.components.base.ui.toast.toast
@@ -49,7 +47,6 @@ import com.course.source.app.account.AccountApi
 import com.g985892345.provider.api.annotation.ImplProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -130,13 +127,15 @@ class LoginScreen : BaseScreen() {
         },
         label = {
           Text(text = "请输入学号或教工号")
-        }
+        },
       )
     }
   }
 
   @Composable
   private fun ColumnScope.PasswordCompose() {
+    val coroutineScope = rememberCoroutineScope()
+    val navigator = LocalNavigator.current
     val oldText = remember { mutableStateOf("") }
     val visualTransformationAll = remember {
       PasswordVisualTransformation()
@@ -176,9 +175,14 @@ class LoginScreen : BaseScreen() {
           }
           password.value = it
         },
+        singleLine = true,
         label = {
           Text(text = "请输入密码")
-        }
+        },
+        keyboardActions = KeyboardActions {
+          login(coroutineScope, navigator)
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
       )
     }
     LaunchedEffect(Unit) {
@@ -189,10 +193,11 @@ class LoginScreen : BaseScreen() {
     }
   }
 
+  private val isClicked = mutableStateOf(false)
+
   @Composable
   private fun ColumnScope.LoginBtnCompose() {
     val navigator = LocalNavigator.current
-    val isClicked = remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     Box(
       modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -211,26 +216,7 @@ class LoginScreen : BaseScreen() {
           ) {
             Box(
               modifier = Modifier.clickable {
-                if (username.value.isEmpty()) {
-                  toast("未输入账号")
-                } else if (password.value.isEmpty()) {
-                  toast("未输入密码")
-                } else {
-                  isClicked.value = true
-                  login(
-                    coroutineScope = coroutineScope,
-                    onSuccess = {
-                      try {
-                        navigator?.replace(MainScreen())
-                      } catch (e: Throwable) {
-                        logg("e: ${e.message}")
-                      }
-                    },
-                    onFailure = {
-                      isClicked.value = false
-                    }
-                  )
-                }
+                login(coroutineScope, navigator)
               },
               contentAlignment = Alignment.Center
             ) {
@@ -246,9 +232,18 @@ class LoginScreen : BaseScreen() {
 
   private fun login(
     coroutineScope: CoroutineScope,
-    onSuccess: () -> Unit,
-    onFailure: () -> Unit,
+    navigator: Navigator?,
   ) {
+    if (isClicked.value) return
+    if (username.value.isEmpty()) {
+      toast("未输入账号")
+      return
+    }
+    if (password.value.isEmpty()) {
+      toast("未输入密码")
+      return
+    }
+    isClicked.value = true
     coroutineScope.launch(Dispatchers.IO) {
       runCatching {
         Source.api(AccountApi::class)
@@ -260,13 +255,13 @@ class LoginScreen : BaseScreen() {
           } else {
             sHasLogin = true
           }
-          onSuccess.invoke()
+          navigator?.replace(MainScreen())
         }.onFailure {
-          onFailure.invoke()
+          isClicked.value = false
           toast(it.info)
         }
       }.onFailure {
-        onFailure.invoke()
+        isClicked.value = false
         if (it is ResponseException) {
           toast(it.response.info)
         } else {

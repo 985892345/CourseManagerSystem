@@ -38,9 +38,23 @@ interface AttendanceApiProxy : AttendanceApi {
     classPlanId: Int
   ): ResponseWrapper<List<AttendanceStudentList>>
 
+  override suspend fun changeAttendanceStatus(
+    classPlanId: Int,
+    code: String,
+    stuNum: String,
+    status: AttendanceStatus,
+  ): ResponseWrapper<Unit> {
+    return changeAttendanceStatus(
+      classPlanId = classPlanId,
+      code = code,
+      stuNum = stuNum,
+      status = status.name,
+    )
+  }
+
   @POST("/attendance/change")
   @FormUrlEncoded
-  override suspend fun changeAttendanceStatus(
+  suspend fun changeAttendanceStatus(
     @Field("classPlanId")
     classPlanId: Int,
     @Field("code")
@@ -48,7 +62,7 @@ interface AttendanceApiProxy : AttendanceApi {
     @Field("stuNum")
     stuNum: String,
     @Field("status")
-    status: AttendanceStatus,
+    status: String,
   ): ResponseWrapper<Unit>
 
   @POST("/attendance/code")

@@ -1,6 +1,8 @@
 package com.course.server.entity
 
+import com.baomidou.mybatisplus.annotation.IdType
 import com.baomidou.mybatisplus.annotation.TableField
+import com.baomidou.mybatisplus.annotation.TableId
 import com.baomidou.mybatisplus.annotation.TableName
 import com.course.source.app.attendance.AskForLeaveStatus
 
@@ -12,13 +14,15 @@ import com.course.source.app.attendance.AskForLeaveStatus
  */
 @TableName("attendance_leave")
 data class AttendanceLeaveEntity(
+  @TableId(type = IdType.AUTO)
+  var leaveId: Int,
   val classPlanId: Int,
   val stuNum: String,
   val timestamp: Long,
   val reason: String,
-  val status: String,
-  val notificationId: Int,
+  @TableField(value = "status")
+  val statusStr: String,
 ) {
   @TableField(exist = false)
-  val askForLeaveStatus: AskForLeaveStatus = AskForLeaveStatus.valueOf(status)
+  val status: AskForLeaveStatus = AskForLeaveStatus.valueOf(statusStr)
 }

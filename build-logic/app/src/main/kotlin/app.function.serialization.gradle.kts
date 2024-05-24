@@ -25,5 +25,5 @@ ksp {
 
 dependencies {
   val kspSerialization = rootProject.project("course-app:compiler:ksp-serialization")
-  kspMultiplatform(kspSerialization)
+  kspMultiplatform(project, kspSerialization)
 }

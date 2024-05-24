@@ -4,11 +4,11 @@ android-compileSdk = "34"
 android-minSdk = "26"
 android-targetSdk = "34"
 androidx-activityCompose = "1.9.0"
-compose = "1.6.7"
-compose-compiler = "1.5.14"
+compose = "1.6.4"
+compose-compiler = "1.5.11"
 
 # https://github.com/JetBrains/compose-multiplatform/releases
-compose-plugin = "1.6.10-rc03"
+compose-plugin = "1.6.2"
 
 kotlin = "1.9.23"
 
@@ -31,7 +31,7 @@ ktor = "2.3.10"
 androidWheel = "0.0.1-alpha16-SNAPSHOT" # 985892345 的 Android 轮子库
 
 # https://github.com/qdsfdhvh/ktor-fit
-ktor-fit = "1.0.9"
+ktor-fit = "1.9.23-1.1.0"
 
 # https://github.com/Foso/Ktorfit
 ktorfit = "1.13.0"

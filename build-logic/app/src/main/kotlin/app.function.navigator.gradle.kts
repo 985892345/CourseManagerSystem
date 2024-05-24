@@ -24,5 +24,5 @@ ksp {
 
 dependencies {
   val kspNavigator = rootProject.project("course-app:compiler:ksp-navigator")
-  kspMultiplatform(kspNavigator)
+  kspMultiplatform(project, kspNavigator)
 }

@@ -22,13 +22,12 @@ import com.course.pages.schedule.api.IScheduleService
 import com.course.pages.schedule.api.item.showAddScheduleBottomSheet
 import com.course.shared.time.Date
 import com.course.source.app.account.AccountBean
+import com.course.source.app.account.AccountType
 import com.course.source.app.schedule.ScheduleBean
 import com.course.source.app.team.TeamApi
-import com.course.source.app.team.TeamScheduleBean
 import com.g985892345.provider.api.annotation.ImplProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 
 /**
@@ -40,11 +39,10 @@ import kotlinx.coroutines.launch
 @ImplProvider(clazz = IMainCourseController::class, name = "MainCourseController")
 class TeamMainCourseController : IMainCourseController {
   override fun createCourseController(account: AccountBean?): List<CourseController> {
-//    return when (account?.type) {
-//      AccountType.Student, AccountType.Teacher -> listOf(TeamCourseController(account))
-//      null -> emptyList()
-//    }
-    return emptyList()
+    return when (account?.type) {
+      AccountType.Student, AccountType.Teacher -> listOf(TeamCourseController(account))
+      null -> emptyList()
+    }
   }
 }
 
@@ -52,7 +50,7 @@ private class TeamCourseController(
   val account: AccountBean,
 ) : CourseController() {
 
-  private var oldTeamScheduleBeans = emptyList<TeamScheduleBean>()
+  private val teamNameByScheduleId = mutableMapOf<Int, String>()
 
   private val scheduleItemGroup = Provider.impl(IScheduleService::class)
     .getScheduleCourseItemGroup(
@@ -61,7 +59,7 @@ private class TeamCourseController(
           Box(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
             Text(
               modifier = Modifier.align(Alignment.BottomEnd),
-              text = "来自${oldTeamScheduleBeans.first { it.id == item.id }.teamName}",
+              text = "来自${teamNameByScheduleId[item.id]}",
               fontSize = 12.sp,
               color = Color.LightGray,
             )
@@ -78,12 +76,13 @@ private class TeamCourseController(
           .getTeamAllSchedule()
           .getOrThrow()
       }.tryThrowCancellationException().onSuccess { beans ->
-        oldTeamScheduleBeans = beans
+        teamNameByScheduleId.clear()
         scheduleItemGroup.resetData(beans.map {
+          teamNameByScheduleId[it.id] = it.teamName
           ScheduleBean(
             id = it.id,
             title = it.title,
-            description = it.description,
+            description = it.content,
             startTime = it.startTime,
             minuteDuration = it.minuteDuration,
             repeat = it.repeat,

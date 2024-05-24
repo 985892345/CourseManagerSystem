@@ -32,15 +32,8 @@ sealed interface NotificationContent {
   data class Normal(
     val title: String,
     val content: String,
-  ) : NotificationContent
-  @Serializable
-  data class AddSchedule(
-    val teamName: String,
-    val teamSenderName: String,
-    val scheduleTitle: String,
-    val scheduleDescription: String,
-    val scheduleStartTime: MinuteTimeDate,
-    val scheduleMinuteDuration: Int,
+    val subtitle: String? = null,
+    val bottomEnd: String? = null,
   ) : NotificationContent
   @Serializable
   data class Decision(
