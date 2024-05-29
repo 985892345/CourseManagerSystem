@@ -10,7 +10,7 @@ fun main() = runApp {
   ProApp.initApp()
   launchApplication {
     val width = 396
-    val height = 880
+    val height = 720
     Window(
       onCloseRequest = ::exitApplication,
       title = "课表管理系统",

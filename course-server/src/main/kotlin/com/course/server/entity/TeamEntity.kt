@@ -16,5 +16,5 @@ data class TeamEntity(
   var teamId: Int,
   val teamName: String,
   val description: String,
-  val administratorId: Int,
+  val adminId: Int,
 )

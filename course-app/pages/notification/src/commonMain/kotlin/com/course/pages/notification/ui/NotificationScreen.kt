@@ -29,7 +29,6 @@ import com.course.components.utils.result.tryThrowCancellationException
 import com.course.components.utils.serializable.ObjectSerializable
 import com.course.components.utils.source.Source
 import com.course.components.utils.source.getOrThrow
-import com.course.pages.notification.ui.type.AddScheduleNotificationCompose
 import com.course.pages.notification.ui.type.DecisionNotificationCompose
 import com.course.pages.notification.ui.type.NormalNotificationCompose
 import com.course.source.app.notification.Notification

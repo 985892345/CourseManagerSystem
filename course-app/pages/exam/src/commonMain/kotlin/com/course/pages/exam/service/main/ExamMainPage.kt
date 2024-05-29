@@ -39,7 +39,8 @@ class ExamMainPage : IMainPage {
     get() = 10
 
   override val visibility: Boolean
-    get() = Account.observeAccount().value?.type == AccountType.Student
+//    get() = Account.observeAccount().value?.type == AccountType.Student
+    get() = false
 
   @Composable
   override fun Content(appBarHeight: Dp) {

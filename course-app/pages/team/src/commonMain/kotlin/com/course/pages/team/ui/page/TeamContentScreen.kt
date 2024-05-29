@@ -59,6 +59,7 @@ import com.course.pages.team.utils.TeamMemberStateSerializer
 import com.course.source.app.team.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -103,7 +104,9 @@ class TeamContentScreen(
         ToolbarCompose()
         MemberListCompose()
       }
-      FloatingActionButtonCompose()
+      if (teamBean.role <= TeamRole.Manager) {
+        FloatingActionButtonCompose()
+      }
     }
     requestTeaDetail()
   }

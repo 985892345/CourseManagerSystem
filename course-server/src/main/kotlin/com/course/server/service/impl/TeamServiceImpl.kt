@@ -191,7 +191,7 @@ class TeamServiceImpl(
       teamId = 0,
       teamName = teamName,
       description = description,
-      administratorId = senderId,
+      adminId = senderId,
     )
     teamMapper.insert(team)
     val time = MinuteTimeDate.now()

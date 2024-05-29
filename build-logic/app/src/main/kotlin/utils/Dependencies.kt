@@ -21,11 +21,9 @@ fun DependencyHandlerScope.kspMultiplatform(
   add("kspAndroid", dependencyNotation)
   add("kspDesktop", dependencyNotation)
 
-  if (project.properties["sourceSets.ios"].toString().toBooleanStrictOrNull() == true) {
-    add("kspIosX64", dependencyNotation)
-    add("kspIosArm64", dependencyNotation)
-    add("kspIosSimulatorArm64", dependencyNotation)
-  }
+  add("kspIosX64", dependencyNotation)
+  add("kspIosArm64", dependencyNotation)
+  add("kspIosSimulatorArm64", dependencyNotation)
 
   // wasm 等待第三方依赖完善
 //  add("kspWasmJs", dependencyNotation)

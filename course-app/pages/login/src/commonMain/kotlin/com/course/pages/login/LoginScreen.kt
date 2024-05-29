@@ -45,11 +45,8 @@ import com.course.pages.main.MainScreen
 import com.course.pages.main.sHasLogin
 import com.course.source.app.account.AccountApi
 import com.g985892345.provider.api.annotation.ImplProvider
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration.Companion.seconds
 

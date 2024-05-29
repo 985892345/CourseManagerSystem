@@ -39,7 +39,7 @@ val excludeList: List<String> = listOf(
 
 fun includeModule(topName: String, file: File) {
   if (!file.resolve("settings.gradle.kts").exists()) {
-    if (file.resolve("build.gradle.kts").exists()) {
+    if (file.resolve("build.gradle.kts").exists() && !excludeList.contains(file.name)) {
       var path = ""
       var nowFile = file
       while (nowFile.name != topName) {
@@ -69,5 +69,3 @@ includeModule("course-source", rootDir.resolve("course-source"))
 /**
  * 如果你使用 AS 自带的模块模版，他会自动添加 include()，请删除掉，因为上面会自动读取
  */
-
-include(":composeApp")
