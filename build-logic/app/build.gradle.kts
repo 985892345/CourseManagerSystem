@@ -7,6 +7,7 @@ dependencies {
   implementation(libs.android.gradlePlugin)
   implementation(libs.kotlin.gradlePlugin)
   implementation(libs.compose.gradlePlugin)
+  implementation(libs.compose.compiler.gradlePlugin)
   implementation(libs.ksp.gradlePlugin)
   implementation(libs.ktProvider.gradlePlugin)
   implementation(libs.kotlinx.serialization.gradlePlugin)

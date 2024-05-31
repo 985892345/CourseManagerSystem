@@ -12,8 +12,7 @@ import androidx.compose.ui.input.pointer.PointerInputChange
  */
 
 internal actual fun reflexScrollableCanDrag(node: Modifier.Node) {
-  version162(node)
-  return
+  version1610(node)
 }
 
 private fun version162(node: Modifier.Node) {

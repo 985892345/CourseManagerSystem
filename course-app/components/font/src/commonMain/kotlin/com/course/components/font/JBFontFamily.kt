@@ -5,8 +5,23 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import coursemanagersystem.course_app.components.font.generated.resources.*
-import org.jetbrains.compose.resources.ExperimentalResourceApi
+import coursemanagersystem.course_app.components.font.generated.resources.Res
+import coursemanagersystem.course_app.components.font.generated.resources.jb_bold
+import coursemanagersystem.course_app.components.font.generated.resources.jb_bold_italic
+import coursemanagersystem.course_app.components.font.generated.resources.jb_extra_bold
+import coursemanagersystem.course_app.components.font.generated.resources.jb_extra_bold_italic
+import coursemanagersystem.course_app.components.font.generated.resources.jb_extra_light
+import coursemanagersystem.course_app.components.font.generated.resources.jb_extra_light_italic
+import coursemanagersystem.course_app.components.font.generated.resources.jb_light
+import coursemanagersystem.course_app.components.font.generated.resources.jb_light_italic
+import coursemanagersystem.course_app.components.font.generated.resources.jb_medium
+import coursemanagersystem.course_app.components.font.generated.resources.jb_medium_italic
+import coursemanagersystem.course_app.components.font.generated.resources.jb_regular
+import coursemanagersystem.course_app.components.font.generated.resources.jb_regular_italic
+import coursemanagersystem.course_app.components.font.generated.resources.jb_semi_bold
+import coursemanagersystem.course_app.components.font.generated.resources.jb_semi_bold_italic
+import coursemanagersystem.course_app.components.font.generated.resources.jb_thin
+import coursemanagersystem.course_app.components.font.generated.resources.jb_thin_italic
 import org.jetbrains.compose.resources.Font
 
 /**
@@ -21,7 +36,6 @@ fun JBFontFamily(): FontFamily {
   return JBFontFamilyDefault()
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Stable
 @Composable
 private fun JBFontFamilyDefault(): FontFamily {

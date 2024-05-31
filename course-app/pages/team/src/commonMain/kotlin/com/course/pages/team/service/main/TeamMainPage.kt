@@ -19,9 +19,9 @@ import com.course.components.utils.compose.clickableCardIndicator
 import com.course.pages.main.api.IMainPage
 import com.course.pages.team.ui.page.TeamListScreen
 import com.g985892345.provider.api.annotation.ImplProvider
+import coursemanagersystem.course_app.pages.team.generated.resources.Res
+import coursemanagersystem.course_app.pages.team.generated.resources.ic_team_bottom_bar
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
 /**
@@ -48,7 +48,6 @@ class TeamMainPage : IMainPage {
     }
   }
 
-  @OptIn(ExperimentalResourceApi::class)
   @Composable
   override fun BoxScope.BottomAppBarItem(selected: State<Boolean>, selectToPosition: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
@@ -63,7 +62,7 @@ class TeamMainPage : IMainPage {
     ) {
       Icon(
         modifier = Modifier.size(24.dp),
-        painter = painterResource(DrawableResource("drawable/ic_team_bottom_bar.xml")),
+        painter = painterResource(Res.drawable.ic_team_bottom_bar),
         contentDescription = null,
         tint = if (selected.value) Color.Black else LocalContentColor.current.copy(alpha = LocalContentAlpha.current)
       )

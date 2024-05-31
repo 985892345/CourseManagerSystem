@@ -32,10 +32,10 @@ import com.course.shared.time.Date
 import com.course.source.app.account.AccountBean
 import com.course.source.app.account.AccountType
 import com.g985892345.provider.api.annotation.ImplProvider
+import coursemanagersystem.course_app.pages.course.generated.resources.Res
+import coursemanagersystem.course_app.pages.course.generated.resources.ic_course_bottom_bar
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
 /**
@@ -74,7 +74,6 @@ object CourseMainPage : IMainPage {
     }
   }
 
-  @OptIn(ExperimentalResourceApi::class)
   @Composable
   override fun BoxScope.BottomAppBarItem(selected: State<Boolean>, selectToPosition: () -> Unit) {
     Box(
@@ -88,7 +87,7 @@ object CourseMainPage : IMainPage {
     ) {
       Icon(
         modifier = Modifier.size(22.dp),
-        painter = painterResource(DrawableResource("drawable/ic_course_bottom_bar.xml")),
+        painter = painterResource(Res.drawable.ic_course_bottom_bar),
         contentDescription = null,
         tint = if (selected.value) Color.Black else LocalContentColor.current.copy(alpha = LocalContentAlpha.current)
       )
