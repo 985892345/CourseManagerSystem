@@ -12,13 +12,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.Snapshot
 import com.course.components.utils.compose.derivedStateOfStructure
-import com.course.shared.time.Date
 import com.course.components.utils.time.Today
 import com.course.components.view.calendar.scroll.HorizontalScrollState
 import com.course.components.view.calendar.scroll.VerticalScrollState
+import com.course.shared.time.Date
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
@@ -61,11 +60,7 @@ class CalendarState(
 
   internal val clickDateState = mutableStateOf(
     initialClickDate.coerceIn(startDateState.value, endDateState.value)
-  ).apply {
-    snapshotFlow { Today }
-      .onEach { if (value.plusDays(1) == it) updateClickDate(it) }
-      .launchIn(coroutineScope)
-  }
+  )
 
   val clickDate by derivedStateOfStructure {
     if (layoutWidth == 0) {

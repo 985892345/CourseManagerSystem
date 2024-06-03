@@ -1,5 +1,6 @@
 package com.course.pages.course.api
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import com.course.pages.course.api.controller.CourseController
 import com.course.pages.course.api.controller.CourseDetail
@@ -19,6 +20,9 @@ interface ICourseService {
 
   @Composable
   fun Content(detail: CourseDetail)
+
+  @Composable
+  fun Content(detail: CourseDetail, contentPadding: PaddingValues)
 
   fun courseDetail(
     num: String,

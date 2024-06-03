@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.course.pages.course.api.item.ICourseItemGroup
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.pages.course.ui.scroll.CourseScrollCompose
@@ -25,8 +27,9 @@ import kotlinx.collections.immutable.ImmutableList
 fun CoursePagerCompose(
   state: CoursePagerState,
   modifier: Modifier = Modifier,
+  paddingBottom: Dp = 0.dp,
   content: @Composable BoxScope.(CoursePagerState) -> Unit = {
-    it.CourseScrollCompose()
+    it.CourseScrollCompose(paddingBottom = paddingBottom)
   }
 ) {
   Box(modifier = Modifier.then(modifier)) {

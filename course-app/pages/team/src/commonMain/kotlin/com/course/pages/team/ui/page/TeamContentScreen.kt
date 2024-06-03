@@ -10,12 +10,27 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Card
+import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ForwardToInbox
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -24,7 +39,11 @@ import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.CalendarMonth
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,7 +75,11 @@ import com.course.components.view.edit.EditTextCompose
 import com.course.pages.team.ui.course.TeamCourseBottomSheet
 import com.course.pages.team.utils.TeamDetailStateSerializer
 import com.course.pages.team.utils.TeamMemberStateSerializer
-import com.course.source.app.team.*
+import com.course.source.app.team.TeamApi
+import com.course.source.app.team.TeamBean
+import com.course.source.app.team.TeamDetail
+import com.course.source.app.team.TeamMember
+import com.course.source.app.team.TeamRole
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -91,7 +114,7 @@ class TeamContentScreen(
   @Composable
   override fun ScreenContent() {
     val coroutineScope = rememberCoroutineScope()
-    Box(modifier = Modifier.fillMaxSize().systemBarsPadding().pointerInput(Unit) {
+    Box(modifier = Modifier.fillMaxSize().statusBarsPadding().pointerInput(Unit) {
       awaitEachGesture {
         awaitFirstDown(false, PointerEventPass.Initial)
         // 接收每次 ACTION_DOWN 事件

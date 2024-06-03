@@ -12,7 +12,7 @@ group = "com.course.server"
 version = "1.0.0"
 
 application {
-  mainClass.set("com.course.server.Application")
+  mainClass.set("com.course.server.ApplicationKt")
 }
 
 dependencies {

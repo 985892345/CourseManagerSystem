@@ -11,6 +11,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMapIndexed
@@ -31,6 +33,7 @@ import kotlin.math.roundToInt
 @Composable
 fun CoursePagerState.CourseScrollCompose(
   modifier: Modifier = Modifier.fillMaxSize(),
+  paddingBottom: Dp = 0.dp,
   content: @Composable () -> Unit = {
     CourseTimelineCompose()
     CourseItemGroupCompose()
@@ -51,18 +54,20 @@ fun CoursePagerState.CourseScrollCompose(
           initialWeight += it.initialWeight
           nowWeight += it.nowWeight
         }
+        val paddingBottomPx = paddingBottom.roundToPx()
         // 因为有 verticalScroll，所以这里 minHeight 就是父布局的高度
-        val height = (constraints.minHeight * (nowWeight / initialWeight)).roundToInt()
+        val height = ((constraints.minHeight - paddingBottomPx) * (nowWeight / initialWeight))
+          .roundToInt()
         val placeables = measurables.fastMapIndexed { index, measurable ->
           measurable.measure(
-            constraints.copy(
+            Constraints(
               minWidth = if (index == measurables.lastIndex) constraints.maxWidth - widthConsume else 0,
               maxWidth = constraints.maxWidth - widthConsume,
-              maxHeight = height
+              maxHeight = height,
             )
           ).apply { widthConsume += width }
         }
-        layout(constraints.maxWidth, height) {
+        layout(constraints.maxWidth, height + paddingBottomPx) {
           var start = 0
           placeables.fastForEach {
             it.placeRelative(x = start, y = 0)

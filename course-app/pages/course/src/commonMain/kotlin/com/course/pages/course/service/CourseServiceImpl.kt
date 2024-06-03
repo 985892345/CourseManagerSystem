@@ -1,5 +1,6 @@
 package com.course.pages.course.service
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import com.course.pages.course.api.ICourseService
 import com.course.pages.course.api.controller.CourseController
@@ -26,6 +27,11 @@ object CourseServiceImpl : ICourseService {
   @Composable
   override fun Content(detail: CourseDetail) {
     CourseContentCompose(detail)
+  }
+
+  @Composable
+  override fun Content(detail: CourseDetail, contentPadding: PaddingValues) {
+    CourseContentCompose(detail = detail, contentPadding = contentPadding)
   }
 
   override fun courseDetail(

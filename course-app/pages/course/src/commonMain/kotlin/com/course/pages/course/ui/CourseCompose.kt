@@ -12,6 +12,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.course.components.utils.compose.reflexScrollableForMouse
 import com.course.components.utils.time.Today
 import com.course.pages.course.api.item.ICourseItemGroup
@@ -46,10 +48,12 @@ import kotlinx.coroutines.CoroutineScope
 fun CourseCompose(
   state: CourseComposeState,
   modifier: Modifier = Modifier,
+  paddingBottom: Dp = 0.dp,
   timeline: CourseTimeline = remember { CourseTimeline() },
   content: @Composable (CoursePagerState) -> Unit = {
     CoursePagerCompose(
-      state = it
+      state = it,
+      paddingBottom = paddingBottom,
     )
   }
 ) {

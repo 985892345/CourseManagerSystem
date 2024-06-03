@@ -1,6 +1,7 @@
 package com.course.pages.course.ui.timeline
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,7 +28,7 @@ import kotlin.time.Duration.Companion.minutes
 
 @Composable
 fun CoursePagerState.CourseTimelineCompose(
-  modifier: Modifier = Modifier.width(36.dp),
+  modifier: Modifier = Modifier.fillMaxHeight().width(36.dp),
 ) {
   Column(
     modifier = Modifier.then(modifier).drawNowTimeLine(timeline)

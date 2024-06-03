@@ -27,7 +27,6 @@ val AppHttpClient = HttpClient {
       isLenient = true
       ignoreUnknownKeys = true
       encodeDefaults = true
-      @OptIn(ExperimentalSerializationApi::class)
       explicitNulls = false
     })
   }

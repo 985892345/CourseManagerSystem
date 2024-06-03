@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
@@ -75,7 +75,7 @@ class RequestTestScreen(
 
   @Composable
   override fun Content() {
-    Column(modifier = Modifier.systemBarsPadding()) {
+    Column(modifier = Modifier.statusBarsPadding()) {
       ToolbarCompose()
       Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp)) {
         val editTitleHintContent = parameterWithHint.map {

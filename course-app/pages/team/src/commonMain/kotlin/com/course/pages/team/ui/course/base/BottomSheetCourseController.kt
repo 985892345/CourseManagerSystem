@@ -2,7 +2,18 @@ package com.course.pages.team.ui.course.base
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -27,7 +38,12 @@ import com.course.pages.course.api.controller.CourseDetail
 import com.course.pages.course.api.timeline.CourseTimeline
 import com.course.shared.time.Date
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 /**
  * .
@@ -48,7 +64,7 @@ abstract class BottomSheetCourseController(
       scrimColor = Color.Transparent,
     ) { dismiss ->
       Box(
-        modifier = Modifier.fillMaxSize().systemBarsPadding(),
+        modifier = Modifier.fillMaxSize().statusBarsPadding(),
       ) {
         Spacer(
           modifier = Modifier.fillMaxWidth().height(70.dp).background(
@@ -79,7 +95,10 @@ abstract class BottomSheetCourseController(
                   )
               )
             }
-            courseService.Content(this@BottomSheetCourseController)
+            courseService.Content(
+              detail = this@BottomSheetCourseController,
+              contentPadding = WindowInsets.navigationBars.asPaddingValues()
+            )
           }
         }
       }

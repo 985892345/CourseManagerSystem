@@ -1,10 +1,19 @@
 package com.course.pages.course.service.main
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.Icon
 import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.LocalContentColor
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -55,7 +64,7 @@ object CourseMainPage : IMainPage {
 
   @Composable
   override fun Content(appBarHeight: Dp) {
-    Box(modifier = Modifier.systemBarsPadding().padding(top = 8.dp, bottom = appBarHeight)) {
+    Box(modifier = Modifier.statusBarsPadding().padding(top = 8.dp, bottom = appBarHeight)) {
       Provider.impl(ICourseService::class).apply {
         key(forceRefreshCourse.intValue) {
           val account by Account.observeAccount().collectAsState()

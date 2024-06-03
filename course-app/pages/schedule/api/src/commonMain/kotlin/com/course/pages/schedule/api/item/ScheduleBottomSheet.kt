@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -74,7 +75,8 @@ fun showAddScheduleBottomSheet(
       shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp),
     ) {
       Column(
-        modifier = Modifier.padding(top = 14.dp, start = 16.dp, end = 16.dp, bottom = 12.dp)
+        modifier = Modifier.navigationBarsPadding()
+          .padding(top = 14.dp, start = 16.dp, end = 16.dp, bottom = 12.dp)
       ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
           if (item.updatable) {

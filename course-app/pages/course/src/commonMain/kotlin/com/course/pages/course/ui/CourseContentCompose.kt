@@ -6,17 +6,28 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,9 +57,11 @@ import kotlin.math.abs
 @Composable
 fun CourseContentCompose(
   detail: CourseDetail,
+  contentPadding: PaddingValues = remember { PaddingValues(0.dp) },
   course: @Composable (CourseComposeState) -> Unit = {
     CourseCompose(
-      state = it
+      state = it,
+      paddingBottom = contentPadding.calculateBottomPadding(),
     )
   }
 ) {
@@ -62,7 +75,11 @@ fun CourseContentCompose(
     endDate = detail.endDate,
     itemGroups = (detail.controllers + detail).toImmutableList(),
   )
-  Column(modifier = Modifier) {
+  Column(modifier = Modifier.absolutePadding(
+    left = contentPadding.calculateLeftPadding(LocalLayoutDirection.current),
+    right = contentPadding.calculateRightPadding(LocalLayoutDirection.current),
+    top = contentPadding.calculateTopPadding(),
+  )) {
     CourseHeaderCompose(detail, calendarState, courseComposeState)
     CalendarCompose(
       modifier = Modifier.padding(start = 2.dp, end = 4.dp, top = 4.dp),
