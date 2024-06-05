@@ -94,6 +94,7 @@ class CourseComposeState(
 fun rememberCourseComposeState(
   startDate: Date = Date(1901, 1, 1),
   endDate: Date = Date(2099, 12, 31),
+  initialDate: Date = Snapshot.withoutReadObservation { Today },
   itemGroups: ImmutableList<ICourseItemGroup>,
 ): CourseComposeState {
   val coroutineScope = rememberCoroutineScope()
@@ -102,9 +103,7 @@ fun rememberCourseComposeState(
   val begin = startDateState.value.minusDays(startDateState.value.dayOfWeekOrdinal)
   val final = endDateState.value.plusDays(6 - endDateState.value.dayOfWeekOrdinal)
   val pagerState = rememberPagerState(
-    initialPage = Snapshot.withoutReadObservation {
-      begin.daysUntil(Today.coerceIn(begin, final)) / 7
-    }
+    initialPage = begin.daysUntil(initialDate.coerceIn(begin, final)) / 7
   ) { begin.daysUntil(final) / 7 + 1 }
   return remember {
     CourseComposeState(

@@ -4,15 +4,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -41,7 +33,6 @@ import com.course.components.utils.compose.clickableNoIndicator
 import com.course.components.utils.size.px2dp
 import com.course.components.utils.time.Festival
 import com.course.components.utils.time.SolarTerms
-import com.course.components.utils.time.Today
 import com.course.components.utils.time.toChineseCalendar
 import com.course.components.view.calendar.month.CalendarMonthCompose
 import com.course.components.view.calendar.scroll.CalendarNestedScroll
@@ -177,6 +168,7 @@ fun CalendarState.CalendarDateCompose(
   date: Date,
   show: CalendarDateShowValue,
 ) {
+  val today = today.invoke()
   Layout(
     modifier = Modifier.graphicsLayer {
       alpha = if (date !in startDateState.value..endDateState.value) 0.3F else {
@@ -188,17 +180,17 @@ fun CalendarState.CalendarDateCompose(
       clickEventFlowInternal.tryEmit(CalendarState.ClickEventData(clickDate, date))
     }.background(
       color = when {
-        date == Today && show == CalendarDateShowValue.Clicked -> LocalAppColors.current.blue
+        date == today && show == CalendarDateShowValue.Clicked -> LocalAppColors.current.blue
         show == CalendarDateShowValue.Clicked -> Color.LightGray
-        date == Today -> Color.White
+        date == today -> Color.White
         else -> Color.Transparent
       },
       shape = CircleShape
     ),
     content = {
-      CalendarDateDayCompose(date, show)
-      CalendarDateLunarCompose(date, show)
-      CalendarDateRestCompose(date, show)
+      CalendarDateDayCompose(date, today, show)
+      CalendarDateLunarCompose(date, today, show)
+      CalendarDateRestCompose(date, today, show)
     },
     measurePolicy = remember {
       { measurables, constraints ->
@@ -231,14 +223,15 @@ fun CalendarState.CalendarDateCompose(
 @Composable
 private fun CalendarDateDayCompose(
   date: Date,
+  today: Date,
   show: CalendarDateShowValue,
 ) {
   Text(
     modifier = Modifier,
     text = date.dayOfMonth.toString(),
     color = when {
-      date == Today && show == CalendarDateShowValue.Clicked -> Color.White
-      date == Today -> LocalAppColors.current.blue
+      date == today && show == CalendarDateShowValue.Clicked -> Color.White
+      date == today -> LocalAppColors.current.blue
       else -> Color.Black
     },
     fontSize = 19.sp,
@@ -249,6 +242,7 @@ private fun CalendarDateDayCompose(
 @Composable
 private fun CalendarDateLunarCompose(
   date: Date,
+  today: Date,
   show: CalendarDateShowValue,
 ) {
   val specialDay = remember(date) { Festival.get(date) ?: SolarTerms.get(date)?.chinese }
@@ -258,7 +252,7 @@ private fun CalendarDateLunarCompose(
       if (dayOfMonth == 1) getMonthStr() else getDayStr()
     },
     color = when {
-      date == Today && show == CalendarDateShowValue.Clicked -> Color.White
+      date == today && show == CalendarDateShowValue.Clicked -> Color.White
       specialDay != null -> LocalAppColors.current.blue
       else -> Color.Gray
     },
@@ -269,13 +263,14 @@ private fun CalendarDateLunarCompose(
 @Composable
 private fun CalendarDateRestCompose(
   date: Date,
+  today: Date,
   show: CalendarDateShowValue,
 ) {
   Text(
     modifier = Modifier,
     text = "",
     color = when {
-      date == Today && show == CalendarDateShowValue.Clicked -> Color.White
+      date == today && show == CalendarDateShowValue.Clicked -> Color.White
       else -> LocalAppColors.current.green
     },
     fontSize = 8.sp,

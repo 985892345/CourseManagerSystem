@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.course.components.utils.compose.derivedStateOfStructure
 import com.course.components.utils.result.tryThrowCancellationException
-import com.course.components.utils.time.Today
 import com.course.pages.course.api.controller.CourseController
 import com.course.pages.course.api.controller.CourseDetail
 import com.course.pages.course.api.item.lesson.LessonItemData
@@ -41,10 +40,11 @@ class CourseDetailController(
   private val courseBean = mutableStateOf<CourseBean?>(null)
 
   override val startDate: Date by derivedStateOfStructure {
-    courseBean.value?.beginDate ?: Today.firstDate
+    courseBean.value?.beginDate ?: clickDate.firstDate
   }
 
-  private var clickDate by mutableStateOf(Today)
+//  private var clickDate by mutableStateOf(Today)
+  private var clickDate by mutableStateOf(Date(2024, 5, 1))
 
   override val initialClickDate: Date
     get() = clickDate

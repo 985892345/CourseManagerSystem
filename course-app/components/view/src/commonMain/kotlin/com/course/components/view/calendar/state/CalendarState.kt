@@ -1,17 +1,6 @@
 package com.course.components.view.calendar.state
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.Stable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.Snapshot
 import com.course.components.utils.compose.derivedStateOfStructure
 import com.course.components.utils.time.Today
@@ -38,6 +27,7 @@ class CalendarState(
   val initialClickDate: Date,
   val startDateState: State<Date>,
   val endDateState: State<Date>,
+  val today: () -> Date = { Today },
   internal var onClick: ((Date) -> Unit)? = null,
 ) {
 
@@ -189,6 +179,7 @@ fun rememberCalendarState(
   initialClickDate: Date = Snapshot.withoutReadObservation { Today },
   startDate: Date = Date(1901, 1, 1),
   endDate: Date = Date(2099, 12, 31),
+  today: () -> Date = { Today },
   onClick: ((Date) -> Unit)? = null,
 ): CalendarState {
   val coroutineScope = rememberCoroutineScope()
@@ -201,6 +192,7 @@ fun rememberCalendarState(
       startDateState = startDateState,
       endDateState = endDateState,
       onClick = onClick,
+      today = today,
     )
   }.apply { this.onClick = onClick }
 }

@@ -4,23 +4,10 @@ import androidx.compose.animation.core.animate
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.absolutePadding
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -41,6 +28,7 @@ import com.course.components.view.calendar.layout.CalendarContentOffsetMeasurePo
 import com.course.components.view.calendar.state.CalendarState
 import com.course.components.view.calendar.state.rememberCalendarState
 import com.course.pages.course.api.controller.CourseDetail
+import com.course.shared.time.Date
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -73,6 +61,7 @@ fun CourseContentCompose(
   val courseComposeState = rememberCourseComposeState(
     startDate = detail.startDate,
     endDate = detail.endDate,
+    initialDate = detail.initialClickDate,
     itemGroups = (detail.controllers + detail).toImmutableList(),
   )
   Column(modifier = Modifier.absolutePadding(
@@ -163,6 +152,7 @@ private fun CourseHeaderCompose(
   detail: CourseDetail,
   calendarState: CalendarState,
   courseComposeState: CourseComposeState,
+  today: Date = Today,
 ) {
   ConstraintLayout(modifier = Modifier.fillMaxWidth()) {
     val (week, back, term) = createRefs()
@@ -186,7 +176,7 @@ private fun CourseHeaderCompose(
       fontSize = 12.sp,
       color = LocalAppColors.current.tvLv2,
     )
-    if (Today in calendarState.startDateState.value..calendarState.endDateState.value) {
+    if (today in calendarState.startDateState.value..calendarState.endDateState.value) {
       // Today 不在显示范围时不显示回到今天按钮
       BackTodayCompose(
         modifier = Modifier.constrainAs(back) {
@@ -196,6 +186,7 @@ private fun CourseHeaderCompose(
         },
         calendarState = calendarState,
         courseComposeState = courseComposeState,
+        today = today,
       )
     }
   }
@@ -207,16 +198,17 @@ private fun BackTodayCompose(
   modifier: Modifier,
   calendarState: CalendarState,
   courseComposeState: CourseComposeState,
+  today: Date,
 ) {
   var animateFraction by remember { mutableFloatStateOf(1F) }
   val backFraction by remember(calendarState, courseComposeState) {
     derivedStateOfStructure {
       if (animateFraction != 1F) {
         animateFraction
-      } else if (Today.dayOfWeek == calendarState.clickDate.dayOfWeek) {
+      } else if (today.dayOfWeek == calendarState.clickDate.dayOfWeek) {
         val fraction =
           courseComposeState.pagerState.run { currentPage + currentPageOffsetFraction } -
-              courseComposeState.beginDate.daysUntil(Today) / 7
+              courseComposeState.beginDate.daysUntil(today) / 7
         // 1 -> 0 -> 1
         minOf(abs(fraction), 1F)
       } else 1F
@@ -240,18 +232,18 @@ private fun BackTodayCompose(
           }
           animateFraction = 1F
         }
-        calendarState.updateClickDate(Today)
+        calendarState.updateClickDate(today)
       },
     color = Color.White,
     fontSize = 14.sp,
   )
-  LaunchedEffect(calendarState, Today) {
+  LaunchedEffect(calendarState, today) {
     calendarState.clickEventFlow.collect {
-      if (it.new != Today && it.old == Today) {
+      if (it.new != today && it.old == today) {
         animate(0F, 1F) { value, _ ->
           animateFraction = value
         }
-      } else if (it.new == Today && it.old != Today) {
+      } else if (it.new == today && it.old != today) {
         animate(1F, 0F) { value, _ ->
           animateFraction = value
         }
