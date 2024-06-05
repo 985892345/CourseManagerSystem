@@ -24,8 +24,7 @@ import kotlinx.coroutines.launch
 class ScheduleMainCourseController : IMainCourseController {
   override fun createCourseController(account: AccountBean?): List<CourseController> {
     return when (account?.type) {
-      AccountType.Student -> listOf(ScheduleCourseController(account))
-      AccountType.Teacher -> emptyList()
+      AccountType.Student, AccountType.Teacher -> listOf(ScheduleCourseController(account))
       null -> emptyList()
     }
   }
