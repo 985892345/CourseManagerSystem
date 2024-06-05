@@ -1,8 +1,5 @@
 import extensions.ApplicationExtension
-import extensions.libsLibrary
-import extensions.libsVersion
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import utils.Config
 
 plugins {
   id("com.android.application")
@@ -18,7 +15,7 @@ extensions.create("composeApplication", ApplicationExtension::class.java, projec
 
 android {
   namespace = Config.getNamespace(project)
-  compileSdk = libsVersion("android-compileSdk").requiredVersion.toInt()
+  compileSdk = libsEx.versions.`android-compileSdk`.requiredVersion.toInt()
 
   sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
   sourceSets["main"].res.srcDirs("src/androidMain/res")
@@ -26,8 +23,8 @@ android {
 
   defaultConfig {
     applicationId = Config.getNamespace(project)
-    minSdk = libsVersion("android-minSdk").requiredVersion.toInt()
-    targetSdk = libsVersion("android-targetSdk").requiredVersion.toInt()
+    minSdk = libsEx.versions.`android-minSdk`.requiredVersion.toInt()
+    targetSdk = libsEx.versions.`android-targetSdk`.requiredVersion.toInt()
   }
   buildTypes {
     release {
@@ -44,7 +41,7 @@ android {
     }
   }
   dependencies {
-    debugImplementation(libsLibrary("compose-ui-tooling"))
+    debugImplementation(libsEx.`compose-ui-tooling`)
   }
 }
 

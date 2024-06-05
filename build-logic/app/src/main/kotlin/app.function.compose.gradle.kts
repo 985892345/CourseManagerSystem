@@ -1,6 +1,4 @@
 import com.android.build.gradle.BaseExtension
-import extensions.libsLibrary
-import extensions.libsVersion
 
 plugins {
   id("org.jetbrains.compose")
@@ -24,8 +22,8 @@ kotlin {
       implementation(compose.desktop.currentOs)
     }
     androidMain.dependencies {
-      implementation(libsLibrary("compose-ui-tooling-preview"))
-      implementation(libsLibrary("androidx-activity-compose"))
+      implementation(libsEx.`compose-ui-tooling-preview`)
+      implementation(libsEx.`androidx-activity-compose`)
     }
   }
 }
@@ -33,8 +31,9 @@ kotlin {
 plugins.withId("com.android.base") {
   configure<BaseExtension> {
     buildFeatures.compose = true
+    @Suppress("UnstableApiUsage")
     composeOptions {
-      kotlinCompilerExtensionVersion = libsVersion("compose-compiler").requiredVersion
+      kotlinCompilerExtensionVersion = libsEx.versions.`compose-compiler`.requiredVersion
     }
   }
 }

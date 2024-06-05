@@ -1,5 +1,3 @@
-import utils.Config
-
 plugins {
   id("kotlin-multiplatform")
 }

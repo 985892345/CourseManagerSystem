@@ -1,4 +1,3 @@
-import extensions.libsLibrary
 import utils.kspMultiplatform
 
 plugins {
@@ -10,25 +9,24 @@ plugins {
 kotlin {
   sourceSets {
     commonMain.dependencies {
-      implementation(libsLibrary("ktor-fit-annotation"))
-      implementation(libsLibrary("ktor-core"))
-      implementation(libsLibrary("ktor-json"))
-      implementation(libsLibrary("ktor-contentNegotiation"))
+      implementation(libsEx.`ktor-fit-annotation`)
+      implementation(libsEx.`ktor-core`)
+      implementation(libsEx.`ktor-json`)
+      implementation(libsEx.`ktor-contentNegotiation`)
     }
     val desktopMain by getting
     desktopMain.dependencies {
-      implementation(libsLibrary("ktor-engines-okhttp"))
+      implementation(libsEx.`ktor-engines-okhttp`)
     }
     androidMain.dependencies {
-      implementation(libsLibrary("ktor-engines-okhttp"))
+      implementation(libsEx.`ktor-engines-okhttp`)
     }
     iosMain.dependencies {
-      implementation(libsLibrary("ktor-engines-darwin"))
+      implementation(libsEx.`ktor-engines-darwin`)
     }
   }
 }
 
 dependencies {
-  val ktorfitKsp = libsLibrary("ktor-fit-ksp")
-  kspMultiplatform(project, ktorfitKsp)
+  kspMultiplatform(project, libsEx.`ktor-fit-ksp`)
 }

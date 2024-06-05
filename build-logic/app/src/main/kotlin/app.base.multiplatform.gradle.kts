@@ -1,6 +1,3 @@
-import extensions.libsLibrary
-import utils.Config
-
 plugins {
   id("kotlin-multiplatform")
 }
@@ -28,15 +25,15 @@ kotlin {
 
   sourceSets {
     commonMain.dependencies {
-      implementation(libsLibrary("kotlinx-coroutines"))
-      implementation(libsLibrary("kotlinx-collections"))
+      implementation(libsEx.`kotlinx-coroutines`)
+      implementation(libsEx.`kotlinx-collections`)
     }
     androidMain.dependencies {
-      implementation(libsLibrary("kotlinx-coroutinesAndroid"))
+      implementation(libsEx.`kotlinx-coroutinesAndroid`)
     }
     val desktopMain by getting
     desktopMain.dependencies {
-      implementation(libsLibrary("kotlinx-coroutinesSwing"))
+      implementation(libsEx.`kotlinx-coroutinesSwing`)
     }
   }
 }

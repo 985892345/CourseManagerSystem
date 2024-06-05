@@ -1,5 +1,3 @@
-import extensions.libsBundle
-import utils.Config
 import utils.kspMultiplatform
 
 plugins {
@@ -9,7 +7,10 @@ plugins {
 kotlin {
   sourceSets {
     commonMain.dependencies {
-      libsBundle("navigator").forEach { implementation(it) }
+      implementation(libsEx.`voyager-navigator`)
+      implementation(libsEx.`voyager-screenmodel`)
+      implementation(libsEx.`voyager-bottomSheetNavigator`)
+      implementation(libsEx.`voyager-transitions`)
     }
   }
 }

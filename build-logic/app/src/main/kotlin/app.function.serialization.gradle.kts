@@ -1,5 +1,3 @@
-import extensions.libsLibrary
-import utils.Config
 import utils.kspMultiplatform
 
 plugins {
@@ -10,7 +8,7 @@ plugins {
 kotlin {
   sourceSets {
     commonMain.dependencies {
-      implementation(libsLibrary("kotlinx-serialization"))
+      implementation(libsEx.`kotlinx-serialization`)
     }
   }
 }

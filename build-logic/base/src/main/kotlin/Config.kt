@@ -1,5 +1,3 @@
-package utils
-
 import org.gradle.api.Project
 
 /**

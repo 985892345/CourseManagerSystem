@@ -55,6 +55,7 @@ kotlinx-collections = "0.3.7"
 kotlinpoet = "1.16.0"
 
 
+
 spring-boot = "3.2.1"
 
 # https://mvnrepository.com/artifact/com.alibaba/druid-spring-boot-starter
@@ -134,13 +135,6 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 ktProvider = { id = "io.github.985892345.KtProvider", version.ref = "ktProvider" }
 ktorfit = { id = "io.github.qdsfdhvh.ktor-fit-plugin", version.ref = "ktor-fit" }
 
+
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
-
-[bundles]
-navigator = [
-    "voyager-navigator",
-    "voyager-screenmodel",
-    "voyager-bottomSheetNavigator",
-    "voyager-transitions",
-]
