@@ -18,8 +18,8 @@ import com.course.components.utils.compose.clickableCardIndicator
 import com.course.pages.main.api.IMainPage
 import com.course.source.app.local.source.page.SourceScreen
 import com.g985892345.provider.api.annotation.ImplProvider
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.ExperimentalResourceApi
+import coursemanagersystem.course_source.app.app_local.generated.resources.Res
+import coursemanagersystem.course_source.app.app_local.generated.resources.ic_source_bottom_bar
 import org.jetbrains.compose.resources.painterResource
 
 /**
@@ -41,7 +41,6 @@ class SourceMainPage : IMainPage {
     }
   }
 
-  @OptIn(ExperimentalResourceApi::class)
   @Composable
   override fun BoxScope.BottomAppBarItem(selected: State<Boolean>, selectToPosition: () -> Unit) {
     Box(
@@ -50,7 +49,7 @@ class SourceMainPage : IMainPage {
     ) {
       Icon(
         modifier = Modifier.size(18.dp),
-        painter = painterResource(DrawableResource("drawable/ic_source_bottom_bar.xml")),
+        painter = painterResource(Res.drawable.ic_source_bottom_bar),
         contentDescription = null,
         tint = if (selected.value) Color.Black else LocalContentColor.current.copy(alpha = LocalContentAlpha.current)
       )
