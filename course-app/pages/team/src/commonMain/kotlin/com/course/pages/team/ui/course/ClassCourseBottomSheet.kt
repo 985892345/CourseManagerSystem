@@ -429,7 +429,7 @@ class ClassCourseBottomSheet(
       onClickPositiveBtn = {
         coroutineScope.launch(Dispatchers.IO) {
           runCatching {
-            Source.api(CourseApi::class)
+            Source.api(ClassCourseApi::class)
               .deleteCourse(data.periodDate.classPlanId)
               .onFailure { logg(it.info) }
               .getOrThrow()
@@ -483,7 +483,7 @@ class ClassCourseBottomSheet(
   ) {
     coroutineScope.launch(Dispatchers.IO) {
       runCatching {
-        Source.api(CourseApi::class)
+        Source.api(ClassCourseApi::class)
           .createCourse(
             classNum = editor.lesson.lesson.classNum,
             date = editor.date.toString(),
@@ -518,7 +518,7 @@ class ClassCourseBottomSheet(
     }
     coroutineScope.launch(Dispatchers.IO) {
       runCatching {
-        Source.api(CourseApi::class)
+        Source.api(ClassCourseApi::class)
           .changeCourse(
             classPlanId = editor.lesson.periodDate.classPlanId,
             newDate = editor.date.toString(),

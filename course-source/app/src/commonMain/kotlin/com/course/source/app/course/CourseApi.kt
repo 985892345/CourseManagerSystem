@@ -16,28 +16,6 @@ interface CourseApi {
   suspend fun getCourseBean(
     num: String,
   ): ResponseWrapper<CourseBean>
-
-  suspend fun getClassMembers(classNum: String): ResponseWrapper<List<ClassMember>>
-
-  suspend fun deleteCourse(
-    classPlanId: Int,
-  ): ResponseWrapper<Unit>
-
-  suspend fun changeCourse(
-    classPlanId: Int,
-    newDate: String,
-    newBeginLesson: Int,
-    newLength: Int,
-    newClassroom: String,
-  ): ResponseWrapper<Unit>
-
-  suspend fun createCourse(
-    classNum: String,
-    date: String,
-    beginLesson: Int,
-    length: Int,
-    classroom: String,
-  ): ResponseWrapper<Int>
 }
 
 @Serializable

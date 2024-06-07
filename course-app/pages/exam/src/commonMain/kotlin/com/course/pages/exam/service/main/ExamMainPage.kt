@@ -33,14 +33,13 @@ import org.jetbrains.compose.resources.painterResource
  * 2024/4/17 12:23
  */
 @ImplProvider(clazz = IMainPage::class, name = "exam")
-class ExamMainPage : IMainPage {
+object ExamMainPage : IMainPage {
 
   override val priority: Int
     get() = 10
 
   override val visibility: Boolean
-//    get() = Account.observeAccount().value?.type == AccountType.Student
-    get() = false
+    get() = Account.observeAccount().value?.type == AccountType.Student
 
   @Composable
   override fun Content(appBarHeight: Dp) {

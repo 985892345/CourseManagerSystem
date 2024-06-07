@@ -2,7 +2,6 @@ package com.course.components.utils.navigator
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import cafe.adriel.voyager.core.screen.Screen
 import com.course.components.utils.provider.Provider
 import com.course.components.utils.serializable.ObjectSerializable
 import kotlin.reflect.KClass
@@ -15,7 +14,7 @@ import kotlin.reflect.KClass
  */
 
 /**
- * 用于跨模块标记页面入口，如果只是模块里面的私有界面，使用 [Screen] 即可
+ * 用于跨模块标记页面入口，如果只是模块里面的私有界面，使用 [BaseScreen] 即可
  *
  * 有如下约定:
  * - 只能是顶级函数

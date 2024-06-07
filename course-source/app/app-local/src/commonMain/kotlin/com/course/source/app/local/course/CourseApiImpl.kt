@@ -1,7 +1,6 @@
 package com.course.source.app.local.course
 
 import androidx.compose.runtime.snapshotFlow
-import com.course.components.utils.preferences.createSettings
 import com.course.pages.course.api.IMainCourseController
 import com.course.pages.course.api.controller.CourseController
 import com.course.source.app.account.AccountBean
@@ -106,9 +105,5 @@ object CourseApiImpl : SourceRequest(), CourseApi, IMainCourseController {
 
   override fun createCourseController(account: AccountBean?): List<CourseController> {
     return listOf(SourceCourseController(account))
-  }
-
-  init {
-    CourseApiInjector.init(courseBeanRequest)
   }
 }

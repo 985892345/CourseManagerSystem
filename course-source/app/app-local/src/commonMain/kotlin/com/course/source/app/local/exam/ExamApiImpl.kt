@@ -63,8 +63,4 @@ object ExamApiImpl : SourceRequest(), ExamApi {
       "数据源无数据"
     )
   }
-
-  init {
-    ExamApiInjector.init(examTermBeansRequest)
-  }
 }

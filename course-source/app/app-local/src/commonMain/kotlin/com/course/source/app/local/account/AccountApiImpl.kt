@@ -7,7 +7,6 @@ import com.course.components.base.account.Account
 import com.course.components.utils.init.IInitialService
 import com.course.source.app.account.AccountApi
 import com.course.source.app.account.AccountBean
-import com.course.source.app.local.request.RequestUnit
 import com.course.source.app.local.request.SourceRequest
 import com.course.source.app.response.ResponseWrapper
 import com.g985892345.provider.api.annotation.ImplProvider
@@ -39,7 +38,6 @@ object AccountApiImpl : SourceRequest(), AccountApi {
   )
 
   override suspend fun login(username: String, password: String): ResponseWrapper<String> {
-    injectorAccount(username)
     return ResponseWrapper.success("")
   }
 
@@ -53,24 +51,6 @@ object AccountApiImpl : SourceRequest(), AccountApi {
       ResponseWrapper.success(data)
     } else {
       throw RuntimeException("获取当前主用户信息失败")
-    }
-  }
-
-  private fun injectorAccount(num: String) {
-    val first = accountBeanRequest.requestUnits.firstOrNull { it.title.value == "用户信息-来自登录" }
-    if (first == null) {
-      accountBeanRequest.requestUnits.add(
-        RequestUnit.create(
-          contentKey = accountBeanRequest.key,
-          serviceKey = "Text",
-          id = accountBeanRequest.requestUnits.maxOfOrNull { it.id }?.plus(1) ?: 0,
-        ).also {
-          it.title.value = "用户信息-来自登录"
-          it.sourceData = "{\"num\":\"$num\",\"name\":\"\",\"type\":\"Student\"}"
-        }
-      )
-    } else {
-      first.sourceData = "{\"num\":\"$num\",\"name\":\"\",\"type\":\"Student\"}"
     }
   }
 

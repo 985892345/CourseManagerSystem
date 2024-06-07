@@ -3,14 +3,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.launchApplication
 import androidx.compose.ui.window.rememberWindowState
-import com.course.applications.pro.ProApp
+import com.course.applications.local.LocalApp
 import com.course.components.utils.coroutine.runApp
+import com.g985892345.provider.coursemanagersystem.courseapp.applications.local.LocalKtProviderInitializer
 
 fun main() = runApp {
-  ProApp.initApp()
+  LocalKtProviderInitializer.tryInitKtProvider()
+  LocalApp.initApp()
   launchApplication {
     val width = 396
-    val height = 720
+    val height = 800
     Window(
       onCloseRequest = ::exitApplication,
       title = "课表管理系统",
@@ -20,7 +22,7 @@ fun main() = runApp {
       remember {
         this.window.minimumSize = java.awt.Dimension(width, height)
       }
-      ProApp.Content()
+      LocalApp.Content()
     }
   }
 }

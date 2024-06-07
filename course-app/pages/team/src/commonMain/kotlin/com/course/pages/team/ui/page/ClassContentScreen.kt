@@ -3,18 +3,7 @@ package com.course.pages.team.ui.page
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
@@ -48,8 +37,8 @@ import com.course.components.utils.source.getOrThrow
 import com.course.pages.course.api.item.lesson.LessonItemData
 import com.course.pages.team.ui.course.ClassCourseBottomSheet
 import com.course.pages.team.utils.ClassMemberStateSerializer
+import com.course.source.app.course.ClassCourseApi
 import com.course.source.app.course.ClassMember
-import com.course.source.app.course.CourseApi
 import kotlinx.serialization.Serializable
 
 /**
@@ -83,7 +72,7 @@ class ClassContentScreen(
   private fun requestMembers() {
     LaunchedEffect(Unit) {
       runCatching {
-        Source.api(CourseApi::class)
+        Source.api(ClassCourseApi::class)
           .getClassMembers(data.lesson.classNum)
           .getOrThrow()
       }.tryThrowCancellationException().onSuccess {

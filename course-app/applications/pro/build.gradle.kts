@@ -10,7 +10,7 @@ composeApplication {
   config(
     versionCode = 1,
     versionName = "1.0.0",
-    desktopMainClass = "MainKt",
+    desktopMainClass = "ProMainKt",
   )
 }
 
@@ -19,7 +19,6 @@ kotlin {
     commonMain.dependencies {
       val courseAppFile = rootDir.resolve("course-app")
       implementationModules("components", courseAppFile.resolve("components"))
-      implementationModules("functions", courseAppFile.resolve("functions"))
       implementationModules("pages", courseAppFile.resolve("pages"))
       implementation(projects.courseSource.app.appServer)
     }

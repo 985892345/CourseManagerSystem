@@ -6,7 +6,6 @@ import com.course.components.utils.Utils
 import com.course.pages.login.LoginScreen
 import com.course.pages.main.MainScreen
 import com.course.pages.main.sHasLogin
-import com.g985892345.provider.coursemanagersystem.courseapp.applications.pro.ProKtProviderInitializer
 
 /**
  * .
@@ -18,7 +17,6 @@ import com.g985892345.provider.coursemanagersystem.courseapp.applications.pro.Pr
 object ProApp {
 
   fun initApp() {
-    ProKtProviderInitializer.tryInitKtProvider()
     Utils.initApp()
   }
 
