@@ -8,7 +8,7 @@ compose = "1.6.7"
 compose-compiler = "1.5.14"
 
 # https://github.com/JetBrains/compose-multiplatform/releases
-compose-plugin = "1.6.10"
+compose-plugin = "1.6.11"
 
 kotlin = "2.0.0"
 
@@ -16,10 +16,10 @@ kotlin = "2.0.0"
 kotlinx-coroutines = "1.9.0-RC"
 
 # https://github.com/Kotlin/kotlinx.serialization
-kotlinx-serialization = "1.7.0-RC"
+kotlinx-serialization = "1.7.0"
 
 # https://github.com/google/ksp/releases
-ksp = "2.0.0-1.0.21" # ksp 版本与 kotlin 版本强绑定，升级 kotlin 记得去更 ksp
+ksp = "2.0.0-1.0.22" # ksp 版本与 kotlin 版本强绑定，升级 kotlin 记得去更 ksp
 
 # https://github.com/Kotlin/kotlinx-datetime
 kotlinxDatetime = "0.6.0"
@@ -34,13 +34,13 @@ androidWheel = "0.0.1-alpha16-SNAPSHOT" # 985892345 的 Android 轮子库
 ktor-fit = "2.0.0-1.1.0"
 
 # https://github.com/985892345/KtProvider
-ktProvider = "1.4.0-alpha03-SNAPSHOT" # 985892345 的 kt 多平台跨模块服务提供框架
+ktProvider = "1.4.0" # 985892345 的 kt 多平台跨模块服务提供框架
 
 # https://github.com/russhwolf/multiplatform-settings
 multiplatformSettings = "1.1.1"
 
 # https://github.com/adrielcafe/voyager
-voyager = "1.1.0-beta01"
+voyager = "1.1.0-beta02"
 
 # https://github.com/Lavmee/constraintlayout-compose-multiplatform
 constraintLayout = "0.4.0"
@@ -56,19 +56,19 @@ kotlinpoet = "1.17.0"
 
 
 
-spring-boot = "3.2.1"
+spring-boot = "3.2.5"
 
 # https://mvnrepository.com/artifact/com.alibaba/druid-spring-boot-starter
-druid = "1.2.21"
+druid = "1.2.23"
 
 # https://mvnrepository.com/artifact/com.mysql/mysql-connector-j
-mysql = "8.2.0"
+mysql = "8.4.0"
 
 # https://github.com/baomidou/mybatis-plus
-mybatisPlus = "3.5.5"
+mybatisPlus = "3.5.6"
 
 # https://github.com/jwtk/jjwt#installation
-jjwt = "0.12.3"
+jjwt = "0.12.5"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
