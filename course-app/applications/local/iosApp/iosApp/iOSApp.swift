@@ -4,7 +4,7 @@ import AppApplicationsLocal
 @main
 struct iOSApp: App {
     init() {
-        ProApp.shared.doInitApp()
+        MainViewControllerKt.doInitApp()
     }
 	var body: some Scene {
 		WindowGroup {

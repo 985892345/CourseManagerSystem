@@ -12,10 +12,14 @@
 <details>
 <summary>打包教程折叠/展开</summary>
 
-#### Android
+#### Android 打包
 执行 `course-app.applications.local` 配置即可
 
-#### iOS
+#### iOS 打包
+⚠️注意：目前 iOS 虽已支持打包运行，但是子模块的资源不会一同打包。
+官方已修护该[问题](https://github.com/JetBrains/compose-multiplatform/pull/4454)，
+但需要 kt2.0 版本，当前项目还在 dev-kt2 分支适配中
+
 > 前提：只能在 Mac 上才能打包
 
 ##### 模拟器
