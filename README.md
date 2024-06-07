@@ -13,6 +13,8 @@
 
 <img src="img/img.png" />
 
+详细功能的介绍请看答辩时做的 ppt 吧，这里我画了部分 UI 操作图：[click](img/ppt.pdf)
+
 ## 构建
 本项目最初的想法是支持构建出云端和本地版本，所以 [course-app/applications](course-app/applications) 下有 pro 和 local 两个模块，
 分别对应云端和本地版本。对于网络请求也单独分离出了 [course-source](course-source) 模块。
